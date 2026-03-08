@@ -47,9 +47,12 @@ export function ScheduleEditor({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Reset form and add initial slot when dialog opens
   useEffect(() => {
-    if (open && slots.length === 0) {
+    if (open) {
+      setEventId('');
       setSlots([{ day: selectedDay ?? 0, hour: '12', minute: '00' }]);
+      setError(null);
     }
   }, [open, selectedDay]);
 
@@ -81,7 +84,6 @@ export function ScheduleEditor({
     setLoading(false);
 
     if (!hasError) {
-      resetForm();
       onOpenChange(false);
     } else {
       setError('Alguns horários não foram adicionados (podem já existir)');
@@ -110,16 +112,7 @@ export function ScheduleEditor({
     );
   };
 
-  const resetForm = () => {
-    setEventId('');
-    setSlots([]);
-    setError(null);
-  };
-
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
-      resetForm();
-    }
     onOpenChange(newOpen);
   };
 

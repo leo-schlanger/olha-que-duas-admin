@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -26,13 +26,28 @@ interface EventFormProps {
 }
 
 export function EventForm({ open, onOpenChange, event, onSubmit }: EventFormProps) {
-  const [name, setName] = useState(event?.name || '');
-  const [description, setDescription] = useState(event?.description || '');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isEditing = !!event;
+
+  // Sync form state when dialog opens or event changes
+  useEffect(() => {
+    if (open) {
+      if (event) {
+        setName(event.name);
+        setDescription(event.description || '');
+      } else {
+        setName('');
+        setDescription('');
+      }
+      setIconFile(null);
+      setError(null);
+    }
+  }, [open, event]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,25 +72,11 @@ export function EventForm({ open, onOpenChange, event, onSubmit }: EventFormProp
     setLoading(false);
 
     if (success) {
-      resetForm();
       onOpenChange(false);
     }
   };
 
-  const resetForm = () => {
-    setName('');
-    setDescription('');
-    setIconFile(null);
-    setError(null);
-  };
-
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
-      resetForm();
-    } else if (event) {
-      setName(event.name);
-      setDescription(event.description || '');
-    }
     onOpenChange(newOpen);
   };
 
