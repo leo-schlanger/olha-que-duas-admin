@@ -1,31 +1,131 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: 0 0% 100%;
-  --color-foreground: 222.2 84% 4.9%;
-  --color-card: 0 0% 100%;
-  --color-card-foreground: 222.2 84% 4.9%;
-  --color-popover: 0 0% 100%;
-  --color-popover-foreground: 222.2 84% 4.9%;
-  --color-primary: 262 83% 58%;
-  --color-primary-foreground: 210 40% 98%;
-  --color-secondary: 210 40% 96.1%;
-  --color-secondary-foreground: 222.2 47.4% 11.2%;
-  --color-muted: 210 40% 96.1%;
-  --color-muted-foreground: 215.4 16.3% 46.9%;
-  --color-accent: 210 40% 96.1%;
-  --color-accent-foreground: 222.2 47.4% 11.2%;
-  --color-destructive: 0 84.2% 60.2%;
-  --color-destructive-foreground: 210 40% 98%;
-  --color-border: 214.3 31.8% 91.4%;
-  --color-input: 214.3 31.8% 91.4%;
-  --color-ring: 262 83% 58%;
-  --radius: 0.5rem;
+  /* Brand Colors - Olha que Duas */
+  --color-vermelho: hsl(8 72% 50%);
+  --color-vermelho-soft: hsl(8 65% 58%);
+  --color-vermelho-dark: hsl(8 72% 40%);
+
+  --color-amarelo: hsl(45 80% 60%);
+  --color-amarelo-soft: hsl(45 70% 70%);
+
+  --color-beige-light: hsl(38 40% 96%);
+  --color-beige: hsl(36 35% 92%);
+  --color-beige-medium: hsl(34 30% 85%);
+  --color-beige-warm: hsl(32 25% 75%);
+  --color-beige-dark: hsl(30 20% 35%);
+
+  --color-cream: hsl(40 45% 97%);
+  --color-charcoal: hsl(30 20% 35%);
+
+  /* Semantic Colors */
+  --color-background: var(--color-beige-light);
+  --color-foreground: var(--color-charcoal);
+  --color-card: var(--color-cream);
+  --color-card-foreground: var(--color-charcoal);
+  --color-popover: var(--color-cream);
+  --color-popover-foreground: var(--color-charcoal);
+  --color-primary: var(--color-vermelho);
+  --color-primary-foreground: white;
+  --color-secondary: var(--color-beige-medium);
+  --color-secondary-foreground: var(--color-charcoal);
+  --color-muted: var(--color-beige);
+  --color-muted-foreground: hsl(30 15% 50%);
+  --color-accent: var(--color-amarelo);
+  --color-accent-foreground: var(--color-charcoal);
+  --color-destructive: hsl(0 84% 60%);
+  --color-destructive-foreground: white;
+  --color-border: var(--color-beige-medium);
+  --color-input: var(--color-beige-medium);
+  --color-ring: var(--color-vermelho);
+  --color-success: hsl(142 76% 36%);
+
+  --radius: 0.75rem;
+
+  /* Typography */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtM.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff2') format('woff2');
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   margin: 0;
-  background-color: hsl(var(--color-background));
-  color: hsl(var(--color-foreground));
+  min-height: 100vh;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-beige);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-beige-warm);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-charcoal);
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-amarelo);
+  color: var(--color-charcoal);
+}
+
+/* Font utilities */
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Gradient backgrounds */
+.bg-brand-gradient {
+  background: linear-gradient(135deg, var(--color-vermelho) 0%, var(--color-amarelo) 100%);
+}
+
+.bg-brand-gradient-soft {
+  background: linear-gradient(135deg, var(--color-vermelho-soft) 0%, var(--color-amarelo-soft) 100%);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
 }

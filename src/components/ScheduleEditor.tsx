@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Clock, Calendar } from 'lucide-react';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
 import {
@@ -27,7 +27,6 @@ interface ScheduleEditorProps {
   onAdd: (eventId: string, dayOfWeek: DayOfWeek, time: string) => Promise<boolean>;
 }
 
-// Minutos para seleção
 const MINUTES = ['00', '15', '30', '45'];
 
 interface DayTimeSlot {
@@ -48,7 +47,6 @@ export function ScheduleEditor({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Adiciona slot inicial quando abre
   useEffect(() => {
     if (open && slots.length === 0) {
       setSlots([{ day: selectedDay ?? 0, hour: '12', minute: '00' }]);
@@ -129,29 +127,38 @@ export function ScheduleEditor({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[520px] bg-cream border-beige-medium">
         <DialogHeader>
-          <DialogTitle>Adicionar à Programação</DialogTitle>
+          <DialogTitle className="font-display text-2xl text-charcoal flex items-center gap-2">
+            <Calendar className="h-6 w-6 text-amarelo" />
+            Adicionar à Programação
+          </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Seleção de Evento */}
+        <form onSubmit={handleSubmit} className="space-y-5 mt-2">
+          {/* Event Selection */}
           <div className="space-y-2">
-            <Label>Evento</Label>
+            <Label className="text-charcoal font-medium">
+              Evento <span className="text-vermelho">*</span>
+            </Label>
             <Select value={eventId} onValueChange={setEventId}>
-              <SelectTrigger>
+              <SelectTrigger className="h-11 bg-beige-light border-beige-medium focus:border-vermelho focus:ring-vermelho">
                 <SelectValue placeholder="Selecione um evento" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-cream border-beige-medium">
                 {activeEvents.map((event) => (
-                  <SelectItem key={event.id} value={event.id}>
-                    <div className="flex items-center gap-2">
+                  <SelectItem
+                    key={event.id}
+                    value={event.id}
+                    className="focus:bg-beige-light"
+                  >
+                    <div className="flex items-center gap-3">
                       <img
                         src={event.icon_url}
                         alt=""
-                        className="w-5 h-5 object-contain"
+                        className="w-6 h-6 object-contain rounded"
                       />
-                      <span>{event.name}</span>
+                      <span className="font-medium">{event.name}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -159,16 +166,20 @@ export function ScheduleEditor({
             </Select>
           </div>
 
-          {/* Preview do evento selecionado */}
+          {/* Selected Event Preview */}
           {selectedEvent && (
-            <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-              <img
-                src={selectedEvent.icon_url}
-                alt=""
-                className="w-12 h-12 object-contain rounded"
-              />
-              <div>
-                <p className="font-medium">{selectedEvent.name}</p>
+            <div className="flex items-center gap-4 p-4 bg-beige-light rounded-xl border border-beige-medium">
+              <div className="w-14 h-14 rounded-xl bg-cream border border-beige-medium flex items-center justify-center overflow-hidden">
+                <img
+                  src={selectedEvent.icon_url}
+                  alt=""
+                  className="w-10 h-10 object-contain"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-bold text-charcoal">
+                  {selectedEvent.name}
+                </p>
                 {selectedEvent.description && (
                   <p className="text-sm text-muted-foreground line-clamp-1">
                     {selectedEvent.description}
@@ -178,59 +189,64 @@ export function ScheduleEditor({
             </div>
           )}
 
-          {/* Slots de dia/horário */}
+          {/* Time Slots */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>Dias e Horários</Label>
+              <Label className="text-charcoal font-medium flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                Dias e Horários
+              </Label>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={addSlot}
+                className="h-8 border-beige-medium hover:bg-beige-light hover:border-vermelho"
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Adicionar
               </Button>
             </div>
 
-            <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2">
+            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
               {slots.map((slot, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg"
+                  className="flex items-center gap-2 p-3 bg-beige-light rounded-xl border border-beige-medium animate-fade-in"
                 >
-                  {/* Dia da semana */}
+                  {/* Day Selection */}
                   <Select
                     value={slot.day.toString()}
                     onValueChange={(v) =>
                       updateSlot(index, { day: parseInt(v) as DayOfWeek })
                     }
                   >
-                    <SelectTrigger className="w-[100px]">
+                    <SelectTrigger className="w-[100px] h-10 bg-cream border-beige-medium focus:border-vermelho">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-cream border-beige-medium">
                       {Object.entries(DAYS_OF_WEEK_SHORT).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
+                        <SelectItem key={value} value={value} className="focus:bg-beige-light">
                           {label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
 
-                  {/* Hora */}
+                  {/* Hour Selection */}
                   <Select
                     value={slot.hour}
                     onValueChange={(v) => updateSlot(index, { hour: v })}
                   >
-                    <SelectTrigger className="w-[80px]">
+                    <SelectTrigger className="w-[80px] h-10 bg-cream border-beige-medium focus:border-vermelho">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-cream border-beige-medium max-h-[200px]">
                       {Array.from({ length: 24 }, (_, i) => i).map((h) => (
                         <SelectItem
                           key={h}
                           value={h.toString().padStart(2, '0')}
+                          className="focus:bg-beige-light"
                         >
                           {h.toString().padStart(2, '0')}h
                         </SelectItem>
@@ -238,35 +254,35 @@ export function ScheduleEditor({
                     </SelectContent>
                   </Select>
 
-                  <span className="text-muted-foreground">:</span>
+                  <span className="text-lg font-bold text-muted-foreground">:</span>
 
-                  {/* Minutos */}
+                  {/* Minute Selection */}
                   <Select
                     value={slot.minute}
                     onValueChange={(v) => updateSlot(index, { minute: v })}
                   >
-                    <SelectTrigger className="w-[70px]">
+                    <SelectTrigger className="w-[75px] h-10 bg-cream border-beige-medium focus:border-vermelho">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-cream border-beige-medium">
                       {MINUTES.map((m) => (
-                        <SelectItem key={m} value={m}>
+                        <SelectItem key={m} value={m} className="focus:bg-beige-light">
                           {m}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
 
-                  {/* Remover */}
+                  {/* Remove Button */}
                   {slots.length > 1 && (
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 ml-auto"
+                      className="h-10 w-10 ml-auto hover:bg-red-50 hover:text-red-600"
                       onClick={() => removeSlot(index)}
                     >
-                      <X className="h-4 w-4 text-muted-foreground" />
+                      <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -274,39 +290,57 @@ export function ScheduleEditor({
             </div>
 
             {slots.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Clique em "Adicionar" para incluir dias e horários
-              </p>
+              <div className="text-center py-8 text-muted-foreground">
+                <Clock className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Clique em "Adicionar" para incluir horários</p>
+              </div>
             )}
           </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {/* Error Message */}
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="w-2 h-2 bg-red-500 rounded-full" />
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
               disabled={loading}
+              className="border-beige-medium hover:bg-beige-light"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={loading || activeEvents.length === 0 || slots.length === 0}
+              className="bg-vermelho hover:bg-vermelho-dark text-white"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              {loading
-                ? 'Adicionando...'
-                : `Adicionar ${slots.length} horário${slots.length !== 1 ? 's' : ''}`}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Adicionando...
+                </span>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar {slots.length} horário{slots.length !== 1 ? 's' : ''}
+                </>
+              )}
             </Button>
           </DialogFooter>
         </form>
 
         {activeEvents.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-2">
-            Nenhum evento ativo disponível. Ative ou crie eventos primeiro.
-          </p>
+          <div className="text-center py-4 text-muted-foreground bg-beige-light rounded-lg mt-2">
+            <p className="text-sm">
+              Nenhum evento ativo. Crie ou ative eventos primeiro.
+            </p>
+          </div>
         )}
       </DialogContent>
     </Dialog>
