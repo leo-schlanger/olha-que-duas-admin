@@ -73,11 +73,11 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
           {/* Email Content */}
           <div className="bg-[#FAF9F6]">
             {/* Header with Logo */}
-            <div className="bg-[#2D2D2D] py-8 text-center">
+            <div className="bg-[#2D2D2D] py-10 text-center">
               <img
                 src={logo}
                 alt="Olha que Duas"
-                className="h-20 mx-auto"
+                className="h-24 mx-auto"
               />
             </div>
 
