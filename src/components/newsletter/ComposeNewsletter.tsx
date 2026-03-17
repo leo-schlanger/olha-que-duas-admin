@@ -12,55 +12,36 @@ import {
   DialogDescription,
   DialogFooter,
 } from '../ui/dialog';
-import { BlogPostSelector, blogPostToNewsletterPost } from './BlogPostSelector';
+import { BlockEditor, type ContentBlock } from './BlockEditor';
 import { EmailPreview } from './EmailPreview';
-import type { BlogPost, NewsletterPost } from '../../types';
 
 interface ComposeNewsletterProps {
-  posts: BlogPost[];
-  postsLoading: boolean;
   totalSubscribers: number;
   sending: boolean;
-  onRefreshPosts: () => void;
-  onSend: (subject: string, posts: NewsletterPost[]) => Promise<boolean>;
+  onSend: (subject: string, blocks: ContentBlock[]) => Promise<boolean>;
   onSendTest: (
     subject: string,
-    posts: NewsletterPost[],
+    blocks: ContentBlock[],
     testEmail: string
   ) => Promise<boolean>;
 }
 
 export function ComposeNewsletter({
-  posts,
-  postsLoading,
   totalSubscribers,
   sending,
-  onRefreshPosts,
   onSend,
   onSendTest,
 }: ComposeNewsletterProps) {
   const [subject, setSubject] = useState('');
-  const [selectedPostIds, setSelectedPostIds] = useState<string[]>([]);
+  const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [testDialogOpen, setTestDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const selectedPosts: NewsletterPost[] = posts
-    .filter((p) => selectedPostIds.includes(p.id))
-    .map(blogPostToNewsletterPost);
-
-  const handleTogglePost = (postId: string) => {
-    setSelectedPostIds((prev) =>
-      prev.includes(postId)
-        ? prev.filter((id) => id !== postId)
-        : [...prev, postId]
-    );
-  };
-
   const handleSendTest = async () => {
     if (!testEmail) return;
-    const success = await onSendTest(subject, selectedPosts, testEmail);
+    const success = await onSendTest(subject, blocks, testEmail);
     if (success) {
       setTestDialogOpen(false);
       setSuccessMessage(`Email de teste enviado para ${testEmail}`);
@@ -69,17 +50,18 @@ export function ComposeNewsletter({
   };
 
   const handleSend = async () => {
-    const success = await onSend(subject, selectedPosts);
+    const success = await onSend(subject, blocks);
     if (success) {
       setConfirmDialogOpen(false);
       setSuccessMessage('Newsletter enviada com sucesso!');
       setSubject('');
-      setSelectedPostIds([]);
+      setBlocks([]);
       setTimeout(() => setSuccessMessage(null), 5000);
     }
   };
 
-  const canSend = subject.trim() && selectedPosts.length > 0;
+  const hasContent = blocks.some((b) => b.content.trim());
+  const canSend = subject.trim() && hasContent;
 
   return (
     <div className="space-y-6">
@@ -97,7 +79,7 @@ export function ComposeNewsletter({
           Compor Newsletter
         </h2>
         <p className="text-muted-foreground mt-1">
-          Seleciona as notícias e envia para {totalSubscribers} subscritores
+          Cria o conteúdo e envia para {totalSubscribers} subscritores
         </p>
       </div>
 
@@ -114,23 +96,17 @@ export function ComposeNewsletter({
                   id="subject"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Ex: As novidades desta semana!"
+                  placeholder="Ex: Novidades e promoções desta semana!"
                   className="bg-white"
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Post Selector */}
+          {/* Block Editor */}
           <Card className="bg-cream border-beige-medium">
             <CardContent className="p-4">
-              <BlogPostSelector
-                posts={posts}
-                selectedPosts={selectedPostIds}
-                loading={postsLoading}
-                onTogglePost={handleTogglePost}
-                onRefresh={onRefreshPosts}
-              />
+              <BlockEditor blocks={blocks} onChange={setBlocks} />
             </CardContent>
           </Card>
 
@@ -160,7 +136,7 @@ export function ComposeNewsletter({
         <div>
           <Card className="bg-cream border-beige-medium sticky top-24">
             <CardContent className="p-4">
-              <EmailPreview subject={subject} posts={selectedPosts} />
+              <EmailPreview subject={subject} blocks={blocks} />
             </CardContent>
           </Card>
         </div>
@@ -225,7 +201,7 @@ export function ComposeNewsletter({
               <strong>Assunto:</strong> {subject}
             </p>
             <p className="text-sm">
-              <strong>Notícias:</strong> {selectedPosts.length}
+              <strong>Blocos de conteúdo:</strong> {blocks.filter((b) => b.content.trim()).length}
             </p>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">

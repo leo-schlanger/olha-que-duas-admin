@@ -1,15 +1,16 @@
 import { Monitor, Smartphone } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
-import type { NewsletterPost } from '../../types';
+import { Card } from '../ui/card';
+import type { ContentBlock } from './BlockEditor';
+import logo from '../../assets/logo-olha-que-duas.png';
 
 interface EmailPreviewProps {
   subject: string;
-  posts: NewsletterPost[];
+  blocks: ContentBlock[];
 }
 
-export function EmailPreview({ subject, posts }: EmailPreviewProps) {
+export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
 
   return (
@@ -63,81 +64,66 @@ export function EmailPreview({ subject, posts }: EmailPreviewProps) {
           </div>
 
           {/* Email Content */}
-          <div className="bg-[#F5F5F0]">
-            {/* Header */}
+          <div className="bg-[#FAF9F6]">
+            {/* Header with Logo */}
             <div className="bg-[#2D2D2D] py-6 text-center">
-              <div className="w-32 h-10 bg-white/10 rounded mx-auto flex items-center justify-center">
-                <span className="text-white font-display font-bold text-sm">
-                  Olha que Duas
-                </span>
-              </div>
+              <img
+                src={logo}
+                alt="Olha que Duas"
+                className="h-12 mx-auto"
+              />
             </div>
 
-            {/* Yellow Bar */}
-            <div className="h-1.5 bg-gradient-to-r from-amarelo to-vermelho" />
+            {/* Yellow/Red Gradient Bar */}
+            <div className="h-1.5 bg-gradient-to-r from-[#F4C430] to-[#E63946]" />
 
             {/* Content */}
-            <div className="p-6 bg-[#FAF9F6]">
+            <div className="p-6">
               {/* Greeting */}
-              <p className="text-xl font-bold text-charcoal mb-1">
-                Olá {'{{nome}}'}!
+              <p className="text-xl font-bold text-[#2D2D2D] mb-1">
+                Olá!
               </p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Aqui estão as últimas notícias do mundo Olha que Duas.
+              <p className="text-sm text-gray-600 mb-6">
+                Aqui estão as novidades da Olha que Duas.
               </p>
 
-              {/* Gradient Divider */}
-              <div className="h-0.5 bg-gradient-to-r from-vermelho to-amarelo rounded mb-6" />
-
-              {/* Posts */}
-              {posts.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground text-sm">
-                  Seleciona notícias para visualizar aqui
+              {/* Blocks */}
+              {blocks.length === 0 ? (
+                <div className="py-8 text-center text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-lg">
+                  Adiciona blocos de conteúdo para visualizar aqui
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {posts.map((post, index) => (
-                    <Card
-                      key={index}
-                      className="overflow-hidden border-0 shadow-sm"
+                  {blocks.map((block, index) => (
+                    <div
+                      key={block.id}
+                      className="bg-white rounded-lg p-4 shadow-sm border border-gray-100"
                     >
-                      {post.image_url && (
-                        <img
-                          src={post.image_url}
-                          alt={post.titulo}
-                          className="w-full h-40 object-cover"
-                        />
-                      )}
-                      <CardContent className="p-4">
-                        <span className="text-[10px] font-semibold text-vermelho uppercase tracking-wider">
-                          {post.categoria}
-                        </span>
-                        <h4 className="font-bold text-charcoal mt-1 mb-2">
-                          {post.titulo}
-                        </h4>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                          {post.resumo}
+                      {block.content ? (
+                        <p className="text-[#2D2D2D] text-sm whitespace-pre-wrap leading-relaxed">
+                          {block.content}
                         </p>
-                        <span className="inline-block px-4 py-2 bg-vermelho text-white text-sm font-medium rounded-lg">
-                          Ler mais &rarr;
-                        </span>
-                      </CardContent>
-                    </Card>
+                      ) : (
+                        <p className="text-gray-400 text-sm italic">
+                          Bloco {index + 1} vazio
+                        </p>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
             </div>
 
             {/* Social Footer */}
-            <div className="bg-amarelo py-5 text-center">
-              <p className="font-semibold text-charcoal text-sm mb-3">
+            <div className="bg-[#F4C430] py-5 text-center">
+              <p className="font-semibold text-[#2D2D2D] text-sm mb-3">
                 Segue-nos nas redes sociais!
               </p>
               <div className="flex justify-center gap-3">
                 {['IG', 'YT', 'FB'].map((social) => (
                   <span
                     key={social}
-                    className="w-8 h-8 bg-charcoal rounded-full text-white text-xs font-medium flex items-center justify-center"
+                    className="w-8 h-8 bg-[#2D2D2D] rounded-full text-white text-xs font-medium flex items-center justify-center"
                   >
                     {social}
                   </span>
@@ -148,9 +134,9 @@ export function EmailPreview({ subject, posts }: EmailPreviewProps) {
             {/* Footer */}
             <div className="bg-[#2D2D2D] py-4 text-center">
               <p className="text-white/80 text-xs mb-1">
-                &copy; 2025 Olha que Duas • Todos os direitos reservados
+                &copy; {new Date().getFullYear()} Olha que Duas
               </p>
-              <p className="text-amarelo text-xs">Cancelar subscrição</p>
+              <p className="text-[#F4C430] text-xs">Cancelar subscrição</p>
             </div>
           </div>
         </Card>

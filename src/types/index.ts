@@ -60,26 +60,13 @@ export interface SubscribersResponse {
   offset: number;
 }
 
-export interface NewsletterPost {
-  titulo: string;
-  resumo: string;
-  image_url: string;
-  link: string;
-  categoria: string;
-}
-
-export interface BlogPost {
+export interface ContentBlock {
   id: string;
-  title: string;
-  summary: string;
-  image_url: string;
-  slug: string;
-  category: string;
-  published_at: string;
+  content: string;
 }
 
 export interface NewsletterCampaign {
   subject: string;
-  noticias: NewsletterPost[];
+  blocks: ContentBlock[];
   testEmail?: string;
 }

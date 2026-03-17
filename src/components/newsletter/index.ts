@@ -1,4 +1,4 @@
 export { SubscriberList } from './SubscriberList';
-export { BlogPostSelector, blogPostToNewsletterPost } from './BlogPostSelector';
+export { BlockEditor, type ContentBlock } from './BlockEditor';
 export { EmailPreview } from './EmailPreview';
 export { ComposeNewsletter } from './ComposeNewsletter';

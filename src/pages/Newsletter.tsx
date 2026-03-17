@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { PenLine, Users, History } from 'lucide-react';
 import { useNewsletter } from '../hooks/useNewsletter';
-import { useBlogPosts } from '../hooks/useBlogPosts';
 import { ComposeNewsletter } from '../components/newsletter/ComposeNewsletter';
 import { SubscriberList } from '../components/newsletter/SubscriberList';
 import { Card, CardContent } from '../components/ui/card';
-import type { NewsletterPost } from '../types';
+import type { ContentBlock } from '../components/newsletter/BlockEditor';
 
 export function Newsletter() {
   const [activeTab, setActiveTab] = useState('compose');
@@ -22,36 +21,27 @@ export function Newsletter() {
     sendTestEmail,
   } = useNewsletter();
 
-  const {
-    posts,
-    loading: postsLoading,
-    error: postsError,
-    fetchPosts,
-  } = useBlogPosts();
-
   const handleSend = async (
     subject: string,
-    noticias: NewsletterPost[]
+    blocks: ContentBlock[]
   ): Promise<boolean> => {
-    return sendNewsletter({ subject, noticias });
+    return sendNewsletter({ subject, blocks });
   };
 
   const handleSendTest = async (
     subject: string,
-    noticias: NewsletterPost[],
+    blocks: ContentBlock[],
     testEmail: string
   ): Promise<boolean> => {
-    return sendTestEmail({ subject, noticias }, testEmail);
+    return sendTestEmail({ subject, blocks }, testEmail);
   };
-
-  const error = newsletterError || postsError;
 
   return (
     <div className="space-y-6">
       {/* Error Display */}
-      {error && (
+      {newsletterError && (
         <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">
-          {error}
+          {newsletterError}
         </div>
       )}
 
@@ -84,11 +74,8 @@ export function Newsletter() {
         <div className="mt-6">
           <TabsContent value="compose" className="mt-0">
             <ComposeNewsletter
-              posts={posts}
-              postsLoading={postsLoading}
               totalSubscribers={totalSubscribers}
               sending={sending}
-              onRefreshPosts={fetchPosts}
               onSend={handleSend}
               onSendTest={handleSendTest}
             />

@@ -6,58 +6,36 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface NewsletterPost {
-  titulo: string;
-  resumo: string;
-  image_url: string;
-  link: string;
-  categoria: string;
+interface ContentBlock {
+  id: string;
+  content: string;
 }
 
 interface SendRequest {
   subject: string;
-  noticias: NewsletterPost[];
-  testEmail?: string; // If provided, send only to this email for testing
+  blocks: ContentBlock[];
+  testEmail?: string;
 }
 
-function generateEmailTemplate(noticias: NewsletterPost[]): string {
-  const noticiasHtml = noticias
+function generateEmailTemplate(blocks: ContentBlock[]): string {
+  const blocksHtml = blocks
+    .filter((block) => block.content.trim())
     .map(
-      (noticia) => `
-    <tr>
-      <td style="padding: 20px 0;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-          ${
-            noticia.image_url
-              ? `
-          <tr>
-            <td>
-              <img src="${noticia.image_url}" alt="${noticia.titulo}" style="width: 100%; height: 200px; object-fit: cover; display: block;">
-            </td>
-          </tr>
-          `
-              : ""
-          }
-          <tr>
-            <td style="padding: 24px;">
-              <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 600; color: #E63946; text-transform: uppercase; letter-spacing: 1px;">
-                ${noticia.categoria}
-              </p>
-              <h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #2D2D2D; line-height: 1.3;">
-                ${noticia.titulo}
-              </h3>
-              <p style="margin: 0 0 20px 0; font-size: 15px; color: #666666; line-height: 1.6;">
-                ${noticia.resumo}
-              </p>
-              <a href="${noticia.link}" style="display: inline-block; padding: 12px 24px; background-color: #E63946; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: 8px;">
-                Ler mais &rarr;
-              </a>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  `
+      (block) => `
+      <tr>
+        <td style="padding: 12px 0;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #E8E4DC;">
+            <tr>
+              <td style="padding: 20px;">
+                <p style="margin: 0; font-size: 15px; color: #2D2D2D; line-height: 1.7; white-space: pre-wrap;">
+                  ${block.content.replace(/\n/g, "<br>")}
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    `
     )
     .join("");
 
@@ -69,20 +47,20 @@ function generateEmailTemplate(noticias: NewsletterPost[]): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Newsletter Olha que Duas</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #F5F5F0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F5F5F0;">
+<body style="margin: 0; padding: 0; background-color: #FAF9F6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #FAF9F6;">
     <tr>
       <td align="center" style="padding: 40px 20px;">
         <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%;">
 
-          <!-- Header -->
+          <!-- Header with Logo -->
           <tr>
             <td style="background-color: #2D2D2D; padding: 24px; text-align: center; border-radius: 12px 12px 0 0;">
               <img src="https://olhaqueduas.com/logo-olha-que-duas.png" alt="Olha que Duas" style="height: 50px; width: auto;">
             </td>
           </tr>
 
-          <!-- Yellow Bar -->
+          <!-- Yellow/Red Gradient Bar -->
           <tr>
             <td style="height: 6px; background: linear-gradient(90deg, #F4C430 0%, #E63946 100%);"></td>
           </tr>
@@ -92,18 +70,15 @@ function generateEmailTemplate(noticias: NewsletterPost[]): string {
             <td style="background-color: #FAF9F6; padding: 32px 24px;">
               <!-- Greeting -->
               <p style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: #2D2D2D;">
-                Olá {{params.NOME}}!
+                Olá!
               </p>
               <p style="margin: 0 0 24px 0; font-size: 16px; color: #666666; line-height: 1.5;">
-                Aqui estão as últimas notícias do mundo Olha que Duas.
+                Aqui estão as novidades da Olha que Duas.
               </p>
 
-              <!-- Gradient Divider -->
-              <div style="height: 3px; background: linear-gradient(90deg, #E63946 0%, #F4C430 100%); border-radius: 2px; margin-bottom: 8px;"></div>
-
-              <!-- News Items -->
+              <!-- Content Blocks -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                ${noticiasHtml}
+                ${blocksHtml}
               </table>
             </td>
           </tr>
@@ -117,17 +92,17 @@ function generateEmailTemplate(noticias: NewsletterPost[]): string {
               <table cellpadding="0" cellspacing="0" border="0" align="center">
                 <tr>
                   <td style="padding: 0 8px;">
-                    <a href="https://instagram.com/olhaqueduas" style="display: inline-block; width: 40px; height: 40px; background-color: #2D2D2D; border-radius: 50%; text-align: center; line-height: 40px; color: #ffffff; text-decoration: none; font-size: 18px;">
+                    <a href="https://instagram.com/olhaqueduas" style="display: inline-block; width: 40px; height: 40px; background-color: #2D2D2D; border-radius: 50%; text-align: center; line-height: 40px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600;">
                       IG
                     </a>
                   </td>
                   <td style="padding: 0 8px;">
-                    <a href="https://youtube.com/@olhaqueduas" style="display: inline-block; width: 40px; height: 40px; background-color: #2D2D2D; border-radius: 50%; text-align: center; line-height: 40px; color: #ffffff; text-decoration: none; font-size: 18px;">
+                    <a href="https://youtube.com/@olhaqueduas" style="display: inline-block; width: 40px; height: 40px; background-color: #2D2D2D; border-radius: 50%; text-align: center; line-height: 40px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600;">
                       YT
                     </a>
                   </td>
                   <td style="padding: 0 8px;">
-                    <a href="https://facebook.com/olhaqueduas" style="display: inline-block; width: 40px; height: 40px; background-color: #2D2D2D; border-radius: 50%; text-align: center; line-height: 40px; color: #ffffff; text-decoration: none; font-size: 18px;">
+                    <a href="https://facebook.com/olhaqueduas" style="display: inline-block; width: 40px; height: 40px; background-color: #2D2D2D; border-radius: 50%; text-align: center; line-height: 40px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600;">
                       FB
                     </a>
                   </td>
@@ -140,7 +115,7 @@ function generateEmailTemplate(noticias: NewsletterPost[]): string {
           <tr>
             <td style="background-color: #2D2D2D; padding: 24px; text-align: center; border-radius: 0 0 12px 12px;">
               <p style="margin: 0 0 12px 0; font-size: 14px; color: #ffffff;">
-                &copy; ${new Date().getFullYear()} Olha que Duas • Todos os direitos reservados
+                &copy; ${new Date().getFullYear()} Olha que Duas
               </p>
               <p style="margin: 0; font-size: 12px;">
                 <a href="{{unsubscribe}}" style="color: #F4C430; text-decoration: none;">
@@ -177,11 +152,11 @@ serve(async (req) => {
       throw new Error("BREVO_API_KEY not configured");
     }
 
-    const { subject, noticias, testEmail }: SendRequest = await req.json();
+    const { subject, blocks, testEmail }: SendRequest = await req.json();
 
-    if (!subject || !noticias || noticias.length === 0) {
+    if (!subject || !blocks || blocks.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Subject and at least one post are required" }),
+        JSON.stringify({ error: "Subject and at least one block are required" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -189,7 +164,7 @@ serve(async (req) => {
       );
     }
 
-    const htmlContent = generateEmailTemplate(noticias);
+    const htmlContent = generateEmailTemplate(blocks);
 
     let response;
 
@@ -209,12 +184,11 @@ serve(async (req) => {
           },
           to: [{ email: testEmail }],
           subject: `[TESTE] ${subject}`,
-          htmlContent: htmlContent.replace("{{params.NOME}}", "Teste"),
+          htmlContent: htmlContent,
         }),
       });
     } else {
       // Send campaign to entire list
-      // First create the campaign
       const createResponse = await fetch(
         "https://api.brevo.com/v3/emailCampaigns",
         {
