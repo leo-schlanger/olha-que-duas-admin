@@ -3,10 +3,11 @@ import { Login } from './pages/Login';
 import { Events } from './pages/Events';
 import { Schedule } from './pages/Schedule';
 import { Newsletter } from './pages/Newsletter';
+import { Analytics } from './pages/Analytics';
 import { isAuthenticated, logout } from './lib/auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
-import { LogOut, Calendar, Radio, Settings, Mail } from 'lucide-react';
+import { LogOut, Calendar, Radio, Settings, Mail, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
 import logo from './assets/logo-olha-que-duas.png';
 
@@ -18,7 +19,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function Dashboard() {
-  const [activeTab, setActiveTab] = useState('events');
+  const [activeTab, setActiveTab] = useState('analytics');
 
   const handleLogout = () => {
     logout();
@@ -73,6 +74,13 @@ function Dashboard() {
           <div className="flex items-center justify-between">
             <TabsList className="bg-cream border border-beige-medium p-1 h-auto">
               <TabsTrigger
+                value="analytics"
+                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span className="font-medium">Analytics</span>
+              </TabsTrigger>
+              <TabsTrigger
                 value="events"
                 className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
               >
@@ -104,6 +112,10 @@ function Dashboard() {
 
           {/* Tab Content */}
           <div className="animate-fade-in">
+            <TabsContent value="analytics" className="mt-0">
+              <Analytics />
+            </TabsContent>
+
             <TabsContent value="events" className="mt-0">
               <Events />
             </TabsContent>
