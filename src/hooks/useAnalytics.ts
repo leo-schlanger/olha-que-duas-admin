@@ -3,12 +3,38 @@ import { useState, useEffect, useCallback } from 'react';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Raw API response from Umami
+interface UmamiStatsResponse {
+  pageviews: number;
+  visitors: number;
+  visits: number;
+  bounces: number;
+  totaltime: number;
+  comparison?: {
+    pageviews: number;
+    visitors: number;
+    visits: number;
+    bounces: number;
+    totaltime: number;
+  };
+}
+
 export interface AnalyticsStats {
   pageviews: { value: number; prev: number };
   visitors: { value: number; prev: number };
   visits: { value: number; prev: number };
   bounces: { value: number; prev: number };
   totalTime: { value: number; prev: number };
+}
+
+function transformStats(raw: UmamiStatsResponse): AnalyticsStats {
+  return {
+    pageviews: { value: raw.pageviews || 0, prev: raw.comparison?.pageviews || 0 },
+    visitors: { value: raw.visitors || 0, prev: raw.comparison?.visitors || 0 },
+    visits: { value: raw.visits || 0, prev: raw.comparison?.visits || 0 },
+    bounces: { value: raw.bounces || 0, prev: raw.comparison?.bounces || 0 },
+    totalTime: { value: raw.totaltime || 0, prev: raw.comparison?.totaltime || 0 },
+  };
 }
 
 export interface PageviewData {
@@ -94,7 +120,7 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
       ]);
 
       setData({
-        stats,
+        stats: transformStats(stats),
         pageviews: pageviews.pageviews || [],
         pages,
         countries,
