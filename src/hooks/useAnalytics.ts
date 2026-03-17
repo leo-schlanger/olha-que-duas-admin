@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const UMAMI_API_URL = 'https://api.umami.is';
-const WEBSITE_ID = import.meta.env.VITE_UMAMI_WEBSITE_ID;
-const API_KEY = import.meta.env.VITE_UMAMI_API_KEY;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export interface AnalyticsStats {
   pageviews: { value: number; prev: number };
@@ -61,15 +60,17 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchWithAuth = useCallback(async (endpoint: string) => {
-    const response = await fetch(`${UMAMI_API_URL}${endpoint}`, {
+  const fetchFromProxy = useCallback(async (endpoint: string, params: string) => {
+    const url = `${SUPABASE_URL}/functions/v1/umami-proxy?endpoint=${endpoint}&${params}`;
+    const response = await fetch(url, {
       headers: {
-        'x-umami-api-key': API_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'Accept': 'application/json',
       },
     });
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `API Error: ${response.status}`);
     }
     return response.json();
   }, []);
@@ -83,13 +84,13 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
 
     try {
       const [stats, pageviews, pages, countries, browsers, devices, referrers] = await Promise.all([
-        fetchWithAuth(`/api/websites/${WEBSITE_ID}/stats?${baseParams}`),
-        fetchWithAuth(`/api/websites/${WEBSITE_ID}/pageviews?${baseParams}&unit=day`),
-        fetchWithAuth(`/api/websites/${WEBSITE_ID}/metrics?${baseParams}&type=url&limit=10`),
-        fetchWithAuth(`/api/websites/${WEBSITE_ID}/metrics?${baseParams}&type=country&limit=10`),
-        fetchWithAuth(`/api/websites/${WEBSITE_ID}/metrics?${baseParams}&type=browser&limit=5`),
-        fetchWithAuth(`/api/websites/${WEBSITE_ID}/metrics?${baseParams}&type=device&limit=5`),
-        fetchWithAuth(`/api/websites/${WEBSITE_ID}/metrics?${baseParams}&type=referrer&limit=10`),
+        fetchFromProxy('stats', baseParams),
+        fetchFromProxy('pageviews', `${baseParams}&unit=day`),
+        fetchFromProxy('metrics', `${baseParams}&type=url&limit=10`),
+        fetchFromProxy('metrics', `${baseParams}&type=country&limit=10`),
+        fetchFromProxy('metrics', `${baseParams}&type=browser&limit=5`),
+        fetchFromProxy('metrics', `${baseParams}&type=device&limit=5`),
+        fetchFromProxy('metrics', `${baseParams}&type=referrer&limit=10`),
       ]);
 
       setData({
@@ -106,7 +107,7 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
     } finally {
       setLoading(false);
     }
-  }, [timeRange, fetchWithAuth]);
+  }, [timeRange, fetchFromProxy]);
 
   useEffect(() => {
     fetchAnalytics();
