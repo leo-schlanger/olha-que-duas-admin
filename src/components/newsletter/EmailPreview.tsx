@@ -132,7 +132,7 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <Gift className="w-5 h-5" />
                     <span className="text-xs font-semibold uppercase tracking-wider opacity-90">
-                      Partilha com amigas
+                      Partilha
                     </span>
                   </div>
 
@@ -141,7 +141,7 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
                   </h3>
 
                   <p className="text-sm opacity-90 mb-4 leading-relaxed">
-                    Convida as tuas amigas para receberem novidades,
+                    Convida quem gostas para receber novidades,
                     <span className="font-semibold"> descontos exclusivos</span> e promoções especiais!
                   </p>
 

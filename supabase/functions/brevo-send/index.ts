@@ -91,7 +91,7 @@ function generateEmailTemplate(blocks: ContentBlock[]): string {
                   <td style="padding: 32px; text-align: center;">
                     <!-- Gift Icon -->
                     <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 1px;">
-                      🎁 Partilha com amigas
+                      🎁 Partilha
                     </p>
 
                     <h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #ffffff;">
@@ -99,7 +99,7 @@ function generateEmailTemplate(blocks: ContentBlock[]): string {
                     </h3>
 
                     <p style="margin: 0 0 20px 0; font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.6;">
-                      Convida as tuas amigas para receberem novidades,<br>
+                      Convida quem gostas para receber novidades,<br>
                       <strong>descontos exclusivos</strong> e promoções especiais!
                     </p>
 
