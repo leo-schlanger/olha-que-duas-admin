@@ -91,19 +91,19 @@ function generateEmailTemplate(blocks: ContentBlock[]): string {
               </p>
               <table cellpadding="0" cellspacing="0" border="0" align="center">
                 <tr>
-                  <td style="padding: 0 8px;">
-                    <a href="https://instagram.com/olhaqueduas" style="display: inline-block; width: 40px; height: 40px; background-color: #2D2D2D; border-radius: 50%; text-align: center; line-height: 40px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600;">
-                      IG
+                  <td style="padding: 0 6px;">
+                    <a href="https://instagram.com/olhaqueduas" style="display: inline-block; width: 44px; height: 44px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); border-radius: 12px; text-align: center; line-height: 44px; text-decoration: none;">
+                      <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram" style="width: 24px; height: 24px; margin-top: 10px;">
                     </a>
                   </td>
-                  <td style="padding: 0 8px;">
-                    <a href="https://youtube.com/@olhaqueduas" style="display: inline-block; width: 40px; height: 40px; background-color: #2D2D2D; border-radius: 50%; text-align: center; line-height: 40px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600;">
-                      YT
+                  <td style="padding: 0 6px;">
+                    <a href="https://youtube.com/@olhaqueduas" style="display: inline-block; width: 44px; height: 44px; background-color: #FF0000; border-radius: 12px; text-align: center; line-height: 44px; text-decoration: none;">
+                      <img src="https://cdn-icons-png.flaticon.com/512/174/174883.png" alt="YouTube" style="width: 24px; height: 24px; margin-top: 10px;">
                     </a>
                   </td>
-                  <td style="padding: 0 8px;">
-                    <a href="https://facebook.com/olhaqueduas" style="display: inline-block; width: 40px; height: 40px; background-color: #2D2D2D; border-radius: 50%; text-align: center; line-height: 40px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600;">
-                      FB
+                  <td style="padding: 0 6px;">
+                    <a href="https://facebook.com/olhaqueduas" style="display: inline-block; width: 44px; height: 44px; background-color: #1877F2; border-radius: 12px; text-align: center; line-height: 44px; text-decoration: none;">
+                      <img src="https://cdn-icons-png.flaticon.com/512/174/174848.png" alt="Facebook" style="width: 24px; height: 24px; margin-top: 10px;">
                     </a>
                   </td>
                 </tr>

@@ -1,4 +1,4 @@
-import { Monitor, Smartphone } from 'lucide-react';
+import { Monitor, Smartphone, Instagram, Youtube, Facebook } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -124,25 +124,25 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
                   href="https://instagram.com/olhaqueduas"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 bg-[#2D2D2D] rounded-full text-white text-xs font-medium flex items-center justify-center hover:bg-[#E63946] transition-colors"
+                  className="w-10 h-10 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-xl text-white flex items-center justify-center hover:scale-110 transition-transform shadow-md"
                 >
-                  IG
+                  <Instagram className="w-5 h-5" />
                 </a>
                 <a
                   href="https://youtube.com/@olhaqueduas"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 bg-[#2D2D2D] rounded-full text-white text-xs font-medium flex items-center justify-center hover:bg-[#E63946] transition-colors"
+                  className="w-10 h-10 bg-[#FF0000] rounded-xl text-white flex items-center justify-center hover:scale-110 transition-transform shadow-md"
                 >
-                  YT
+                  <Youtube className="w-5 h-5" />
                 </a>
                 <a
                   href="https://facebook.com/olhaqueduas"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 bg-[#2D2D2D] rounded-full text-white text-xs font-medium flex items-center justify-center hover:bg-[#E63946] transition-colors"
+                  className="w-10 h-10 bg-[#1877F2] rounded-xl text-white flex items-center justify-center hover:scale-110 transition-transform shadow-md"
                 >
-                  FB
+                  <Facebook className="w-5 h-5" />
                 </a>
               </div>
             </div>
