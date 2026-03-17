@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
 import type { Subscriber, SubscribersResponse, NewsletterCampaign } from '../types';
 
 export function useNewsletter() {
@@ -45,11 +44,23 @@ export function useNewsletter() {
     setSending(true);
     setError(null);
     try {
-      const { error: sendError } = await supabase.functions.invoke('brevo-send', {
-        body: campaign,
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-send`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify(campaign),
+        }
+      );
 
-      if (sendError) throw sendError;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao enviar newsletter');
+      }
 
       return true;
     } catch (err) {
