@@ -4,7 +4,7 @@ import { PenLine, Users, History } from 'lucide-react';
 import { useNewsletter } from '../hooks/useNewsletter';
 import { ComposeNewsletter } from '../components/newsletter/ComposeNewsletter';
 import { SubscriberList } from '../components/newsletter/SubscriberList';
-import { Card, CardContent } from '../components/ui/card';
+import { CampaignHistory } from '../components/newsletter/CampaignHistory';
 import type { ContentBlock } from '../components/newsletter/BlockEditor';
 
 export function Newsletter() {
@@ -13,10 +13,14 @@ export function Newsletter() {
   const {
     subscribers,
     totalSubscribers,
+    campaigns,
+    totalCampaigns,
     loading: subscribersLoading,
+    loadingCampaigns,
     sending,
     error: newsletterError,
     fetchSubscribers,
+    fetchCampaigns,
     sendNewsletter,
     sendTestEmail,
   } = useNewsletter();
@@ -91,32 +95,13 @@ export function Newsletter() {
           </TabsContent>
 
           <TabsContent value="history" className="mt-0">
-            <div className="space-y-6">
-              <div>
-                <h2 className="font-display text-2xl font-bold text-charcoal">
-                  Histórico de Envios
-                </h2>
-                <p className="text-muted-foreground mt-1">
-                  Campanhas enviadas anteriormente
-                </p>
-              </div>
-
-              <Card className="bg-cream border-beige-medium">
-                <CardContent className="py-16 text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-beige-medium mb-4">
-                    <History className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="font-display text-xl font-semibold text-charcoal mb-2">
-                    Em breve
-                  </h3>
-                  <p className="text-muted-foreground">
-                    O histórico de campanhas será exibido aqui.
-                    <br />
-                    Por agora, podes consultar no painel do Brevo.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+            <CampaignHistory
+              campaigns={campaigns}
+              total={totalCampaigns}
+              loading={loadingCampaigns}
+              onRefresh={() => fetchCampaigns()}
+              onLoad={() => fetchCampaigns()}
+            />
           </TabsContent>
         </div>
       </Tabs>

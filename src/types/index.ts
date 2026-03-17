@@ -70,3 +70,32 @@ export interface NewsletterCampaign {
   blocks: ContentBlock[];
   testEmail?: string;
 }
+
+// Campaign history types
+export interface CampaignStats {
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  bounced: number;
+  unsubscribed: number;
+  openRate: number;
+  clickRate: number;
+}
+
+export interface Campaign {
+  id: number;
+  name: string;
+  subject: string;
+  status: string;
+  sentDate: string;
+  createdAt: string;
+  stats: CampaignStats | null;
+}
+
+export interface CampaignsResponse {
+  campaigns: Campaign[];
+  total: number;
+  limit: number;
+  offset: number;
+}

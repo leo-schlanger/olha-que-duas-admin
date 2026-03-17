@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Subscriber, SubscribersResponse, NewsletterCampaign } from '../types';
+import type { Subscriber, SubscribersResponse, NewsletterCampaign, Campaign, CampaignsResponse } from '../types';
 
 export function useNewsletter() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [totalSubscribers, setTotalSubscribers] = useState(0);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [totalCampaigns, setTotalCampaigns] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingCampaigns, setLoadingCampaigns] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,13 +81,45 @@ export function useNewsletter() {
     return sendNewsletter({ ...campaign, testEmail });
   };
 
+  const fetchCampaigns = useCallback(async (limit = 20, offset = 0, status = 'sent') => {
+    setLoadingCampaigns(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-campaigns?limit=${limit}&offset=${offset}&status=${status}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Erro ao carregar campanhas');
+      }
+
+      const result: CampaignsResponse = await response.json();
+
+      setCampaigns(result.campaigns);
+      setTotalCampaigns(result.total);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar campanhas');
+    } finally {
+      setLoadingCampaigns(false);
+    }
+  }, []);
+
   return {
     subscribers,
     totalSubscribers,
+    campaigns,
+    totalCampaigns,
     loading,
+    loadingCampaigns,
     sending,
     error,
     fetchSubscribers,
+    fetchCampaigns,
     sendNewsletter,
     sendTestEmail,
   };
