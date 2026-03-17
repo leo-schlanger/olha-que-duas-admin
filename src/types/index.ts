@@ -43,3 +43,43 @@ export const DAYS_OF_WEEK_SHORT: Record<DayOfWeek, string> = {
   5: 'Sex',
   6: 'Sáb',
 };
+
+// Newsletter types
+export interface Subscriber {
+  id: number;
+  email: string;
+  nome: string;
+  createdAt: string;
+  isActive: boolean;
+}
+
+export interface SubscribersResponse {
+  subscribers: Subscriber[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface NewsletterPost {
+  titulo: string;
+  resumo: string;
+  image_url: string;
+  link: string;
+  categoria: string;
+}
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  summary: string;
+  image_url: string;
+  slug: string;
+  category: string;
+  published_at: string;
+}
+
+export interface NewsletterCampaign {
+  subject: string;
+  noticias: NewsletterPost[];
+  testEmail?: string;
+}
