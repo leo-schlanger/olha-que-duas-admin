@@ -55,8 +55,8 @@ function generateEmailTemplate(blocks: ContentBlock[]): string {
 
           <!-- Header with Logo -->
           <tr>
-            <td style="background-color: #2D2D2D; padding: 24px; text-align: center; border-radius: 12px 12px 0 0;">
-              <img src="https://olhaqueduas.com/logo-olha-que-duas.png" alt="Olha que Duas" style="height: 50px; width: auto;">
+            <td style="background-color: #2D2D2D; padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
+              <img src="https://olhaqueduas.com/logo-olha-que-duas.png" alt="Olha que Duas" style="height: 80px; width: auto;">
             </td>
           </tr>
 

@@ -66,11 +66,11 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
           {/* Email Content */}
           <div className="bg-[#FAF9F6]">
             {/* Header with Logo */}
-            <div className="bg-[#2D2D2D] py-6 text-center">
+            <div className="bg-[#2D2D2D] py-8 text-center">
               <img
                 src={logo}
                 alt="Olha que Duas"
-                className="h-12 mx-auto"
+                className="h-20 mx-auto"
               />
             </div>
 
@@ -120,14 +120,30 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
                 Segue-nos nas redes sociais!
               </p>
               <div className="flex justify-center gap-3">
-                {['IG', 'YT', 'FB'].map((social) => (
-                  <span
-                    key={social}
-                    className="w-8 h-8 bg-[#2D2D2D] rounded-full text-white text-xs font-medium flex items-center justify-center"
-                  >
-                    {social}
-                  </span>
-                ))}
+                <a
+                  href="https://instagram.com/olhaqueduas"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 bg-[#2D2D2D] rounded-full text-white text-xs font-medium flex items-center justify-center hover:bg-[#E63946] transition-colors"
+                >
+                  IG
+                </a>
+                <a
+                  href="https://youtube.com/@olhaqueduas"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 bg-[#2D2D2D] rounded-full text-white text-xs font-medium flex items-center justify-center hover:bg-[#E63946] transition-colors"
+                >
+                  YT
+                </a>
+                <a
+                  href="https://facebook.com/olhaqueduas"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 bg-[#2D2D2D] rounded-full text-white text-xs font-medium flex items-center justify-center hover:bg-[#E63946] transition-colors"
+                >
+                  FB
+                </a>
               </div>
             </div>
 
