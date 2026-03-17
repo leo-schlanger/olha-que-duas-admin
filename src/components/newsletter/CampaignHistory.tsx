@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { RefreshCw, Mail, MousePointerClick, Eye, UserMinus, AlertTriangle, Calendar, Send } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
@@ -9,7 +8,6 @@ interface CampaignHistoryProps {
   total: number;
   loading: boolean;
   onRefresh: () => void;
-  onLoad: () => void;
 }
 
 function formatDate(dateString: string): string {
@@ -65,11 +63,7 @@ function StatCard({ icon: Icon, label, value, subValue, color }: {
   );
 }
 
-export function CampaignHistory({ campaigns, total, loading, onRefresh, onLoad }: CampaignHistoryProps) {
-  useEffect(() => {
-    onLoad();
-  }, [onLoad]);
-
+export function CampaignHistory({ campaigns, total, loading, onRefresh }: CampaignHistoryProps) {
   if (loading) {
     return (
       <div className="space-y-6">

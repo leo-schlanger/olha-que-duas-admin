@@ -79,8 +79,8 @@ serve(async (req) => {
 
     const data: BrevoResponse = await response.json();
 
-    // Transform to our format
-    const campaigns = data.campaigns.map((campaign) => {
+    // Transform to our format (handle empty campaigns array)
+    const campaigns = (data.campaigns || []).map((campaign) => {
       const stats = campaign.statistics?.globalStats;
       const openRate = stats && stats.sent > 0
         ? Math.round((stats.uniqueViews / stats.sent) * 100)
@@ -112,7 +112,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         campaigns,
-        total: data.count,
+        total: data.count || 0,
         limit,
         offset,
       }),

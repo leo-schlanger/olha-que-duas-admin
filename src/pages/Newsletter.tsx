@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { PenLine, Users, History } from 'lucide-react';
 import { useNewsletter } from '../hooks/useNewsletter';
@@ -39,6 +39,13 @@ export function Newsletter() {
   ): Promise<boolean> => {
     return sendTestEmail({ subject, blocks }, testEmail);
   };
+
+  // Load campaigns when history tab is selected
+  useEffect(() => {
+    if (activeTab === 'history') {
+      fetchCampaigns();
+    }
+  }, [activeTab, fetchCampaigns]);
 
   return (
     <div className="space-y-6">
@@ -100,7 +107,6 @@ export function Newsletter() {
               total={totalCampaigns}
               loading={loadingCampaigns}
               onRefresh={() => fetchCampaigns()}
-              onLoad={() => fetchCampaigns()}
             />
           </TabsContent>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Subscriber, SubscribersResponse, NewsletterCampaign, Campaign, CampaignsResponse } from '../types';
 
 export function useNewsletter() {
@@ -10,6 +10,7 @@ export function useNewsletter() {
   const [loadingCampaigns, setLoadingCampaigns] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isFetchingCampaigns = useRef(false);
 
   const fetchSubscribers = useCallback(async (limit = 50, offset = 0) => {
     setLoading(true);
@@ -82,6 +83,10 @@ export function useNewsletter() {
   };
 
   const fetchCampaigns = useCallback(async (limit = 20, offset = 0, status = 'sent') => {
+    // Prevent multiple concurrent fetches
+    if (isFetchingCampaigns.current) return;
+    isFetchingCampaigns.current = true;
+
     setLoadingCampaigns(true);
     setError(null);
     try {
@@ -106,6 +111,7 @@ export function useNewsletter() {
       setError(err instanceof Error ? err.message : 'Erro ao carregar campanhas');
     } finally {
       setLoadingCampaigns(false);
+      isFetchingCampaigns.current = false;
     }
   }, []);
 
