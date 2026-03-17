@@ -103,11 +103,6 @@ function generateEmailTemplate(blocks: ContentBlock[]): string {
                       <strong>descontos exclusivos</strong> e promoções especiais!
                     </p>
 
-                    <!-- Social Proof -->
-                    <p style="margin: 0 0 20px 0; font-size: 12px; color: rgba(255,255,255,0.7);">
-                      👥 +10.000 subscritoras já fazem parte
-                    </p>
-
                     <!-- CTA Button -->
                     <a href="https://olhaqueduas.com/newsletter" style="display: inline-block; background-color: #ffffff; color: #E63946; font-weight: 700; font-size: 14px; padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(0,0,0,0.15);">
                       ✨ Subscrever Newsletter

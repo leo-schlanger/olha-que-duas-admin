@@ -1,4 +1,4 @@
-import { Monitor, Smartphone, Instagram, Youtube, Facebook, Users, Gift, Sparkles } from 'lucide-react';
+import { Monitor, Smartphone, Instagram, Youtube, Facebook, Gift, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -145,12 +145,7 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
                     <span className="font-semibold"> descontos exclusivos</span> e promoções especiais!
                   </p>
 
-                  {/* Social Proof */}
-                  <div className="flex items-center justify-center gap-2 mb-4 text-xs opacity-80">
-                    <Users className="w-4 h-4" />
-                    <span>+10.000 subscritoras já fazem parte</span>
-                  </div>
-
+                  
                   {/* CTA Button */}
                   <a
                     href="https://olhaqueduas.com/newsletter"
