@@ -1,9 +1,16 @@
-import { Monitor, Smartphone, Instagram, Youtube, Facebook } from 'lucide-react';
+import { Monitor, Smartphone, Instagram, Youtube, Facebook, Users, Gift, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import type { ContentBlock } from './BlockEditor';
 import logo from '../../assets/logo-olha-que-duas.png';
+
+// TikTok icon component
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+  </svg>
+);
 
 interface EmailPreviewProps {
   subject: string;
@@ -114,12 +121,58 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
               )}
             </div>
 
+            {/* Share CTA Section */}
+            <div className="mx-6 mb-6">
+              <div className="bg-gradient-to-br from-[#E63946] to-[#c41d2d] rounded-2xl p-5 text-center text-white relative overflow-hidden">
+                {/* Decorative elements */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+
+                <div className="relative">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Gift className="w-5 h-5" />
+                    <span className="text-xs font-semibold uppercase tracking-wider opacity-90">
+                      Partilha com amigas
+                    </span>
+                  </div>
+
+                  <h3 className="text-lg font-bold mb-2">
+                    Conheces alguém que ia adorar?
+                  </h3>
+
+                  <p className="text-sm opacity-90 mb-4 leading-relaxed">
+                    Convida as tuas amigas para receberem novidades,
+                    <span className="font-semibold"> descontos exclusivos</span> e promoções especiais!
+                  </p>
+
+                  {/* Social Proof */}
+                  <div className="flex items-center justify-center gap-2 mb-4 text-xs opacity-80">
+                    <Users className="w-4 h-4" />
+                    <span>+10.000 subscritoras já fazem parte</span>
+                  </div>
+
+                  {/* CTA Button */}
+                  <a
+                    href="https://olhaqueduas.com/newsletter"
+                    className="inline-flex items-center gap-2 bg-white text-[#E63946] font-bold px-6 py-3 rounded-xl hover:bg-gray-100 transition-colors shadow-lg"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Subscrever Newsletter
+                  </a>
+
+                  <p className="text-[10px] mt-3 opacity-70">
+                    olhaqueduas.com/newsletter
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Social Footer */}
             <div className="bg-[#F4C430] py-5 text-center">
               <p className="font-semibold text-[#2D2D2D] text-sm mb-3">
                 Segue-nos nas redes sociais!
               </p>
-              <div className="flex justify-center gap-3">
+              <div className="flex justify-center gap-2">
                 <a
                   href="https://instagram.com/olhaqueduas"
                   target="_blank"
@@ -135,6 +188,14 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
                   className="w-10 h-10 bg-[#FF0000] rounded-xl text-white flex items-center justify-center hover:scale-110 transition-transform shadow-md"
                 >
                   <Youtube className="w-5 h-5" />
+                </a>
+                <a
+                  href="https://tiktok.com/@olhaqueduas"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-black rounded-xl text-white flex items-center justify-center hover:scale-110 transition-transform shadow-md"
+                >
+                  <TikTokIcon className="w-5 h-5" />
                 </a>
                 <a
                   href="https://facebook.com/olhaqueduas"

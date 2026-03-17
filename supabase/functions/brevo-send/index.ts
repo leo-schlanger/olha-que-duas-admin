@@ -83,6 +83,45 @@ function generateEmailTemplate(blocks: ContentBlock[]): string {
             </td>
           </tr>
 
+          <!-- Share CTA Section -->
+          <tr>
+            <td style="padding: 0 24px 24px 24px; background-color: #FAF9F6;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #E63946 0%, #c41d2d 100%); border-radius: 16px; overflow: hidden;">
+                <tr>
+                  <td style="padding: 32px; text-align: center;">
+                    <!-- Gift Icon -->
+                    <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 1px;">
+                      🎁 Partilha com amigas
+                    </p>
+
+                    <h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #ffffff;">
+                      Conheces alguém que ia adorar?
+                    </h3>
+
+                    <p style="margin: 0 0 20px 0; font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.6;">
+                      Convida as tuas amigas para receberem novidades,<br>
+                      <strong>descontos exclusivos</strong> e promoções especiais!
+                    </p>
+
+                    <!-- Social Proof -->
+                    <p style="margin: 0 0 20px 0; font-size: 12px; color: rgba(255,255,255,0.7);">
+                      👥 +10.000 subscritoras já fazem parte
+                    </p>
+
+                    <!-- CTA Button -->
+                    <a href="https://olhaqueduas.com/newsletter" style="display: inline-block; background-color: #ffffff; color: #E63946; font-weight: 700; font-size: 14px; padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(0,0,0,0.15);">
+                      ✨ Subscrever Newsletter
+                    </a>
+
+                    <p style="margin: 16px 0 0 0; font-size: 11px; color: rgba(255,255,255,0.6);">
+                      olhaqueduas.com/newsletter
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
           <!-- Social Footer -->
           <tr>
             <td style="background-color: #F4C430; padding: 24px; text-align: center;">
@@ -91,19 +130,24 @@ function generateEmailTemplate(blocks: ContentBlock[]): string {
               </p>
               <table cellpadding="0" cellspacing="0" border="0" align="center">
                 <tr>
-                  <td style="padding: 0 6px;">
-                    <a href="https://instagram.com/olhaqueduas" style="display: inline-block; width: 44px; height: 44px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); border-radius: 12px; text-align: center; line-height: 44px; text-decoration: none;">
-                      <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram" style="width: 24px; height: 24px; margin-top: 10px;">
+                  <td style="padding: 0 5px;">
+                    <a href="https://instagram.com/olhaqueduas" style="display: inline-block; width: 42px; height: 42px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); border-radius: 10px; text-align: center; line-height: 42px; text-decoration: none;">
+                      <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram" style="width: 22px; height: 22px; margin-top: 10px;">
                     </a>
                   </td>
-                  <td style="padding: 0 6px;">
-                    <a href="https://youtube.com/@olhaqueduas" style="display: inline-block; width: 44px; height: 44px; background-color: #FF0000; border-radius: 12px; text-align: center; line-height: 44px; text-decoration: none;">
-                      <img src="https://cdn-icons-png.flaticon.com/512/174/174883.png" alt="YouTube" style="width: 24px; height: 24px; margin-top: 10px;">
+                  <td style="padding: 0 5px;">
+                    <a href="https://youtube.com/@olhaqueduas" style="display: inline-block; width: 42px; height: 42px; background-color: #FF0000; border-radius: 10px; text-align: center; line-height: 42px; text-decoration: none;">
+                      <img src="https://cdn-icons-png.flaticon.com/512/174/174883.png" alt="YouTube" style="width: 22px; height: 22px; margin-top: 10px;">
                     </a>
                   </td>
-                  <td style="padding: 0 6px;">
-                    <a href="https://facebook.com/olhaqueduas" style="display: inline-block; width: 44px; height: 44px; background-color: #1877F2; border-radius: 12px; text-align: center; line-height: 44px; text-decoration: none;">
-                      <img src="https://cdn-icons-png.flaticon.com/512/174/174848.png" alt="Facebook" style="width: 24px; height: 24px; margin-top: 10px;">
+                  <td style="padding: 0 5px;">
+                    <a href="https://tiktok.com/@olhaqueduas" style="display: inline-block; width: 42px; height: 42px; background-color: #000000; border-radius: 10px; text-align: center; line-height: 42px; text-decoration: none;">
+                      <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" style="width: 22px; height: 22px; margin-top: 10px;">
+                    </a>
+                  </td>
+                  <td style="padding: 0 5px;">
+                    <a href="https://facebook.com/olhaqueduas" style="display: inline-block; width: 42px; height: 42px; background-color: #1877F2; border-radius: 10px; text-align: center; line-height: 42px; text-decoration: none;">
+                      <img src="https://cdn-icons-png.flaticon.com/512/174/174848.png" alt="Facebook" style="width: 22px; height: 22px; margin-top: 10px;">
                     </a>
                   </td>
                 </tr>
