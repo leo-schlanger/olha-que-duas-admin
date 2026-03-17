@@ -82,7 +82,7 @@ export function useNewsletter() {
     return sendNewsletter({ ...campaign, testEmail });
   };
 
-  const fetchCampaigns = useCallback(async (limit = 20, offset = 0, status = 'sent') => {
+  const fetchCampaigns = useCallback(async (limit = 20, offset = 0) => {
     // Prevent multiple concurrent fetches
     if (isFetchingCampaigns.current) return;
     isFetchingCampaigns.current = true;
@@ -91,7 +91,7 @@ export function useNewsletter() {
     setError(null);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-campaigns?limit=${limit}&offset=${offset}&status=${status}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-campaigns?limit=${limit}&offset=${offset}`,
         {
           headers: {
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,

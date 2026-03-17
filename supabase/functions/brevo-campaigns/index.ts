@@ -58,11 +58,17 @@ serve(async (req) => {
     const url = new URL(req.url);
     const limit = parseInt(url.searchParams.get("limit") || "20");
     const offset = parseInt(url.searchParams.get("offset") || "0");
-    const status = url.searchParams.get("status") || "sent"; // sent, draft, queued, etc.
+    const status = url.searchParams.get("status"); // sent, draft, queued, etc. (optional)
+
+    // Build URL with optional status filter
+    let brevoUrl = `https://api.brevo.com/v3/emailCampaigns?type=classic&limit=${limit}&offset=${offset}&sort=desc&statistics=globalStats`;
+    if (status) {
+      brevoUrl += `&status=${status}`;
+    }
 
     // Fetch campaigns from Brevo
     const response = await fetch(
-      `https://api.brevo.com/v3/emailCampaigns?type=classic&status=${status}&limit=${limit}&offset=${offset}&sort=desc&statistics=globalStats`,
+      brevoUrl,
       {
         method: "GET",
         headers: {
@@ -72,12 +78,40 @@ serve(async (req) => {
       }
     );
 
+    const responseText = await response.text();
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to fetch campaigns");
+      let errorMessage = "Failed to fetch campaigns";
+      try {
+        const errorData = JSON.parse(responseText);
+        errorMessage = errorData.message || errorMessage;
+        if (errorData.code === "unauthorized") {
+          errorMessage = "Brevo API key inválida ou expirada";
+        }
+      } catch {
+        errorMessage = responseText || errorMessage;
+      }
+      console.error("Brevo API error:", response.status, responseText);
+      throw new Error(errorMessage);
     }
 
-    const data: BrevoResponse = await response.json();
+    // Handle empty response
+    if (!responseText || responseText.trim() === "") {
+      return new Response(
+        JSON.stringify({
+          campaigns: [],
+          total: 0,
+          limit,
+          offset,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const data: BrevoResponse = JSON.parse(responseText);
 
     // Transform to our format (handle empty campaigns array)
     const campaigns = (data.campaigns || []).map((campaign) => {
