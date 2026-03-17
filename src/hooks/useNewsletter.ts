@@ -13,18 +13,6 @@ export function useNewsletter() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: fetchError } = await supabase.functions.invoke<SubscribersResponse>(
-        'brevo-subscribers',
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: null,
-        }
-      );
-
-      // For GET requests with query params, we need to use a different approach
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-subscribers?limit=${limit}&offset=${offset}`,
         {
@@ -57,7 +45,7 @@ export function useNewsletter() {
     setSending(true);
     setError(null);
     try {
-      const { data, error: sendError } = await supabase.functions.invoke('brevo-send', {
+      const { error: sendError } = await supabase.functions.invoke('brevo-send', {
         body: campaign,
       });
 
