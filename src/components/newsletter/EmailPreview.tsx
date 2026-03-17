@@ -169,7 +169,7 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
               </p>
               <div className="flex justify-center gap-2">
                 <a
-                  href="https://instagram.com/olhaqueduas"
+                  href="https://www.instagram.com/olhaqueduas2025"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-xl text-white flex items-center justify-center hover:scale-110 transition-transform shadow-md"
@@ -177,7 +177,7 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
                   <Instagram className="w-5 h-5" />
                 </a>
                 <a
-                  href="https://youtube.com/@olhaqueduas"
+                  href="https://youtube.com/@olhaqueduas-l9m?si=hKFnzKpluIODLFFk"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-[#FF0000] rounded-xl text-white flex items-center justify-center hover:scale-110 transition-transform shadow-md"
@@ -185,7 +185,7 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
                   <Youtube className="w-5 h-5" />
                 </a>
                 <a
-                  href="https://tiktok.com/@olhaqueduas"
+                  href="https://www.tiktok.com/@olha.que.duas_"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-black rounded-xl text-white flex items-center justify-center hover:scale-110 transition-transform shadow-md"
@@ -193,7 +193,7 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
                   <TikTokIcon className="w-5 h-5" />
                 </a>
                 <a
-                  href="https://facebook.com/olhaqueduas"
+                  href="https://www.facebook.com/share/17npXT7nNb/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-[#1877F2] rounded-xl text-white flex items-center justify-center hover:scale-110 transition-transform shadow-md"

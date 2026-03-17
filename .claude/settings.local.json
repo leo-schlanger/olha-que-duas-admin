@@ -6,7 +6,8 @@
       "Bash(supabase --version:*)",
       "Bash(npx supabase:*)",
       "Bash(npx vercel:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(curl:*)"
     ]
   }
 }

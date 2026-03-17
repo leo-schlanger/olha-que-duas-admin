@@ -56,7 +56,7 @@ function generateEmailTemplate(blocks: ContentBlock[]): string {
           <!-- Header with Logo -->
           <tr>
             <td style="background-color: #2D2D2D; padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
-              <img src="https://olhaqueduas.com/logo-olha-que-duas.png" alt="Olha que Duas" style="height: 80px; width: auto;">
+              <img src="https://www.olhaqueduas.com/assets/logo-olha-que-duas-BfEMMZfu.png" alt="Olha que Duas" style="height: 100px; width: auto;">
             </td>
           </tr>
 
@@ -125,24 +125,24 @@ function generateEmailTemplate(blocks: ContentBlock[]): string {
               </p>
               <table cellpadding="0" cellspacing="0" border="0" align="center">
                 <tr>
-                  <td style="padding: 0 5px;">
-                    <a href="https://instagram.com/olhaqueduas" style="display: inline-block; width: 42px; height: 42px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); border-radius: 10px; text-align: center; line-height: 42px; text-decoration: none;">
-                      <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram" style="width: 22px; height: 22px; margin-top: 10px;">
+                  <td style="padding: 0 6px;">
+                    <a href="https://www.instagram.com/olhaqueduas2025" style="text-decoration: none;">
+                      <img src="https://img.icons8.com/color/48/instagram-new.png" alt="Instagram" width="40" height="40" style="display: block; border: 0;">
                     </a>
                   </td>
-                  <td style="padding: 0 5px;">
-                    <a href="https://youtube.com/@olhaqueduas" style="display: inline-block; width: 42px; height: 42px; background-color: #FF0000; border-radius: 10px; text-align: center; line-height: 42px; text-decoration: none;">
-                      <img src="https://cdn-icons-png.flaticon.com/512/174/174883.png" alt="YouTube" style="width: 22px; height: 22px; margin-top: 10px;">
+                  <td style="padding: 0 6px;">
+                    <a href="https://youtube.com/@olhaqueduas-l9m?si=hKFnzKpluIODLFFk" style="text-decoration: none;">
+                      <img src="https://img.icons8.com/color/48/youtube-play.png" alt="YouTube" width="40" height="40" style="display: block; border: 0;">
                     </a>
                   </td>
-                  <td style="padding: 0 5px;">
-                    <a href="https://tiktok.com/@olhaqueduas" style="display: inline-block; width: 42px; height: 42px; background-color: #000000; border-radius: 10px; text-align: center; line-height: 42px; text-decoration: none;">
-                      <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" style="width: 22px; height: 22px; margin-top: 10px;">
+                  <td style="padding: 0 6px;">
+                    <a href="https://www.tiktok.com/@olha.que.duas_" style="text-decoration: none;">
+                      <img src="https://img.icons8.com/color/48/tiktok--v1.png" alt="TikTok" width="40" height="40" style="display: block; border: 0;">
                     </a>
                   </td>
-                  <td style="padding: 0 5px;">
-                    <a href="https://facebook.com/olhaqueduas" style="display: inline-block; width: 42px; height: 42px; background-color: #1877F2; border-radius: 10px; text-align: center; line-height: 42px; text-decoration: none;">
-                      <img src="https://cdn-icons-png.flaticon.com/512/174/174848.png" alt="Facebook" style="width: 22px; height: 22px; margin-top: 10px;">
+                  <td style="padding: 0 6px;">
+                    <a href="https://www.facebook.com/share/17npXT7nNb/" style="text-decoration: none;">
+                      <img src="https://img.icons8.com/color/48/facebook-new.png" alt="Facebook" width="40" height="40" style="display: block; border: 0;">
                     </a>
                   </td>
                 </tr>
