@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const UMAMI_API_URL = "https://api.umami.is";
+const UMAMI_API_URL = "https://api.umami.is/v1";
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -44,7 +44,7 @@ serve(async (req) => {
       }
     });
 
-    const umamiUrl = `${UMAMI_API_URL}/api/websites/${UMAMI_WEBSITE_ID}/${endpoint}?${umamiParams.toString()}`;
+    const umamiUrl = `${UMAMI_API_URL}/websites/${UMAMI_WEBSITE_ID}/${endpoint}?${umamiParams.toString()}`;
 
     const response = await fetch(umamiUrl, {
       method: "GET",
