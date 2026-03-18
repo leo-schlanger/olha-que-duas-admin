@@ -3,3 +3,4 @@ export { BlockEditor, type ContentBlock } from './BlockEditor';
 export { EmailPreview } from './EmailPreview';
 export { ComposeNewsletter } from './ComposeNewsletter';
 export { ImageGallery } from './ImageGallery';
+export { RichTextEditor } from './RichTextEditor';

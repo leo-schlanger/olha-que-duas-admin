@@ -112,15 +112,28 @@ export function EmailPreview({ subject, blocks }: EmailPreviewProps) {
                   {blocks.map((block, index) => {
                     // Text block
                     if (block.type === 'text') {
+                      // Check if content has actual text (strip HTML tags)
+                      const hasContent = block.content && block.content.replace(/<[^>]*>/g, '').trim().length > 0;
+
                       return (
                         <div
                           key={block.id}
                           className="bg-white rounded-xl p-6 shadow-sm border border-gray-50"
                         >
-                          {block.content ? (
-                            <p className="text-[#2D2D2D] text-base whitespace-pre-wrap leading-relaxed">
-                              {block.content}
-                            </p>
+                          {hasContent ? (
+                            <div
+                              className="text-[#2D2D2D] text-base leading-relaxed prose prose-sm max-w-none
+                                [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h1]:mt-0
+                                [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-2 [&_h2]:mt-0
+                                [&_p]:mb-2 [&_p]:last:mb-0
+                                [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2
+                                [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2
+                                [&_li]:mb-1
+                                [&_a]:text-[#E63946] [&_a]:underline
+                                [&_strong]:font-semibold
+                                [&_em]:italic"
+                              dangerouslySetInnerHTML={{ __html: block.content }}
+                            />
                           ) : (
                             <p className="text-gray-400 text-sm italic">
                               Bloco de texto {index + 1} vazio

@@ -14,12 +14,12 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
-import { Textarea } from '../ui/textarea';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { uploadImage } from '../../lib/imageUpload';
 import { addToGallery } from '../../lib/imageGallery';
 import { ImageGallery } from './ImageGallery';
+import { RichTextEditor } from './RichTextEditor';
 import type { ContentBlock, TextBlock, ImageBlock, BlockType } from '../../types';
 
 // Re-export for backwards compatibility
@@ -264,11 +264,10 @@ export function BlockEditor({ blocks, onChange }: BlockEditorProps) {
               {/* Block Content */}
               <CardContent className="p-4">
                 {block.type === 'text' ? (
-                  <Textarea
-                    value={block.content}
-                    onChange={(e) => updateTextBlock(block.id, e.target.value)}
+                  <RichTextEditor
+                    content={block.content}
+                    onChange={(html) => updateTextBlock(block.id, html)}
                     placeholder="Escreve o teu conteúdo aqui..."
-                    className="min-h-[120px] resize-y border-beige-medium focus:border-vermelho"
                   />
                 ) : (
                   <div className="space-y-4">

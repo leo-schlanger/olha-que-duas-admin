@@ -68,7 +68,30 @@ function generateBlockHtml(block: ContentBlock | LegacyBlock): string {
     ? block.content
     : ('content' in block ? block.content : '');
 
-  if (!content.trim()) return '';
+  // Strip HTML tags to check if there's actual content
+  const textContent = content.replace(/<[^>]*>/g, '').trim();
+  if (!textContent) return '';
+
+  // Add inline styles to HTML content for email compatibility
+  const styledContent = content
+    // Style headings
+    .replace(/<h1>/g, '<h1 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 700; color: #2D2D2D; line-height: 1.3;">')
+    .replace(/<h2>/g, '<h2 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 600; color: #2D2D2D; line-height: 1.3;">')
+    // Style paragraphs
+    .replace(/<p>/g, '<p style="margin: 0 0 12px 0; font-size: 16px; color: #2D2D2D; line-height: 1.7;">')
+    .replace(/<p style="text-align: center">/g, '<p style="margin: 0 0 12px 0; font-size: 16px; color: #2D2D2D; line-height: 1.7; text-align: center;">')
+    .replace(/<p style="text-align: right">/g, '<p style="margin: 0 0 12px 0; font-size: 16px; color: #2D2D2D; line-height: 1.7; text-align: right;">')
+    // Style lists
+    .replace(/<ul>/g, '<ul style="margin: 0 0 12px 0; padding-left: 24px;">')
+    .replace(/<ol>/g, '<ol style="margin: 0 0 12px 0; padding-left: 24px;">')
+    .replace(/<li>/g, '<li style="margin: 0 0 6px 0; font-size: 16px; color: #2D2D2D; line-height: 1.6;">')
+    // Style links
+    .replace(/<a /g, '<a style="color: #E63946; text-decoration: underline;" ')
+    // Style text formatting
+    .replace(/<strong>/g, '<strong style="font-weight: 600;">')
+    .replace(/<em>/g, '<em style="font-style: italic;">')
+    .replace(/<u>/g, '<u style="text-decoration: underline;">')
+    .replace(/<s>/g, '<s style="text-decoration: line-through;">');
 
   return `
     <tr>
@@ -76,9 +99,7 @@ function generateBlockHtml(block: ContentBlock | LegacyBlock): string {
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #f0f0f0;">
           <tr>
             <td style="padding: 24px;">
-              <p style="margin: 0; font-size: 16px; color: #2D2D2D; line-height: 1.7; white-space: pre-wrap;">
-                ${content.replace(/\n/g, "<br>")}
-              </p>
+              ${styledContent}
             </td>
           </tr>
         </table>
