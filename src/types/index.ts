@@ -60,7 +60,26 @@ export interface SubscribersResponse {
   offset: number;
 }
 
-export interface ContentBlock {
+export type BlockType = 'text' | 'image';
+
+export interface TextBlock {
+  id: string;
+  type: 'text';
+  content: string;
+}
+
+export interface ImageBlock {
+  id: string;
+  type: 'image';
+  imageUrl: string;
+  altText?: string;
+  caption?: string;
+}
+
+export type ContentBlock = TextBlock | ImageBlock;
+
+// Legacy support - deprecated, use ContentBlock instead
+export interface LegacyContentBlock {
   id: string;
   content: string;
 }

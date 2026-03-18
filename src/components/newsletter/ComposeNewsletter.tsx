@@ -12,8 +12,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from '../ui/dialog';
-import { BlockEditor, type ContentBlock } from './BlockEditor';
+import { BlockEditor } from './BlockEditor';
 import { EmailPreview } from './EmailPreview';
+import type { ContentBlock } from '../../types';
 
 interface ComposeNewsletterProps {
   totalSubscribers: number;
@@ -60,7 +61,15 @@ export function ComposeNewsletter({
     }
   };
 
-  const hasContent = blocks.some((b) => b.content.trim());
+  const hasContent = blocks.some((block) => {
+    if (block.type === 'text') {
+      return block.content.trim().length > 0;
+    }
+    if (block.type === 'image') {
+      return !!block.imageUrl;
+    }
+    return false;
+  });
   const canSend = subject.trim() && hasContent;
 
   return (
@@ -201,7 +210,11 @@ export function ComposeNewsletter({
               <strong>Assunto:</strong> {subject}
             </p>
             <p className="text-sm">
-              <strong>Blocos de conteúdo:</strong> {blocks.filter((b) => b.content.trim()).length}
+              <strong>Blocos de conteúdo:</strong> {blocks.filter((block) => {
+                if (block.type === 'text') return block.content.trim().length > 0;
+                if (block.type === 'image') return !!block.imageUrl;
+                return false;
+              }).length}
             </p>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
