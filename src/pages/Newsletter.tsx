@@ -18,11 +18,15 @@ export function Newsletter() {
     loading: subscribersLoading,
     loadingCampaigns,
     sending,
+    adding,
+    removing,
     error: newsletterError,
     fetchSubscribers,
     fetchCampaigns,
     sendNewsletter,
     sendTestEmail,
+    addSubscriber,
+    removeSubscriber,
   } = useNewsletter();
 
   const handleSend = async (
@@ -97,7 +101,11 @@ export function Newsletter() {
               subscribers={subscribers}
               total={totalSubscribers}
               loading={subscribersLoading}
+              adding={adding}
+              removing={removing}
               onRefresh={fetchSubscribers}
+              onAdd={addSubscriber}
+              onRemove={removeSubscriber}
             />
           </TabsContent>
 

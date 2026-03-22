@@ -1,22 +1,80 @@
-import { Users, Mail, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Users, Mail, RefreshCw, CheckCircle, XCircle, Plus, Trash2, UserPlus } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from '../ui/dialog';
 import type { Subscriber } from '../../types';
 
 interface SubscriberListProps {
   subscribers: Subscriber[];
   total: number;
   loading: boolean;
+  adding: boolean;
+  removing: string | null;
   onRefresh: () => void;
+  onAdd: (email: string, nome?: string) => Promise<boolean>;
+  onRemove: (email: string) => Promise<boolean>;
 }
 
 export function SubscriberList({
   subscribers,
   total,
   loading,
+  adding,
+  removing,
   onRefresh,
+  onAdd,
+  onRemove,
 }: SubscriberListProps) {
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
+  const [newEmail, setNewEmail] = useState('');
+  const [newNome, setNewNome] = useState('');
+  const [emailError, setEmailError] = useState('');
+
   const activeCount = subscribers.filter((s) => s.isActive).length;
+
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const handleAdd = async () => {
+    setEmailError('');
+
+    if (!newEmail.trim()) {
+      setEmailError('Email é obrigatório');
+      return;
+    }
+
+    if (!validateEmail(newEmail)) {
+      setEmailError('Email inválido');
+      return;
+    }
+
+    const success = await onAdd(newEmail.trim(), newNome.trim() || undefined);
+    if (success) {
+      setShowAddDialog(false);
+      setNewEmail('');
+      setNewNome('');
+    }
+  };
+
+  const handleDelete = async (email: string) => {
+    const success = await onRemove(email);
+    if (success) {
+      setShowDeleteDialog(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -39,14 +97,23 @@ export function SubscriberList({
             {total} total • {activeCount} ativos
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={onRefresh}
-          className="border-beige-medium"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Atualizar
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowAddDialog(true)}
+            className="bg-vermelho hover:bg-vermelho/90"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Adicionar
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onRefresh}
+            className="border-beige-medium"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Atualizar
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -98,9 +165,16 @@ export function SubscriberList({
             <h3 className="font-display text-xl font-semibold text-charcoal mb-2">
               Nenhum subscritor ainda
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               Os subscritores aparecerão aqui quando se inscreverem na newsletter.
             </p>
+            <Button
+              onClick={() => setShowAddDialog(true)}
+              className="bg-vermelho hover:bg-vermelho/90"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Adicionar primeiro subscritor
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -120,6 +194,9 @@ export function SubscriberList({
                   </th>
                   <th className="text-center px-4 py-3 text-sm font-semibold text-charcoal">
                     Estado
+                  </th>
+                  <th className="text-center px-4 py-3 text-sm font-semibold text-charcoal">
+                    Ações
                   </th>
                 </tr>
               </thead>
@@ -153,6 +230,21 @@ export function SubscriberList({
                         </span>
                       )}
                     </td>
+                    <td className="px-4 py-3 text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowDeleteDialog(subscriber.email)}
+                        disabled={removing === subscriber.email}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        {removing === subscriber.email ? (
+                          <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -160,6 +252,111 @@ export function SubscriberList({
           </div>
         </Card>
       )}
+
+      {/* Add Subscriber Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="bg-cream border-beige-medium">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-charcoal">
+              Adicionar Subscritor
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="email@exemplo.com"
+                value={newEmail}
+                onChange={(e) => {
+                  setNewEmail(e.target.value);
+                  setEmailError('');
+                }}
+                className={emailError ? 'border-destructive' : ''}
+              />
+              {emailError && (
+                <p className="text-sm text-destructive">{emailError}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="nome">Nome (opcional)</Label>
+              <Input
+                id="nome"
+                type="text"
+                placeholder="Nome do subscritor"
+                value={newNome}
+                onChange={(e) => setNewNome(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" className="border-beige-medium">
+                Cancelar
+              </Button>
+            </DialogClose>
+            <Button
+              onClick={handleAdd}
+              disabled={adding}
+              className="bg-vermelho hover:bg-vermelho/90"
+            >
+              {adding ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Adicionando...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Adicionar
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!showDeleteDialog} onOpenChange={() => setShowDeleteDialog(null)}>
+        <DialogContent className="bg-cream border-beige-medium">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-charcoal">
+              Remover Subscritor
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-muted-foreground py-4">
+            Tens a certeza que queres remover <strong className="text-charcoal">{showDeleteDialog}</strong> da lista de subscritores?
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Esta ação não pode ser desfeita. O email será removido permanentemente do Brevo.
+          </p>
+          <DialogFooter className="mt-4">
+            <DialogClose asChild>
+              <Button variant="outline" className="border-beige-medium">
+                Cancelar
+              </Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              onClick={() => showDeleteDialog && handleDelete(showDeleteDialog)}
+              disabled={!!removing}
+            >
+              {removing ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Removendo...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Remover
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

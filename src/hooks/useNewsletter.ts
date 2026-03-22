@@ -9,6 +9,8 @@ export function useNewsletter() {
   const [loading, setLoading] = useState(true);
   const [loadingCampaigns, setLoadingCampaigns] = useState(false);
   const [sending, setSending] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isFetchingCampaigns = useRef(false);
 
@@ -82,6 +84,73 @@ export function useNewsletter() {
     return sendNewsletter({ ...campaign, testEmail });
   };
 
+  const addSubscriber = async (email: string, nome?: string): Promise<boolean> => {
+    setAdding(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-subscribe`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ email, nome }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao adicionar subscritor');
+      }
+
+      // Refresh the list
+      await fetchSubscribers();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao adicionar subscritor');
+      return false;
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const removeSubscriber = async (email: string): Promise<boolean> => {
+    setRemoving(email);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-unsubscribe`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao remover subscritor');
+      }
+
+      // Update local state immediately
+      setSubscribers((prev) => prev.filter((s) => s.email !== email));
+      setTotalSubscribers((prev) => prev - 1);
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao remover subscritor');
+      return false;
+    } finally {
+      setRemoving(null);
+    }
+  };
+
   const fetchCampaigns = useCallback(async (limit = 20, offset = 0) => {
     // Prevent multiple concurrent fetches
     if (isFetchingCampaigns.current) return;
@@ -123,10 +192,14 @@ export function useNewsletter() {
     loading,
     loadingCampaigns,
     sending,
+    adding,
+    removing,
     error,
     fetchSubscribers,
     fetchCampaigns,
     sendNewsletter,
     sendTestEmail,
+    addSubscriber,
+    removeSubscriber,
   };
 }
