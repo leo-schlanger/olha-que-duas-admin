@@ -14,6 +14,7 @@ import {
   Clock,
   FileText,
   Download,
+  Laptop,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -446,12 +447,19 @@ export function Analytics() {
             />
           </div>
 
-          {/* Browser Stats */}
-          <MetricsList
-            title="Navegadores"
-            icon={Monitor}
-            data={data.browsers}
-          />
+          {/* Browser & OS Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <MetricsList
+              title="Navegadores"
+              icon={Monitor}
+              data={data.browsers}
+            />
+            <MetricsList
+              title="Sistemas Operacionais"
+              icon={Laptop}
+              data={data.os}
+            />
+          </div>
         </>
       )}
     </div>

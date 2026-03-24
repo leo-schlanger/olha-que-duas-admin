@@ -50,10 +50,12 @@ export interface MetricData {
 export interface AnalyticsData {
   stats: AnalyticsStats | null;
   pageviews: PageviewData[];
+  sessions: PageviewData[];
   pages: MetricData[];
   countries: MetricData[];
   browsers: MetricData[];
   devices: MetricData[];
+  os: MetricData[];
   referrers: MetricData[];
 }
 
@@ -77,10 +79,12 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
   const [data, setData] = useState<AnalyticsData>({
     stats: null,
     pageviews: [],
+    sessions: [],
     pages: [],
     countries: [],
     browsers: [],
     devices: [],
+    os: [],
     referrers: [],
   });
   const [loading, setLoading] = useState(true);
@@ -109,23 +113,26 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
     const baseParams = `startAt=${startAt}&endAt=${endAt}`;
 
     try {
-      const [stats, pageviews, pages, countries, browsers, devices, referrers] = await Promise.all([
+      const [stats, pageviewsData, pages, countries, browsers, devices, os, referrers] = await Promise.all([
         fetchFromProxy('stats', baseParams),
         fetchFromProxy('pageviews', `${baseParams}&unit=day`),
         fetchFromProxy('metrics', `${baseParams}&type=url&limit=10`),
         fetchFromProxy('metrics', `${baseParams}&type=country&limit=10`),
         fetchFromProxy('metrics', `${baseParams}&type=browser&limit=5`),
         fetchFromProxy('metrics', `${baseParams}&type=device&limit=5`),
+        fetchFromProxy('metrics', `${baseParams}&type=os&limit=5`),
         fetchFromProxy('metrics', `${baseParams}&type=referrer&limit=10`),
       ]);
 
       setData({
         stats: transformStats(stats),
-        pageviews: pageviews.pageviews || [],
+        pageviews: pageviewsData.pageviews || [],
+        sessions: pageviewsData.sessions || [],
         pages,
         countries,
         browsers,
         devices,
+        os,
         referrers,
       });
     } catch (err) {
