@@ -12,11 +12,20 @@ import {
   RefreshCw,
   ExternalLink,
   Clock,
+  FileText,
+  Download,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
 import { useAnalytics, type MetricData } from '../hooks/useAnalytics';
 import { cn } from '../lib/utils';
+import { generateAnalyticsCSV, generateAnalyticsPDF } from '../lib/reportGenerator';
 
 type TimeRange = '24h' | '7d' | '30d' | '90d';
 
@@ -294,6 +303,41 @@ export function Analytics() {
               </button>
             ))}
           </div>
+
+          {/* Export Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-beige-medium"
+                disabled={loading || !data.stats}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => generateAnalyticsPDF({
+                  ...data,
+                  timeRange: timeRangeLabels[timeRange],
+                })}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Exportar PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => generateAnalyticsCSV({
+                  ...data,
+                  timeRange: timeRangeLabels[timeRange],
+                })}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Exportar CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Button
             variant="outline"

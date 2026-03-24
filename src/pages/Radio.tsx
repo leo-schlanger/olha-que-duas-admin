@@ -8,12 +8,24 @@ import {
   Radio as RadioIcon,
   Mic,
   History,
+  SkipForward,
+  Signal,
+  Clock,
+  Download,
+  FileText,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
 import { useRadio } from '../hooks/useRadio';
 import { cn } from '../lib/utils';
-import type { SongHistory, ListenersByCountry } from '../types/radio';
+import { generateRadioCSV, generateRadioPDF } from '../lib/reportGenerator';
+import type { SongHistory, ListenersByCountry, NowPlayingInfo } from '../types/radio';
 
 const countryNames: Record<string, string> = {
   PT: 'Portugal',
@@ -291,17 +303,126 @@ function ListenersChart({ listeners }: { listeners: number }) {
   );
 }
 
+function NextSongCard({ nextSong }: { nextSong: NowPlayingInfo | null }) {
+  if (!nextSong) {
+    return (
+      <Card className="bg-cream border-beige-medium">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+            <SkipForward className="w-4 h-4 text-vermelho" />
+            Proxima Musica
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-4">
+            Informacao nao disponivel
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-cream border-beige-medium">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+          <SkipForward className="w-4 h-4 text-vermelho" />
+          Proxima Musica
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-3">
+          <div className="w-12 h-12 rounded overflow-hidden bg-beige-medium flex-shrink-0">
+            <img
+              src={nextSong.song.art}
+              alt={nextSong.song.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23999"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>';
+              }}
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-charcoal truncate">{nextSong.song.title}</p>
+            <p className="text-sm text-muted-foreground truncate">{nextSong.song.artist}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <Clock className="w-3 h-3 inline mr-1" />
+              {Math.floor(nextSong.duration / 60)}:{(nextSong.duration % 60).toString().padStart(2, '0')}
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StreamInfoCard({
+  stationUrl,
+  bitrate,
+  format,
+  totalConnections,
+}: {
+  stationUrl: string | null;
+  bitrate: number | null;
+  format: string | null;
+  totalConnections: number;
+}) {
+  return (
+    <Card className="bg-cream border-beige-medium">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+          <Signal className="w-4 h-4 text-vermelho" />
+          Informacoes do Stream
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-muted-foreground">Total Conexoes</span>
+          <span className="font-medium text-charcoal">{totalConnections}</span>
+        </div>
+        {bitrate && (
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Bitrate</span>
+            <span className="font-medium text-charcoal">{bitrate} kbps</span>
+          </div>
+        )}
+        {format && (
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Formato</span>
+            <span className="font-medium text-charcoal uppercase">{format}</span>
+          </div>
+        )}
+        {stationUrl && (
+          <div className="pt-2 border-t border-beige-medium">
+            <p className="text-xs text-muted-foreground mb-1">URL do Stream</p>
+            <code className="text-xs bg-beige-light px-2 py-1 rounded block truncate">
+              {stationUrl}
+            </code>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function Radio() {
   const { nowPlaying, history, listenersByCountry, loading, error, refresh } = useRadio();
 
   const isOnline = nowPlaying?.is_online ?? false;
   const currentListeners = nowPlaying?.listeners?.current ?? 0;
   const uniqueListeners = nowPlaying?.listeners?.unique ?? 0;
+  const totalListeners = nowPlaying?.listeners?.total ?? 0;
   const isLive = nowPlaying?.live?.is_live ?? false;
 
   const currentSong = nowPlaying?.now_playing?.song ?? null;
   const elapsed = nowPlaying?.now_playing?.elapsed ?? 0;
   const duration = nowPlaying?.now_playing?.duration ?? 0;
+
+  // Stream info
+  const stationUrl = nowPlaying?.station?.listen_url ?? null;
+  const mount = nowPlaying?.station?.mounts?.[0];
+  const bitrate = mount?.bitrate ?? null;
+  const format = mount?.format ?? null;
 
   return (
     <div className="space-y-6">
@@ -329,6 +450,35 @@ export function Radio() {
             />
             {isOnline ? 'Radio Online' : 'Radio Offline'}
           </div>
+
+          {/* Export Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-beige-medium"
+                disabled={loading || !nowPlaying}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => generateRadioPDF({ nowPlaying, history, listenersByCountry })}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Exportar PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => generateRadioCSV({ nowPlaying, history, listenersByCountry })}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Exportar CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Button
             variant="outline"
@@ -390,7 +540,7 @@ export function Radio() {
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <NowPlayingCard
               song={currentSong}
               elapsed={elapsed}
@@ -399,6 +549,7 @@ export function Radio() {
               streamerName={nowPlaying?.live?.streamer_name ?? ''}
               art={nowPlaying?.live?.art ?? null}
             />
+            <NextSongCard nextSong={nowPlaying?.playing_next ?? null} />
             <ListenersByCountryCard data={listenersByCountry} />
           </div>
 
@@ -407,7 +558,15 @@ export function Radio() {
             <div className="lg:col-span-2">
               <SongHistoryCard history={history} />
             </div>
-            <ListenersChart listeners={currentListeners} />
+            <div className="space-y-4">
+              <ListenersChart listeners={currentListeners} />
+              <StreamInfoCard
+                stationUrl={stationUrl}
+                bitrate={bitrate}
+                format={format}
+                totalConnections={totalListeners}
+              />
+            </div>
           </div>
         </>
       )}
