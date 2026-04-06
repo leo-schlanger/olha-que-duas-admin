@@ -48,6 +48,30 @@ CREATE POLICY "Allow all operations on events" ON events
 CREATE POLICY "Allow all operations on schedule" ON schedule
   FOR ALL USING (true) WITH CHECK (true);
 
+-- Tabela de programação diária da rádio
+CREATE TABLE daily_schedule (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  period VARCHAR(20) NOT NULL,        -- 'manha', 'tarde', 'noite', 'madrugada'
+  period_label VARCHAR(50) NOT NULL,  -- 'Manhã', 'Tarde', 'Noite', 'Madrugada'
+  time_range VARCHAR(20) NOT NULL,    -- '07H - 12H'
+  slot_time VARCHAR(10) NOT NULL,     -- '07h', '10h30'
+  slot_name VARCHAR(100) NOT NULL,    -- 'Wake Up Mix'
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_daily_schedule_period ON daily_schedule(period);
+CREATE INDEX idx_daily_schedule_active ON daily_schedule(is_active);
+
+ALTER TABLE daily_schedule ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read on daily_schedule" ON daily_schedule
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow all operations on daily_schedule" ON daily_schedule
+  FOR ALL USING (true) WITH CHECK (true);
+
 -- Storage bucket para ícones
 -- Execute no Supabase Dashboard > Storage > Create new bucket
 -- Nome: event-icons

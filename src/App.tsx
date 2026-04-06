@@ -5,10 +5,11 @@ import { Schedule } from './pages/Schedule';
 import { Newsletter } from './pages/Newsletter';
 import { Analytics } from './pages/Analytics';
 import { Radio } from './pages/Radio';
+import { DailySchedule } from './pages/DailySchedule';
 import { isAuthenticated, logout } from './lib/auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
-import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones } from 'lucide-react';
+import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music } from 'lucide-react';
 import { useState } from 'react';
 import logo from './assets/logo-olha-que-duas.png';
 
@@ -103,6 +104,13 @@ function Dashboard() {
                 <span className="font-medium">Programação</span>
               </TabsTrigger>
               <TabsTrigger
+                value="daily-schedule"
+                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
+              >
+                <Music className="h-4 w-4" />
+                <span className="font-medium">Prog. Diária</span>
+              </TabsTrigger>
+              <TabsTrigger
                 value="newsletter"
                 className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
               >
@@ -134,6 +142,10 @@ function Dashboard() {
 
             <TabsContent value="schedule" className="mt-0">
               <Schedule />
+            </TabsContent>
+
+            <TabsContent value="daily-schedule" className="mt-0">
+              <DailySchedule />
             </TabsContent>
 
             <TabsContent value="newsletter" className="mt-0">

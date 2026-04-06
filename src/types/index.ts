@@ -119,5 +119,25 @@ export interface CampaignsResponse {
   offset: number;
 }
 
+// Daily Schedule types
+export interface DailyScheduleSlot {
+  id: string;
+  period: string;
+  period_label: string;
+  time_range: string;
+  slot_time: string;
+  slot_name: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export const PERIODS = [
+  { key: 'manha', label: 'Manhã', range: '07H - 12H' },
+  { key: 'tarde', label: 'Tarde', range: '12H - 18H' },
+  { key: 'noite', label: 'Noite', range: '18H - 00H' },
+  { key: 'madrugada', label: 'Madrugada', range: '00H - 07H' },
+] as const;
+
 // Radio types
 export * from './radio';
