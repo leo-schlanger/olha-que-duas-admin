@@ -127,6 +127,7 @@ export interface DailyScheduleSlot {
   time_range: string;
   slot_time: string;
   slot_name: string;
+  genres: string;
   sort_order: number;
   is_active: boolean;
   created_at: string;

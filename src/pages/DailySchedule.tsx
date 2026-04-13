@@ -42,6 +42,7 @@ interface SlotForm {
   period: string;
   slot_time: string;
   slot_name: string;
+  genres: string;
   sort_order: number;
 }
 
@@ -56,6 +57,7 @@ export function DailySchedule() {
     period: 'manha',
     slot_time: '',
     slot_name: '',
+    genres: '',
     sort_order: 0,
   });
   const [saving, setSaving] = useState(false);
@@ -67,6 +69,7 @@ export function DailySchedule() {
       period: periodKey,
       slot_time: '',
       slot_name: '',
+      genres: '',
       sort_order: periodSlots.length + 1,
     });
     setIsDialogOpen(true);
@@ -80,6 +83,7 @@ export function DailySchedule() {
       period: slot.period,
       slot_time: slot.slot_time,
       slot_name: slot.slot_name,
+      genres: slot.genres || '',
       sort_order: slot.sort_order,
     });
     setIsDialogOpen(true);
@@ -93,6 +97,7 @@ export function DailySchedule() {
       await updateSlot(editingId, {
         slot_time: form.slot_time,
         slot_name: form.slot_name,
+        genres: form.genres,
         sort_order: form.sort_order,
       });
     } else {
@@ -104,6 +109,7 @@ export function DailySchedule() {
         time_range: period.range,
         slot_time: form.slot_time,
         slot_name: form.slot_name,
+        genres: form.genres,
         sort_order: form.sort_order,
       });
     }
@@ -183,12 +189,17 @@ export function DailySchedule() {
                           slot.is_active ? 'opacity-100' : 'opacity-50'
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1.5 text-sm font-mono bg-charcoal/5 px-2.5 py-1 rounded-md">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 text-sm font-mono bg-charcoal/5 px-2.5 py-1 rounded-md shrink-0">
                             <Clock className="w-3 h-3 text-muted-foreground" />
                             {slot.slot_time}
                           </div>
-                          <span className="font-medium text-sm">{slot.slot_name}</span>
+                          <div className="min-w-0">
+                            <span className="font-medium text-sm block">{slot.slot_name}</span>
+                            {slot.genres && (
+                              <span className="text-xs text-muted-foreground">{slot.genres}</span>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Switch
@@ -265,6 +276,15 @@ export function DailySchedule() {
                 placeholder="Ex: Wake Up Mix, Lunch Beats"
                 value={form.slot_name}
                 onChange={(e) => setForm({ ...form, slot_name: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Géneros</Label>
+              <Input
+                placeholder="Ex: Pop, Rock, K-Pop, Eletrónica"
+                value={form.genres}
+                onChange={(e) => setForm({ ...form, genres: e.target.value })}
               />
             </div>
 

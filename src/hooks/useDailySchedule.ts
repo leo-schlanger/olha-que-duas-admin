@@ -35,6 +35,7 @@ export function useDailySchedule() {
     time_range: string;
     slot_time: string;
     slot_name: string;
+    genres?: string;
     sort_order: number;
   }): Promise<DailyScheduleSlot | null> => {
     try {
@@ -61,7 +62,7 @@ export function useDailySchedule() {
 
   const updateSlot = async (
     id: string,
-    updates: Partial<Pick<DailyScheduleSlot, 'slot_time' | 'slot_name' | 'sort_order'>>
+    updates: Partial<Pick<DailyScheduleSlot, 'slot_time' | 'slot_name' | 'genres' | 'sort_order'>>
   ): Promise<boolean> => {
     try {
       const { error: updateError } = await supabase

@@ -56,6 +56,7 @@ CREATE TABLE daily_schedule (
   time_range VARCHAR(20) NOT NULL,    -- '07H - 12H'
   slot_time VARCHAR(10) NOT NULL,     -- '07h', '10h30'
   slot_name VARCHAR(100) NOT NULL,    -- 'Wake Up Mix'
+  genres VARCHAR(255) DEFAULT '',     -- 'Pop, Rock, K-Pop'
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW()
