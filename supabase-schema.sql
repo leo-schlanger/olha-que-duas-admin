@@ -73,6 +73,28 @@ CREATE POLICY "Allow public read on daily_schedule" ON daily_schedule
 CREATE POLICY "Allow all operations on daily_schedule" ON daily_schedule
   FOR ALL USING (true) WITH CHECK (true);
 
+-- Tabela de snapshots de ouvintes da rádio (para métricas históricas)
+CREATE TABLE radio_listener_snapshots (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  listeners_current INTEGER NOT NULL DEFAULT 0,
+  listeners_unique INTEGER NOT NULL DEFAULT 0,
+  listeners_total INTEGER NOT NULL DEFAULT 0,
+  avg_listening_time INTEGER DEFAULT 0,   -- tempo médio de escuta em segundos
+  is_online BOOLEAN DEFAULT false,
+  is_live BOOLEAN DEFAULT false,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_radio_snapshots_recorded_at ON radio_listener_snapshots(recorded_at);
+
+ALTER TABLE radio_listener_snapshots ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public read on radio_listener_snapshots" ON radio_listener_snapshots
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow all operations on radio_listener_snapshots" ON radio_listener_snapshots
+  FOR ALL USING (true) WITH CHECK (true);
+
 -- Storage bucket para ícones
 -- Execute no Supabase Dashboard > Storage > Create new bucket
 -- Nome: event-icons

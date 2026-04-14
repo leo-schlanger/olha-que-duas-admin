@@ -16,6 +16,18 @@ import {
   Download,
   Laptop,
 } from 'lucide-react';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
@@ -56,9 +68,19 @@ const countryNames: Record<string, string> = {
 
 const deviceIcons: Record<string, typeof Monitor> = {
   desktop: Monitor,
+  laptop: Laptop,
   mobile: Smartphone,
   tablet: Tablet,
 };
+
+const CHART_COLORS = {
+  vermelho: '#C4302B',
+  vermelhoSoft: '#e06560',
+  amarelo: '#D4A843',
+  amareloSoft: '#e0c070',
+};
+
+const PIE_COLORS = ['#C4302B', '#D4A843', '#6366f1', '#22c55e', '#f59e0b', '#8b5cf6'];
 
 function StatCard({
   title,
@@ -184,48 +206,127 @@ function MetricsList({
   );
 }
 
-function PageviewsChart({ data }: { data: Array<{ x: string; y: number }> }) {
-  const maxValue = data.length > 0 ? Math.max(...data.map((d) => d.y)) : 0;
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number; dataKey: string }>;
+  label?: string;
+}
+
+function ChartTooltipContent({ active, payload, label }: ChartTooltipProps) {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div className="bg-charcoal text-white text-xs px-3 py-2 rounded-lg shadow-lg">
+      <p className="font-medium mb-1">{label}</p>
+      {payload.map((entry, i) => (
+        <p key={i} className="flex items-center gap-2">
+          <span
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: entry.dataKey === 'views' ? CHART_COLORS.vermelho : CHART_COLORS.amarelo }}
+          />
+          {entry.dataKey === 'views' ? 'Visualizações' : 'Sessões'}: {entry.value}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function PageviewsChart({
+  pageviews,
+  sessions,
+  timeRange,
+}: {
+  pageviews: Array<{ x: string; y: number }>;
+  sessions: Array<{ x: string; y: number }>;
+  timeRange: TimeRange;
+}) {
+  const chartData = pageviews.map((pv, i) => {
+    const date = new Date(pv.x);
+    const formatDate = () => {
+      if (timeRange === '24h') {
+        return date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+      }
+      return date.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' });
+    };
+    return {
+      date: formatDate(),
+      views: pv.y,
+      sessions: sessions[i]?.y ?? 0,
+    };
+  });
 
   return (
     <Card className="bg-cream border-beige-medium">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-          <BarChart3 className="w-4 h-4 text-vermelho" />
-          Visualizações por Dia
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+            <BarChart3 className="w-4 h-4 text-vermelho" />
+            Visualizações e Sessões
+          </CardTitle>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-1.5 rounded-full bg-vermelho" />
+              Visualizações
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-1.5 rounded-full bg-amarelo" />
+              Sessões
+            </span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        {data.length === 0 ? (
+        {chartData.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
             Sem dados disponíveis
           </p>
         ) : (
-          <div className="flex items-end gap-1 h-40">
-            {data.map((item, index) => {
-              const height = maxValue > 0 ? (item.y / maxValue) * 100 : 0;
-              const date = new Date(item.x);
-              const day = date.getDate();
-
-              return (
-                <div
-                  key={index}
-                  className="flex-1 flex flex-col items-center gap-1 group"
-                >
-                  <div className="relative w-full flex justify-center">
-                    <div
-                      className="w-full max-w-8 bg-gradient-to-t from-vermelho to-vermelho-soft rounded-t transition-all duration-300 group-hover:from-amarelo group-hover:to-amarelo-soft cursor-pointer"
-                      style={{ height: `${Math.max(height, 4)}%` }}
-                    />
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-charcoal text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                      {item.y} views
-                    </div>
-                  </div>
-                  <span className="text-xs text-muted-foreground">{day}</span>
-                </div>
-              );
-            })}
-          </div>
+          <ResponsiveContainer width="100%" height={240}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={CHART_COLORS.vermelho} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={CHART_COLORS.vermelho} stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorSessions" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={CHART_COLORS.amarelo} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={CHART_COLORS.amarelo} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5ddd0" vertical={false} />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11, fill: '#999' }}
+                tickLine={false}
+                axisLine={{ stroke: '#e5ddd0' }}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: '#999' }}
+                tickLine={false}
+                axisLine={false}
+                allowDecimals={false}
+              />
+              <Tooltip content={<ChartTooltipContent />} />
+              <Area
+                type="monotone"
+                dataKey="views"
+                stroke={CHART_COLORS.vermelho}
+                strokeWidth={2}
+                fill="url(#colorViews)"
+                dot={false}
+                activeDot={{ r: 4, fill: CHART_COLORS.vermelho }}
+              />
+              <Area
+                type="monotone"
+                dataKey="sessions"
+                stroke={CHART_COLORS.amarelo}
+                strokeWidth={2}
+                fill="url(#colorSessions)"
+                dot={false}
+                activeDot={{ r: 4, fill: CHART_COLORS.amarelo }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         )}
       </CardContent>
     </Card>
@@ -234,6 +335,12 @@ function PageviewsChart({ data }: { data: Array<{ x: string; y: number }> }) {
 
 function DevicesCard({ data }: { data: MetricData[] }) {
   const total = data.reduce((sum, d) => sum + d.y, 0);
+
+  const pieData = data.map((d) => ({
+    name: d.x.charAt(0).toUpperCase() + d.x.slice(1),
+    value: d.y,
+    percentage: total > 0 ? ((d.y / total) * 100).toFixed(1) : '0',
+  }));
 
   return (
     <Card className="bg-cream border-beige-medium">
@@ -249,21 +356,45 @@ function DevicesCard({ data }: { data: MetricData[] }) {
             Sem dados disponíveis
           </p>
         ) : (
-          <div className="flex justify-around">
-            {data.map((device) => {
-              const Icon = deviceIcons[device.x.toLowerCase()] || Monitor;
-              const percentage = total > 0 ? ((device.y / total) * 100).toFixed(1) : '0';
+          <div className="flex items-center gap-4">
+            <div className="w-32 h-32 flex-shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={30}
+                    outerRadius={55}
+                    paddingAngle={3}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {pieData.map((_, index) => (
+                      <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex-1 space-y-2">
+              {data.map((device, index) => {
+                const Icon = deviceIcons[device.x.toLowerCase()] || Monitor;
+                const percentage = total > 0 ? ((device.y / total) * 100).toFixed(1) : '0';
 
-              return (
-                <div key={device.x} className="text-center">
-                  <div className="w-12 h-12 mx-auto rounded-xl bg-vermelho/10 flex items-center justify-center mb-2">
-                    <Icon className="w-6 h-6 text-vermelho" />
+                return (
+                  <div key={device.x} className="flex items-center gap-2">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
+                    />
+                    <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm text-charcoal capitalize flex-1">{device.x}</span>
+                    <span className="text-sm font-semibold text-charcoal tabular-nums">{percentage}%</span>
                   </div>
-                  <p className="text-lg font-bold text-charcoal">{percentage}%</p>
-                  <p className="text-xs text-muted-foreground capitalize">{device.x}</p>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
       </CardContent>
@@ -408,7 +539,11 @@ export function Analytics() {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
-              <PageviewsChart data={data.pageviews} />
+              <PageviewsChart
+                pageviews={data.pageviews}
+                sessions={data.sessions}
+                timeRange={timeRange}
+              />
             </div>
             <DevicesCard data={data.devices} />
           </div>

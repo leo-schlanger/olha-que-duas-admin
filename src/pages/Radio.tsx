@@ -1,7 +1,7 @@
+import { useState, useEffect, useRef } from 'react';
 import {
   Headphones,
   Users,
-  TrendingUp,
   Music,
   Globe,
   RefreshCw,
@@ -13,7 +13,25 @@ import {
   Clock,
   Download,
   FileText,
+  Activity,
+  CalendarDays,
+  CalendarRange,
+  Calendar,
+  Timer,
+  TrendingUp,
 } from 'lucide-react';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Cell,
+} from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
@@ -23,24 +41,33 @@ import {
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
 import { useRadio } from '../hooks/useRadio';
+import { useRadioStats, type RadioPeriodStats } from '../hooks/useRadioStats';
 import { cn } from '../lib/utils';
 import { generateRadioCSV, generateRadioPDF } from '../lib/reportGenerator';
 import type { SongHistory, ListenersByCountry, NowPlayingInfo } from '../types/radio';
+
+const CHART_COLORS = {
+  vermelho: '#C4302B',
+  vermelhoSoft: '#e06560',
+  amarelo: '#D4A843',
+};
+
+const BAR_COLORS = ['#C4302B', '#D4A843', '#6366f1', '#22c55e', '#f59e0b'];
 
 const countryNames: Record<string, string> = {
   PT: 'Portugal',
   BR: 'Brasil',
   US: 'Estados Unidos',
   ES: 'Espanha',
-  FR: 'Franca',
+  FR: 'França',
   GB: 'Reino Unido',
   DE: 'Alemanha',
-  IT: 'Italia',
-  NL: 'Paises Baixos',
-  BE: 'Belgica',
-  CH: 'Suica',
+  IT: 'Itália',
+  NL: 'Países Baixos',
+  BE: 'Bélgica',
+  CH: 'Suíça',
   AO: 'Angola',
-  MZ: 'Mocambique',
+  MZ: 'Moçambique',
   CV: 'Cabo Verde',
   Unknown: 'Desconhecido',
 };
@@ -146,7 +173,7 @@ function NowPlayingCard({
           <div className="flex-1 min-w-0">
             {isLive ? (
               <>
-                <p className="font-semibold text-charcoal truncate">Transmissao Ao Vivo</p>
+                <p className="font-semibold text-charcoal truncate">Transmissão Ao Vivo</p>
                 <p className="text-sm text-muted-foreground truncate">{streamerName || 'DJ Ao Vivo'}</p>
               </>
             ) : song ? (
@@ -158,7 +185,7 @@ function NowPlayingCard({
                 )}
               </>
             ) : (
-              <p className="text-muted-foreground">Carregando...</p>
+              <p className="text-muted-foreground">A carregar...</p>
             )}
 
             {!isLive && duration > 0 && (
@@ -182,39 +209,125 @@ function NowPlayingCard({
   );
 }
 
+interface ListenerSnapshot {
+  time: string;
+  listeners: number;
+}
+
+function ListenersHistoryChart({ snapshots }: { snapshots: ListenerSnapshot[] }) {
+  return (
+    <Card className="bg-cream border-beige-medium">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+          <Activity className="w-4 h-4 text-vermelho" />
+          Ouvintes em Tempo Real
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {snapshots.length < 2 ? (
+          <div className="text-center py-8">
+            <p className="text-sm text-muted-foreground">A recolher dados...</p>
+            <p className="text-xs text-muted-foreground mt-1">O gráfico aparece após alguns minutos</p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={snapshots} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorListeners" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={CHART_COLORS.vermelho} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={CHART_COLORS.vermelho} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5ddd0" vertical={false} />
+              <XAxis
+                dataKey="time"
+                tick={{ fontSize: 10, fill: '#999' }}
+                tickLine={false}
+                axisLine={{ stroke: '#e5ddd0' }}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: '#999' }}
+                tickLine={false}
+                axisLine={false}
+                allowDecimals={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#2d2d2d',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontSize: '12px',
+                }}
+                labelStyle={{ color: '#ccc' }}
+                formatter={(value) => [`${value} ouvintes`, 'Ouvintes']}
+              />
+              <Area
+                type="monotone"
+                dataKey="listeners"
+                stroke={CHART_COLORS.vermelho}
+                strokeWidth={2}
+                fill="url(#colorListeners)"
+                dot={false}
+                activeDot={{ r: 4, fill: CHART_COLORS.vermelho }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function ListenersByCountryCard({ data }: { data: ListenersByCountry[] }) {
-  const maxValue = data.length > 0 ? Math.max(...data.map((d) => d.count)) : 0;
+  const chartData = data.slice(0, 5).map((item) => ({
+    country: countryNames[item.country] || item.country,
+    count: item.count,
+  }));
 
   return (
     <Card className="bg-cream border-beige-medium">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
           <Globe className="w-4 h-4 text-vermelho" />
-          Ouvintes por Pais
+          Ouvintes por País
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent>
         {data.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">
-            Sem dados de localizacao disponiveis
+            Sem dados de localização disponíveis
           </p>
         ) : (
-          data.slice(0, 5).map((item, index) => (
-            <div key={index} className="space-y-1.5">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-charcoal font-medium">
-                  {countryNames[item.country] || item.country}
-                </span>
-                <span className="text-muted-foreground tabular-nums">{item.count}</span>
-              </div>
-              <div className="h-2 bg-beige-medium rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-vermelho to-vermelho-soft rounded-full transition-all duration-500"
-                  style={{ width: `${maxValue > 0 ? (item.count / maxValue) * 100 : 0}%` }}
-                />
-              </div>
-            </div>
-          ))
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 5, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5ddd0" horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 11, fill: '#999' }} tickLine={false} axisLine={false} allowDecimals={false} />
+              <YAxis
+                type="category"
+                dataKey="country"
+                tick={{ fontSize: 11, fill: '#555' }}
+                tickLine={false}
+                axisLine={false}
+                width={100}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#2d2d2d',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontSize: '12px',
+                }}
+                formatter={(value) => [`${value} ouvintes`, 'Total']}
+              />
+              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                {chartData.map((_, index) => (
+                  <Cell key={index} fill={BAR_COLORS[index % BAR_COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         )}
       </CardContent>
     </Card>
@@ -232,13 +345,13 @@ function SongHistoryCard({ history }: { history: SongHistory[] }) {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
           <History className="w-4 h-4 text-vermelho" />
-          Historico de Musicas
+          Histórico de Músicas
         </CardTitle>
       </CardHeader>
       <CardContent>
         {history.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">
-            Sem historico disponivel
+            Sem histórico disponível
           </p>
         ) : (
           <div className="space-y-3 max-h-80 overflow-y-auto">
@@ -273,36 +386,6 @@ function SongHistoryCard({ history }: { history: SongHistory[] }) {
   );
 }
 
-function ListenersChart({ listeners }: { listeners: number }) {
-  // Simple visual representation of current listeners
-  const getListenerLevel = (count: number) => {
-    if (count === 0) return 'Sem ouvintes';
-    if (count < 10) return 'Baixa audiencia';
-    if (count < 50) return 'Audiencia moderada';
-    if (count < 100) return 'Boa audiencia';
-    return 'Alta audiencia';
-  };
-
-  return (
-    <Card className="bg-cream border-beige-medium">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-          <TrendingUp className="w-4 h-4 text-vermelho" />
-          Audiencia Atual
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-center py-4">
-          <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-vermelho to-vermelho-soft flex items-center justify-center mb-4">
-            <span className="text-3xl font-bold text-white">{listeners}</span>
-          </div>
-          <p className="text-sm text-muted-foreground">{getListenerLevel(listeners)}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function NextSongCard({ nextSong }: { nextSong: NowPlayingInfo | null }) {
   if (!nextSong) {
     return (
@@ -310,12 +393,12 @@ function NextSongCard({ nextSong }: { nextSong: NowPlayingInfo | null }) {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
             <SkipForward className="w-4 h-4 text-vermelho" />
-            Proxima Musica
+            Próxima Música
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground text-center py-4">
-            Informacao nao disponivel
+            Informação não disponível
           </p>
         </CardContent>
       </Card>
@@ -327,7 +410,7 @@ function NextSongCard({ nextSong }: { nextSong: NowPlayingInfo | null }) {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
           <SkipForward className="w-4 h-4 text-vermelho" />
-          Proxima Musica
+          Próxima Música
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -372,12 +455,12 @@ function StreamInfoCard({
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
           <Signal className="w-4 h-4 text-vermelho" />
-          Informacoes do Stream
+          Informações do Stream
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex justify-between items-center">
-          <span className="text-sm text-muted-foreground">Total Conexoes</span>
+          <span className="text-sm text-muted-foreground">Total Conexões</span>
           <span className="font-medium text-charcoal">{totalConnections}</span>
         </div>
         {bitrate && (
@@ -405,8 +488,160 @@ function StreamInfoCard({
   );
 }
 
+function formatListeningTime(seconds: number): string {
+  if (seconds === 0) return '0s';
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
+function PeriodStatsCards({ today, week, month }: { today: RadioPeriodStats; week: RadioPeriodStats; month: RadioPeriodStats }) {
+  const periods = [
+    { label: 'Hoje', icon: CalendarDays, stats: today, color: 'border-amber-300 bg-amber-50' },
+    { label: 'Semana', icon: CalendarRange, stats: week, color: 'border-orange-300 bg-orange-50' },
+    { label: 'Mês', icon: Calendar, stats: month, color: 'border-indigo-300 bg-indigo-50' },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {periods.map(({ label, icon: Icon, stats, color }) => (
+        <Card key={label} className={`border-2 ${color}`}>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+              <Icon className="w-4 h-4 text-vermelho" />
+              {label}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {stats.snapshotCount === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                Sem dados ainda
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Users className="w-3 h-3" /> Média Ouvintes
+                    </p>
+                    <p className="text-xl font-bold text-charcoal">{stats.avgListeners}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" /> Pico
+                    </p>
+                    <p className="text-xl font-bold text-charcoal">{stats.maxListeners}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Headphones className="w-3 h-3" /> Únicos
+                    </p>
+                    <p className="text-xl font-bold text-charcoal">{stats.totalUnique}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Timer className="w-3 h-3" /> Tempo Médio
+                    </p>
+                    <p className="text-xl font-bold text-charcoal">{formatListeningTime(stats.avgListeningTime)}</p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground text-right">{stats.snapshotCount} amostras</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function ListenersTrendChart({ data }: { data: Array<{ time: string; listeners: number }> }) {
+  if (data.length < 2) {
+    return (
+      <Card className="bg-cream border-beige-medium">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+            <TrendingUp className="w-4 h-4 text-vermelho" />
+            Tendência de Ouvintes (7 dias)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-8">
+            Dados insuficientes — o gráfico aparece após acumular mais amostras
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-cream border-beige-medium">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+          <TrendingUp className="w-4 h-4 text-vermelho" />
+          Tendência de Ouvintes (7 dias)
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={220}>
+          <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorTrend" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={CHART_COLORS.vermelho} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={CHART_COLORS.vermelho} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5ddd0" vertical={false} />
+            <XAxis
+              dataKey="time"
+              tick={{ fontSize: 9, fill: '#999' }}
+              tickLine={false}
+              axisLine={{ stroke: '#e5ddd0' }}
+              interval="preserveStartEnd"
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: '#999' }}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#2d2d2d',
+                border: 'none',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '12px',
+              }}
+              labelStyle={{ color: '#ccc' }}
+              formatter={(value) => [`${value} ouvintes`, 'Média']}
+            />
+            <Area
+              type="monotone"
+              dataKey="listeners"
+              stroke={CHART_COLORS.vermelho}
+              strokeWidth={2}
+              fill="url(#colorTrend)"
+              dot={false}
+              activeDot={{ r: 4, fill: CHART_COLORS.vermelho }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function Radio() {
   const { nowPlaying, history, listenersByCountry, loading, error, refresh } = useRadio();
+  const { stats: radioStats, loading: statsLoading } = useRadioStats();
+
+  // Track listener snapshots for the real-time chart
+  const [listenerSnapshots, setListenerSnapshots] = useState<ListenerSnapshot[]>([]);
+  const prevListenersRef = useRef<number | null>(null);
 
   const isOnline = nowPlaying?.is_online ?? false;
   const currentListeners = nowPlaying?.listeners?.current ?? 0;
@@ -424,14 +659,28 @@ export function Radio() {
   const bitrate = mount?.bitrate ?? null;
   const format = mount?.format ?? null;
 
+  // Record listener snapshots on each poll
+  useEffect(() => {
+    if (nowPlaying && currentListeners !== prevListenersRef.current) {
+      prevListenersRef.current = currentListeners;
+      const now = new Date();
+      const time = now.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+      setListenerSnapshots((prev) => {
+        const updated = [...prev, { time, listeners: currentListeners }];
+        // Keep last 60 snapshots (30 min at 30s intervals)
+        return updated.slice(-60);
+      });
+    }
+  }, [nowPlaying, currentListeners]);
+
   return (
     <div className="space-y-6">
       {/* Header with controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-display font-bold text-charcoal">Radio</h2>
+          <h2 className="text-xl font-display font-bold text-charcoal">Rádio</h2>
           <p className="text-sm text-muted-foreground">
-            Metricas e estatisticas da radio em tempo real
+            Métricas e estatísticas da rádio em tempo real
           </p>
         </div>
 
@@ -448,7 +697,7 @@ export function Radio() {
             <span
               className={cn('w-2 h-2 rounded-full', isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400')}
             />
-            {isOnline ? 'Radio Online' : 'Radio Offline'}
+            {isOnline ? 'Rádio Online' : 'Rádio Offline'}
           </div>
 
           {/* Export Menu */}
@@ -520,7 +769,7 @@ export function Radio() {
               icon={Headphones}
             />
             <StatCard
-              title="Ouvintes Unicos"
+              title="Ouvintes Únicos"
               value={uniqueListeners}
               icon={Users}
             />
@@ -532,14 +781,14 @@ export function Radio() {
               variant={isLive ? 'live' : isOnline ? 'default' : 'offline'}
             />
             <StatCard
-              title="Estacao"
-              value={nowPlaying?.station?.name ?? 'Carregando...'}
+              title="Estação"
+              value={nowPlaying?.station?.name ?? 'A carregar...'}
               icon={RadioIcon}
               format="text"
             />
           </div>
 
-          {/* Main Content Grid */}
+          {/* Now Playing + Next Song */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <NowPlayingCard
               song={currentSong}
@@ -553,21 +802,34 @@ export function Radio() {
             <ListenersByCountryCard data={listenersByCountry} />
           </div>
 
-          {/* Second Row */}
+          {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
-              <SongHistoryCard history={history} />
+              <ListenersHistoryChart snapshots={listenerSnapshots} />
             </div>
-            <div className="space-y-4">
-              <ListenersChart listeners={currentListeners} />
-              <StreamInfoCard
-                stationUrl={stationUrl}
-                bitrate={bitrate}
-                format={format}
-                totalConnections={totalListeners}
-              />
-            </div>
+            <StreamInfoCard
+              stationUrl={stationUrl}
+              bitrate={bitrate}
+              format={format}
+              totalConnections={totalListeners}
+            />
           </div>
+
+          {/* Historical Stats */}
+          {!statsLoading && (
+            <>
+              <PeriodStatsCards
+                today={radioStats.today}
+                week={radioStats.week}
+                month={radioStats.month}
+              />
+
+              <ListenersTrendChart data={radioStats.history} />
+            </>
+          )}
+
+          {/* Song History */}
+          <SongHistoryCard history={history} />
         </>
       )}
     </div>

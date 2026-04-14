@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '../lib/supabase';
 import type { RadioNowPlaying, ListenerInfo, ListenersByCountry, RadioData } from '../types/radio';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SNAPSHOT_INTERVAL = 5 * 60 * 1000; // Save snapshot every 5 minutes
 
 const POLLING_INTERVAL = 30000; // 30 seconds
 
@@ -16,6 +18,7 @@ export function useRadio() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<number | null>(null);
+  const lastSnapshotRef = useRef<number>(0);
 
   const fetchFromProxy = useCallback(async (endpoint: string, params?: Record<string, string>) => {
     const queryParams = new URLSearchParams({ endpoint, ...params });
@@ -74,6 +77,25 @@ export function useRadio() {
         listeners,
         listenersByCountry,
       });
+
+      // Save snapshot to DB every 5 minutes
+      const now = Date.now();
+      if (now - lastSnapshotRef.current >= SNAPSHOT_INTERVAL) {
+        lastSnapshotRef.current = now;
+        const avgTime = listeners.length > 0
+          ? Math.round(listeners.reduce((s, l) => s + (l.connected_time || 0), 0) / listeners.length)
+          : 0;
+        supabase.from('radio_listener_snapshots').insert({
+          listeners_current: nowPlaying.listeners?.current ?? 0,
+          listeners_unique: nowPlaying.listeners?.unique ?? 0,
+          listeners_total: nowPlaying.listeners?.total ?? 0,
+          avg_listening_time: avgTime,
+          is_online: nowPlaying.is_online ?? false,
+          is_live: nowPlaying.live?.is_live ?? false,
+        }).then(({ error: snapErr }) => {
+          if (snapErr) console.warn('Failed to save listener snapshot:', snapErr);
+        });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao carregar dados da rádio';
       setError(message);
