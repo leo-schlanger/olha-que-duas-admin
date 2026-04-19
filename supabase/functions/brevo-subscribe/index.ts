@@ -9,6 +9,7 @@ const corsHeaders = {
 interface SubscribeRequest {
   email: string;
   nome?: string;
+  listId?: number;
 }
 
 serve(async (req) => {
@@ -25,7 +26,7 @@ serve(async (req) => {
       throw new Error("BREVO_API_KEY not configured");
     }
 
-    const { email, nome }: SubscribeRequest = await req.json();
+    const { email, nome, listId }: SubscribeRequest = await req.json();
 
     if (!email) {
       return new Response(
@@ -36,6 +37,8 @@ serve(async (req) => {
         }
       );
     }
+
+    const targetListId = listId || parseInt(BREVO_LIST_ID);
 
     // Add contact to Brevo
     const response = await fetch("https://api.brevo.com/v3/contacts", {
@@ -50,7 +53,7 @@ serve(async (req) => {
         attributes: {
           NOME: nome || "",
         },
-        listIds: [parseInt(BREVO_LIST_ID)],
+        listIds: [targetListId],
         updateEnabled: true,
       }),
     });

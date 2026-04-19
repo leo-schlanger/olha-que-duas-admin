@@ -60,6 +60,19 @@ export interface SubscribersResponse {
   offset: number;
 }
 
+export interface SubscriberGroup {
+  id: number;
+  name: string;
+  totalSubscribers: number;
+  totalBlacklisted: number;
+  createdAt: string;
+}
+
+export interface GroupsResponse {
+  groups: SubscriberGroup[];
+  total: number;
+}
+
 export type BlockType = 'text' | 'image';
 
 export interface TextBlock {
@@ -88,6 +101,7 @@ export interface NewsletterCampaign {
   subject: string;
   blocks: ContentBlock[];
   testEmail?: string;
+  listIds?: number[];
 }
 
 // Campaign history types

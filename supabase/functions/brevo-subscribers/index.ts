@@ -40,10 +40,11 @@ serve(async (req) => {
     const url = new URL(req.url);
     const limit = url.searchParams.get("limit") || "50";
     const offset = url.searchParams.get("offset") || "0";
+    const listId = url.searchParams.get("listId") || BREVO_LIST_ID;
 
     // Get contacts from Brevo list
     const response = await fetch(
-      `https://api.brevo.com/v3/contacts/lists/${BREVO_LIST_ID}/contacts?limit=${limit}&offset=${offset}`,
+      `https://api.brevo.com/v3/contacts/lists/${listId}/contacts?limit=${limit}&offset=${offset}`,
       {
         method: "GET",
         headers: {

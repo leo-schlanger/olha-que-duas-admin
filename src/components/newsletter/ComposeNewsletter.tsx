@@ -4,6 +4,7 @@ import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { Checkbox } from '../ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -14,12 +15,15 @@ import {
 } from '../ui/dialog';
 import { BlockEditor } from './BlockEditor';
 import { EmailPreview } from './EmailPreview';
-import type { ContentBlock } from '../../types';
+import type { ContentBlock, SubscriberGroup } from '../../types';
+
+type SendTarget = 'all' | 'selected';
 
 interface ComposeNewsletterProps {
   totalSubscribers: number;
+  groups: SubscriberGroup[];
   sending: boolean;
-  onSend: (subject: string, blocks: ContentBlock[]) => Promise<boolean>;
+  onSend: (subject: string, blocks: ContentBlock[], listIds?: number[]) => Promise<boolean>;
   onSendTest: (
     subject: string,
     blocks: ContentBlock[],
@@ -29,6 +33,7 @@ interface ComposeNewsletterProps {
 
 export function ComposeNewsletter({
   totalSubscribers,
+  groups,
   sending,
   onSend,
   onSendTest,
@@ -39,6 +44,8 @@ export function ComposeNewsletter({
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [sendTarget, setSendTarget] = useState<SendTarget>('all');
+  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<number>>(new Set());
 
   const handleSendTest = async () => {
     if (!testEmail) return;
@@ -51,7 +58,11 @@ export function ComposeNewsletter({
   };
 
   const handleSend = async () => {
-    const success = await onSend(subject, blocks);
+    const listIds = sendTarget === 'selected' && selectedGroupIds.size > 0
+      ? Array.from(selectedGroupIds)
+      : undefined;
+
+    const success = await onSend(subject, blocks, listIds);
     if (success) {
       setConfirmDialogOpen(false);
       setSuccessMessage('Newsletter enviada com sucesso!');
@@ -59,6 +70,18 @@ export function ComposeNewsletter({
       setBlocks([]);
       setTimeout(() => setSuccessMessage(null), 5000);
     }
+  };
+
+  const toggleGroupSelection = (groupId: number) => {
+    setSelectedGroupIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) {
+        next.delete(groupId);
+      } else {
+        next.add(groupId);
+      }
+      return next;
+    });
   };
 
   const hasContent = blocks.some((block) => {
@@ -71,6 +94,14 @@ export function ComposeNewsletter({
     return false;
   });
   const canSend = subject.trim() && hasContent;
+
+  const selectedGroupCount = sendTarget === 'selected'
+    ? groups.filter((g) => selectedGroupIds.has(g.id)).reduce((sum, g) => sum + g.totalSubscribers, 0)
+    : totalSubscribers;
+
+  const recipientLabel = sendTarget === 'all'
+    ? `${totalSubscribers} subscritores (todos)`
+    : `${selectedGroupCount} subscritores (${selectedGroupIds.size} grupo${selectedGroupIds.size !== 1 ? 's' : ''})`;
 
   return (
     <div className="space-y-6">
@@ -88,7 +119,7 @@ export function ComposeNewsletter({
           Compor Newsletter
         </h2>
         <p className="text-muted-foreground mt-1">
-          Cria o conteúdo e envia para {totalSubscribers} subscritores
+          Cria o conteúdo e envia para {recipientLabel}
         </p>
       </div>
 
@@ -112,6 +143,74 @@ export function ComposeNewsletter({
             </CardContent>
           </Card>
 
+          {/* Send Target */}
+          {groups.length > 0 && (
+            <Card className="bg-cream border-beige-medium">
+              <CardContent className="p-4 space-y-4">
+                <Label className="text-base font-semibold">Enviar para</Label>
+
+                <div className="space-y-3">
+                  {/* All option */}
+                  <label className="flex items-center gap-3 p-3 rounded-lg border border-beige-medium bg-white cursor-pointer hover:bg-beige-light/50 transition-colors">
+                    <input
+                      type="radio"
+                      name="sendTarget"
+                      value="all"
+                      checked={sendTarget === 'all'}
+                      onChange={() => setSendTarget('all')}
+                      className="w-4 h-4 text-vermelho accent-vermelho"
+                    />
+                    <div>
+                      <span className="font-medium text-charcoal">Todos os subscritores</span>
+                      <span className="text-sm text-muted-foreground ml-2">({totalSubscribers})</span>
+                    </div>
+                  </label>
+
+                  {/* Selected groups option */}
+                  <label className="flex items-center gap-3 p-3 rounded-lg border border-beige-medium bg-white cursor-pointer hover:bg-beige-light/50 transition-colors">
+                    <input
+                      type="radio"
+                      name="sendTarget"
+                      value="selected"
+                      checked={sendTarget === 'selected'}
+                      onChange={() => setSendTarget('selected')}
+                      className="w-4 h-4 text-vermelho accent-vermelho"
+                    />
+                    <div>
+                      <span className="font-medium text-charcoal">Grupos específicos</span>
+                    </div>
+                  </label>
+
+                  {/* Group checkboxes */}
+                  {sendTarget === 'selected' && (
+                    <div className="ml-7 space-y-2 border-l-2 border-vermelho/20 pl-4">
+                      {groups.map((group) => (
+                        <label
+                          key={group.id}
+                          className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-beige-light/50 transition-colors"
+                        >
+                          <Checkbox
+                            checked={selectedGroupIds.has(group.id)}
+                            onCheckedChange={() => toggleGroupSelection(group.id)}
+                          />
+                          <span className="text-sm text-charcoal">{group.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            ({group.totalSubscribers})
+                          </span>
+                        </label>
+                      ))}
+                      {selectedGroupIds.size === 0 && (
+                        <p className="text-sm text-amber-600">
+                          Seleciona pelo menos um grupo.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Block Editor */}
           <Card className="bg-cream border-beige-medium">
             <CardContent className="p-4">
@@ -132,7 +231,7 @@ export function ComposeNewsletter({
             </Button>
             <Button
               onClick={() => setConfirmDialogOpen(true)}
-              disabled={!canSend || sending}
+              disabled={!canSend || sending || (sendTarget === 'selected' && selectedGroupIds.size === 0)}
               className="flex-1 bg-vermelho hover:bg-vermelho-dark text-white"
             >
               <Send className="h-4 w-4 mr-2" />
@@ -201,8 +300,7 @@ export function ComposeNewsletter({
               Confirmar Envio
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Tens a certeza que queres enviar esta newsletter para{' '}
-              <strong>{totalSubscribers} subscritores</strong>?
+              Tens a certeza que queres enviar esta newsletter?
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-2">
@@ -216,6 +314,26 @@ export function ComposeNewsletter({
                 return false;
               }).length}
             </p>
+            <p className="text-sm">
+              <strong>Destinatários:</strong> {recipientLabel}
+            </p>
+            {sendTarget === 'selected' && selectedGroupIds.size > 0 && (
+              <div className="mt-2 p-3 bg-beige-light/50 rounded-lg">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Grupos selecionados:</p>
+                <div className="flex flex-wrap gap-1">
+                  {groups
+                    .filter((g) => selectedGroupIds.has(g.id))
+                    .map((g) => (
+                      <span
+                        key={g.id}
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-vermelho/10 text-vermelho"
+                      >
+                        {g.name}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button

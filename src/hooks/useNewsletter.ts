@@ -1,31 +1,157 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Subscriber, SubscribersResponse, NewsletterCampaign, Campaign, CampaignsResponse } from '../types';
+import type { Subscriber, SubscribersResponse, NewsletterCampaign, Campaign, CampaignsResponse, SubscriberGroup, GroupsResponse } from '../types';
 
 export function useNewsletter() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [totalSubscribers, setTotalSubscribers] = useState(0);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [totalCampaigns, setTotalCampaigns] = useState(0);
+  const [groups, setGroups] = useState<SubscriberGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingCampaigns, setLoadingCampaigns] = useState(false);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const [sending, setSending] = useState(false);
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [movingSubscribers, setMovingSubscribers] = useState(false);
+  const [savingGroup, setSavingGroup] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isFetchingCampaigns = useRef(false);
 
-  const fetchSubscribers = useCallback(async (limit = 50, offset = 0) => {
-    setLoading(true);
+  const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  const headers = {
+    'Authorization': `Bearer ${anonKey}`,
+  };
+
+  const jsonHeaders = {
+    ...headers,
+    'Content-Type': 'application/json',
+  };
+
+  // ===== GROUPS =====
+
+  const fetchGroups = useCallback(async () => {
+    setLoadingGroups(true);
     setError(null);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-subscribers?limit=${limit}&offset=${offset}`,
+        `${baseUrl}/functions/v1/brevo-lists`,
+        { headers }
+      );
+
+      if (!response.ok) {
+        throw new Error('Erro ao carregar grupos');
+      }
+
+      const result: GroupsResponse = await response.json();
+      setGroups(result.groups);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar grupos');
+    } finally {
+      setLoadingGroups(false);
+    }
+  }, [baseUrl, anonKey]);
+
+  const createGroup = async (name: string): Promise<boolean> => {
+    setSavingGroup(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${baseUrl}/functions/v1/brevo-lists`,
         {
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
+          method: 'POST',
+          headers: jsonHeaders,
+          body: JSON.stringify({ name }),
         }
       );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao criar grupo');
+      }
+
+      await fetchGroups();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar grupo');
+      return false;
+    } finally {
+      setSavingGroup(false);
+    }
+  };
+
+  const updateGroup = async (id: number, name: string): Promise<boolean> => {
+    setSavingGroup(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${baseUrl}/functions/v1/brevo-lists`,
+        {
+          method: 'PUT',
+          headers: jsonHeaders,
+          body: JSON.stringify({ id, name }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao renomear grupo');
+      }
+
+      await fetchGroups();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao renomear grupo');
+      return false;
+    } finally {
+      setSavingGroup(false);
+    }
+  };
+
+  const deleteGroup = async (id: number): Promise<boolean> => {
+    setSavingGroup(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${baseUrl}/functions/v1/brevo-lists?id=${id}`,
+        {
+          method: 'DELETE',
+          headers,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao remover grupo');
+      }
+
+      await fetchGroups();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao remover grupo');
+      return false;
+    } finally {
+      setSavingGroup(false);
+    }
+  };
+
+  // ===== SUBSCRIBERS =====
+
+  const fetchSubscribers = useCallback(async (limit = 50, offset = 0, listId?: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      let url = `${baseUrl}/functions/v1/brevo-subscribers?limit=${limit}&offset=${offset}`;
+      if (listId) {
+        url += `&listId=${listId}`;
+      }
+
+      const response = await fetch(url, { headers });
 
       if (!response.ok) {
         throw new Error('Erro ao carregar subscritores');
@@ -40,7 +166,7 @@ export function useNewsletter() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [baseUrl, anonKey]);
 
   useEffect(() => {
     fetchSubscribers();
@@ -51,13 +177,10 @@ export function useNewsletter() {
     setError(null);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-send`,
+        `${baseUrl}/functions/v1/brevo-send`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
+          headers: jsonHeaders,
           body: JSON.stringify(campaign),
         }
       );
@@ -84,19 +207,21 @@ export function useNewsletter() {
     return sendNewsletter({ ...campaign, testEmail });
   };
 
-  const addSubscriber = async (email: string, nome?: string): Promise<boolean> => {
+  const addSubscriber = async (email: string, nome?: string, listId?: number): Promise<boolean> => {
     setAdding(true);
     setError(null);
     try {
+      const body: Record<string, unknown> = { email, nome };
+      if (listId) {
+        body.listId = listId;
+      }
+
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-subscribe`,
+        `${baseUrl}/functions/v1/brevo-subscribe`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({ email, nome }),
+          headers: jsonHeaders,
+          body: JSON.stringify(body),
         }
       );
 
@@ -122,13 +247,10 @@ export function useNewsletter() {
     setError(null);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-unsubscribe`,
+        `${baseUrl}/functions/v1/brevo-unsubscribe`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
+          headers: jsonHeaders,
           body: JSON.stringify({ email }),
         }
       );
@@ -151,6 +273,68 @@ export function useNewsletter() {
     }
   };
 
+  const moveSubscribers = async (
+    emails: string[],
+    fromListId: number,
+    toListId: number
+  ): Promise<boolean> => {
+    setMovingSubscribers(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${baseUrl}/functions/v1/brevo-move-subscriber?action=move`,
+        {
+          method: 'POST',
+          headers: jsonHeaders,
+          body: JSON.stringify({ emails, fromListId, toListId }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao mover subscritores');
+      }
+
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao mover subscritores');
+      return false;
+    } finally {
+      setMovingSubscribers(false);
+    }
+  };
+
+  const removeFromGroup = async (emails: string[], listId: number): Promise<boolean> => {
+    setMovingSubscribers(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${baseUrl}/functions/v1/brevo-move-subscriber?action=remove-from-list`,
+        {
+          method: 'POST',
+          headers: jsonHeaders,
+          body: JSON.stringify({ emails, listId }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao remover do grupo');
+      }
+
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao remover do grupo');
+      return false;
+    } finally {
+      setMovingSubscribers(false);
+    }
+  };
+
+  // ===== CAMPAIGNS =====
+
   const fetchCampaigns = useCallback(async (limit = 20, offset = 0) => {
     // Prevent multiple concurrent fetches
     if (isFetchingCampaigns.current) return;
@@ -160,12 +344,8 @@ export function useNewsletter() {
     setError(null);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brevo-campaigns?limit=${limit}&offset=${offset}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-        }
+        `${baseUrl}/functions/v1/brevo-campaigns?limit=${limit}&offset=${offset}`,
+        { headers }
       );
 
       if (!response.ok) {
@@ -182,24 +362,34 @@ export function useNewsletter() {
       setLoadingCampaigns(false);
       isFetchingCampaigns.current = false;
     }
-  }, []);
+  }, [baseUrl, anonKey]);
 
   return {
     subscribers,
     totalSubscribers,
     campaigns,
     totalCampaigns,
+    groups,
     loading,
     loadingCampaigns,
+    loadingGroups,
     sending,
     adding,
     removing,
+    movingSubscribers,
+    savingGroup,
     error,
     fetchSubscribers,
     fetchCampaigns,
+    fetchGroups,
     sendNewsletter,
     sendTestEmail,
     addSubscriber,
     removeSubscriber,
+    moveSubscribers,
+    removeFromGroup,
+    createGroup,
+    updateGroup,
+    deleteGroup,
   };
 }

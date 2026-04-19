@@ -33,6 +33,7 @@ interface SendRequest {
   subject: string;
   blocks: (ContentBlock | LegacyBlock)[];
   testEmail?: string;
+  listIds?: number[];
 }
 
 function generateBlockHtml(block: ContentBlock | LegacyBlock): string {
@@ -276,7 +277,7 @@ serve(async (req) => {
       throw new Error("BREVO_API_KEY not configured");
     }
 
-    const { subject, blocks, testEmail }: SendRequest = await req.json();
+    const { subject, blocks, testEmail, listIds }: SendRequest = await req.json();
 
     if (!subject || !blocks || blocks.length === 0) {
       return new Response(
@@ -312,7 +313,12 @@ serve(async (req) => {
         }),
       });
     } else {
-      // Send campaign to entire list
+      // Use provided listIds or default to BREVO_LIST_ID
+      const targetListIds = listIds && listIds.length > 0
+        ? listIds
+        : [parseInt(BREVO_LIST_ID)];
+
+      // Send campaign to selected lists
       const createResponse = await fetch(
         "https://api.brevo.com/v3/emailCampaigns",
         {
@@ -332,7 +338,7 @@ serve(async (req) => {
             type: "classic",
             htmlContent: htmlContent,
             recipients: {
-              listIds: [parseInt(BREVO_LIST_ID)],
+              listIds: targetListIds,
             },
           }),
         }
