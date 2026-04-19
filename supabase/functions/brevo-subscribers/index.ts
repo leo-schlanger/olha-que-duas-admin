@@ -18,20 +18,13 @@ interface BrevoContact {
   };
 }
 
-interface BrevoListResponse {
-  contacts: BrevoContact[];
-  count: number;
-}
-
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-    const BREVO_LIST_ID = Deno.env.get("BREVO_LIST_ID") || "2";
 
     if (!BREVO_API_KEY) {
       throw new Error("BREVO_API_KEY not configured");
@@ -40,29 +33,36 @@ serve(async (req) => {
     const url = new URL(req.url);
     const limit = url.searchParams.get("limit") || "50";
     const offset = url.searchParams.get("offset") || "0";
-    const listId = url.searchParams.get("listId") || BREVO_LIST_ID;
+    const listId = url.searchParams.get("listId");
 
-    // Get contacts from Brevo list
-    const response = await fetch(
-      `https://api.brevo.com/v3/contacts/lists/${listId}/contacts?limit=${limit}&offset=${offset}`,
-      {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "api-key": BREVO_API_KEY,
-        },
-      }
-    );
+    let apiUrl: string;
+
+    if (listId) {
+      // Fetch contacts from a specific list
+      apiUrl = `https://api.brevo.com/v3/contacts/lists/${listId}/contacts?limit=${limit}&offset=${offset}`;
+    } else {
+      // Fetch ALL contacts in the account (across all lists)
+      apiUrl = `https://api.brevo.com/v3/contacts?limit=${limit}&offset=${offset}`;
+    }
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "api-key": BREVO_API_KEY,
+      },
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Failed to fetch contacts");
     }
 
-    const data: BrevoListResponse = await response.json();
+    const data = await response.json();
 
-    // Transform to simpler format
-    const subscribers = data.contacts.map((contact) => ({
+    const contacts: BrevoContact[] = data.contacts || [];
+
+    const subscribers = contacts.map((contact) => ({
       id: contact.id,
       email: contact.email,
       nome: contact.attributes?.NOME || "",

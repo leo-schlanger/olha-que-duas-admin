@@ -59,17 +59,20 @@ export function Newsletter() {
     return sendNewsletter({ subject, blocks, testEmail });
   };
 
+  // Load data when switching tabs
   useEffect(() => {
     if (activeTab === 'history') {
       fetchCampaigns();
     }
-  }, [activeTab, fetchCampaigns]);
-
-  useEffect(() => {
-    if (activeTab === 'audience' || activeTab === 'compose') {
+    if (activeTab === 'audience') {
+      fetchSubscribers();
       fetchGroups();
     }
-  }, [activeTab, fetchGroups]);
+    if (activeTab === 'compose') {
+      fetchGroups();
+      fetchSubscribers();
+    }
+  }, [activeTab, fetchCampaigns, fetchGroups, fetchSubscribers]);
 
   return (
     <div className="space-y-6">
