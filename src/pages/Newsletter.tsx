@@ -10,7 +10,6 @@ import type { ContentBlock } from '../components/newsletter/BlockEditor';
 
 export function Newsletter() {
   const [activeTab, setActiveTab] = useState('compose');
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
 
   const {
     subscribers,
@@ -18,18 +17,24 @@ export function Newsletter() {
     campaigns,
     totalCampaigns,
     groups,
+    groupSubscribers,
+    totalGroupSubscribers,
     loading: subscribersLoading,
     loadingCampaigns,
     loadingGroups,
+    loadingGroupSubscribers,
     sending,
     adding,
     removing,
     movingSubscribers,
     savingGroup,
     error: newsletterError,
+    groupError,
     fetchSubscribers,
     fetchCampaigns,
     fetchGroups,
+    fetchGroupSubscribers,
+    clearGroupSubscribers,
     sendNewsletter,
     addSubscriber,
     removeSubscriber,
@@ -56,15 +61,6 @@ export function Newsletter() {
     return sendNewsletter({ subject, blocks, testEmail });
   };
 
-  const handleGroupChange = (groupId: number | null) => {
-    setSelectedGroupId(groupId);
-    fetchSubscribers(50, 0, groupId ?? undefined);
-  };
-
-  const handleRefreshSubscribers = (listId?: number) => {
-    fetchSubscribers(50, 0, listId);
-  };
-
   // Load campaigns when history tab is selected
   useEffect(() => {
     if (activeTab === 'history') {
@@ -72,16 +68,16 @@ export function Newsletter() {
     }
   }, [activeTab, fetchCampaigns]);
 
-  // Load groups when groups or subscribers tab is selected, or on compose
+  // Load groups when groups or compose tab is selected
   useEffect(() => {
-    if (activeTab === 'groups' || activeTab === 'subscribers' || activeTab === 'compose') {
+    if (activeTab === 'groups' || activeTab === 'compose') {
       fetchGroups();
     }
   }, [activeTab, fetchGroups]);
 
   return (
     <div className="space-y-6">
-      {/* Error Display */}
+      {/* Error Display - only for subscriber/campaign errors, not groups */}
       {newsletterError && (
         <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">
           {newsletterError}
@@ -139,27 +135,35 @@ export function Newsletter() {
               loading={subscribersLoading}
               adding={adding}
               removing={removing}
-              movingSubscribers={movingSubscribers}
               groups={groups}
-              selectedGroupId={selectedGroupId}
-              onRefresh={handleRefreshSubscribers}
+              onRefresh={fetchSubscribers}
               onAdd={addSubscriber}
               onRemove={removeSubscriber}
-              onMoveSubscribers={moveSubscribers}
-              onRemoveFromGroup={removeFromGroup}
-              onGroupChange={handleGroupChange}
             />
           </TabsContent>
 
           <TabsContent value="groups" className="mt-0">
             <GroupManager
               groups={groups}
+              groupSubscribers={groupSubscribers}
+              totalGroupSubscribers={totalGroupSubscribers}
               loading={loadingGroups}
+              loadingSubscribers={loadingGroupSubscribers}
               saving={savingGroup}
-              onRefresh={fetchGroups}
+              moving={movingSubscribers}
+              adding={adding}
+              removing={removing}
+              groupError={groupError}
+              onRefreshGroups={fetchGroups}
+              onFetchGroupSubscribers={fetchGroupSubscribers}
+              onClearGroupSubscribers={clearGroupSubscribers}
               onCreate={createGroup}
               onUpdate={updateGroup}
               onDelete={deleteGroup}
+              onAddSubscriber={addSubscriber}
+              onRemoveSubscriber={removeSubscriber}
+              onMoveSubscribers={moveSubscribers}
+              onRemoveFromGroup={removeFromGroup}
             />
           </TabsContent>
 

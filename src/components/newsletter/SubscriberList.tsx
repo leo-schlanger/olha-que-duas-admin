@@ -1,21 +1,9 @@
-import { useState, useEffect } from 'react';
-import {
-  Users,
-  Mail,
-  RefreshCw,
-  CheckCircle,
-  XCircle,
-  Plus,
-  Trash2,
-  UserPlus,
-  ArrowRightLeft,
-  Filter,
-} from 'lucide-react';
+import { useState } from 'react';
+import { Users, Mail, RefreshCw, CheckCircle, XCircle, Plus, Trash2, UserPlus } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Checkbox } from '../ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -39,15 +27,10 @@ interface SubscriberListProps {
   loading: boolean;
   adding: boolean;
   removing: string | null;
-  movingSubscribers: boolean;
   groups: SubscriberGroup[];
-  selectedGroupId: number | null;
-  onRefresh: (listId?: number) => void;
+  onRefresh: () => void;
   onAdd: (email: string, nome?: string, listId?: number) => Promise<boolean>;
   onRemove: (email: string) => Promise<boolean>;
-  onMoveSubscribers: (emails: string[], fromListId: number, toListId: number) => Promise<boolean>;
-  onRemoveFromGroup: (emails: string[], listId: number) => Promise<boolean>;
-  onGroupChange: (groupId: number | null) => void;
 }
 
 export function SubscriberList({
@@ -56,33 +39,19 @@ export function SubscriberList({
   loading,
   adding,
   removing,
-  movingSubscribers,
   groups,
-  selectedGroupId,
   onRefresh,
   onAdd,
   onRemove,
-  onMoveSubscribers,
-  onRemoveFromGroup,
-  onGroupChange,
 }: SubscriberListProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
-  const [showMoveDialog, setShowMoveDialog] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [newNome, setNewNome] = useState('');
   const [addToGroupId, setAddToGroupId] = useState<string>('');
   const [emailError, setEmailError] = useState('');
-  const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
-  const [moveTargetGroupId, setMoveTargetGroupId] = useState<string>('');
 
   const activeCount = subscribers.filter((s) => s.isActive).length;
-  const selectedGroup = groups.find((g) => g.id === selectedGroupId);
-
-  // Reset selections when group changes
-  useEffect(() => {
-    setSelectedEmails(new Set());
-  }, [selectedGroupId]);
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -102,13 +71,14 @@ export function SubscriberList({
       return;
     }
 
-    const listId = addToGroupId ? parseInt(addToGroupId) : undefined;
+    const listId = addToGroupId && addToGroupId !== 'default' ? parseInt(addToGroupId) : undefined;
     const success = await onAdd(newEmail.trim(), newNome.trim() || undefined, listId);
     if (success) {
       setShowAddDialog(false);
       setNewEmail('');
       setNewNome('');
       setAddToGroupId('');
+      onRefresh();
     }
   };
 
@@ -116,57 +86,6 @@ export function SubscriberList({
     const success = await onRemove(email);
     if (success) {
       setShowDeleteDialog(null);
-    }
-  };
-
-  const toggleSelectEmail = (email: string) => {
-    setSelectedEmails((prev) => {
-      const next = new Set(prev);
-      if (next.has(email)) {
-        next.delete(email);
-      } else {
-        next.add(email);
-      }
-      return next;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedEmails.size === subscribers.length) {
-      setSelectedEmails(new Set());
-    } else {
-      setSelectedEmails(new Set(subscribers.map((s) => s.email)));
-    }
-  };
-
-  const handleMove = async () => {
-    if (!moveTargetGroupId || !selectedGroupId || selectedEmails.size === 0) return;
-
-    const success = await onMoveSubscribers(
-      Array.from(selectedEmails),
-      selectedGroupId,
-      parseInt(moveTargetGroupId)
-    );
-
-    if (success) {
-      setShowMoveDialog(false);
-      setSelectedEmails(new Set());
-      setMoveTargetGroupId('');
-      onRefresh(selectedGroupId);
-    }
-  };
-
-  const handleRemoveFromGroup = async () => {
-    if (!selectedGroupId || selectedEmails.size === 0) return;
-
-    const success = await onRemoveFromGroup(
-      Array.from(selectedEmails),
-      selectedGroupId
-    );
-
-    if (success) {
-      setSelectedEmails(new Set());
-      onRefresh(selectedGroupId);
     }
   };
 
@@ -189,11 +108,6 @@ export function SubscriberList({
           </h2>
           <p className="text-muted-foreground mt-1">
             {total} total &bull; {activeCount} ativos
-            {selectedGroup && (
-              <span className="ml-1">
-                &bull; Grupo: <strong>{selectedGroup.name}</strong>
-              </span>
-            )}
           </p>
         </div>
         <div className="flex gap-2">
@@ -206,7 +120,7 @@ export function SubscriberList({
           </Button>
           <Button
             variant="outline"
-            onClick={() => onRefresh(selectedGroupId ?? undefined)}
+            onClick={onRefresh}
             className="border-beige-medium"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -214,37 +128,6 @@ export function SubscriberList({
           </Button>
         </div>
       </div>
-
-      {/* Group Filter */}
-      {groups.length > 0 && (
-        <Card className="bg-cream border-beige-medium">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Label className="text-sm font-medium whitespace-nowrap">Filtrar por grupo:</Label>
-              <Select
-                value={selectedGroupId?.toString() ?? 'all'}
-                onValueChange={(value) => {
-                  const groupId = value === 'all' ? null : parseInt(value);
-                  onGroupChange(groupId);
-                }}
-              >
-                <SelectTrigger className="w-[260px] bg-white">
-                  <SelectValue placeholder="Todos os grupos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os grupos</SelectItem>
-                  {groups.map((group) => (
-                    <SelectItem key={group.id} value={group.id.toString()}>
-                      {group.name} ({group.totalSubscribers})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -285,43 +168,6 @@ export function SubscriberList({
         </Card>
       </div>
 
-      {/* Bulk Actions */}
-      {selectedEmails.size > 0 && selectedGroupId && (
-        <Card className="bg-vermelho/5 border-vermelho/20">
-          <CardContent className="p-3 flex items-center justify-between">
-            <span className="text-sm font-medium text-charcoal">
-              {selectedEmails.size} subscritor{selectedEmails.size > 1 ? 'es' : ''} selecionado{selectedEmails.size > 1 ? 's' : ''}
-            </span>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowMoveDialog(true)}
-                disabled={movingSubscribers}
-                className="border-beige-medium"
-              >
-                <ArrowRightLeft className="h-3.5 w-3.5 mr-1.5" />
-                Mover para...
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleRemoveFromGroup}
-                disabled={movingSubscribers}
-                className="border-destructive/30 text-destructive hover:bg-destructive/10"
-              >
-                {movingSubscribers ? (
-                  <div className="h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full animate-spin mr-1.5" />
-                ) : (
-                  <XCircle className="h-3.5 w-3.5 mr-1.5" />
-                )}
-                Remover do grupo
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Subscriber List */}
       {subscribers.length === 0 ? (
         <Card className="bg-cream border-beige-medium">
@@ -330,21 +176,17 @@ export function SubscriberList({
               <Users className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="font-display text-xl font-semibold text-charcoal mb-2">
-              {selectedGroupId
-                ? 'Nenhum subscritor neste grupo'
-                : 'Nenhum subscritor ainda'}
+              Nenhum subscritor ainda
             </h3>
             <p className="text-muted-foreground mb-4">
-              {selectedGroupId
-                ? 'Adiciona subscritores a este grupo ou muda o filtro.'
-                : 'Os subscritores aparecerão aqui quando se inscreverem na newsletter.'}
+              Os subscritores aparecerão aqui quando se inscreverem na newsletter.
             </p>
             <Button
               onClick={() => setShowAddDialog(true)}
               className="bg-vermelho hover:bg-vermelho/90"
             >
               <UserPlus className="h-4 w-4 mr-2" />
-              Adicionar subscritor
+              Adicionar primeiro subscritor
             </Button>
           </CardContent>
         </Card>
@@ -354,14 +196,6 @@ export function SubscriberList({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-beige-medium bg-beige-light/50">
-                  {selectedGroupId && (
-                    <th className="w-10 px-4 py-3">
-                      <Checkbox
-                        checked={selectedEmails.size === subscribers.length && subscribers.length > 0}
-                        onCheckedChange={toggleSelectAll}
-                      />
-                    </th>
-                  )}
                   <th className="text-left px-4 py-3 text-sm font-semibold text-charcoal">
                     Email
                   </th>
@@ -385,16 +219,8 @@ export function SubscriberList({
                     key={subscriber.id}
                     className={`border-b border-beige-medium/50 ${
                       index % 2 === 0 ? 'bg-white' : 'bg-cream'
-                    } ${selectedEmails.has(subscriber.email) ? 'bg-vermelho/5' : ''}`}
+                    }`}
                   >
-                    {selectedGroupId && (
-                      <td className="w-10 px-4 py-3">
-                        <Checkbox
-                          checked={selectedEmails.has(subscriber.email)}
-                          onCheckedChange={() => toggleSelectEmail(subscriber.email)}
-                        />
-                      </td>
-                    )}
                     <td className="px-4 py-3 text-sm text-charcoal">
                       {subscriber.email}
                     </td>
@@ -481,10 +307,10 @@ export function SubscriberList({
                 <Label>Adicionar ao grupo (opcional)</Label>
                 <Select value={addToGroupId} onValueChange={setAddToGroupId}>
                   <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Grupo padrão" />
+                    <SelectValue placeholder="Lista principal" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="default">Grupo padrão</SelectItem>
+                    <SelectItem value="default">Lista principal</SelectItem>
                     {groups.map((group) => (
                       <SelectItem key={group.id} value={group.id.toString()}>
                         {group.name}
@@ -556,64 +382,6 @@ export function SubscriberList({
                 <>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Remover
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Move Subscribers Dialog */}
-      <Dialog open={showMoveDialog} onOpenChange={setShowMoveDialog}>
-        <DialogContent className="bg-cream border-beige-medium">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl text-charcoal">
-              Mover Subscritores
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <p className="text-muted-foreground">
-              Mover <strong className="text-charcoal">{selectedEmails.size}</strong> subscritor{selectedEmails.size > 1 ? 'es' : ''} de{' '}
-              <strong className="text-charcoal">{selectedGroup?.name}</strong> para:
-            </p>
-            <div className="space-y-2">
-              <Label>Grupo de destino</Label>
-              <Select value={moveTargetGroupId} onValueChange={setMoveTargetGroupId}>
-                <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Selecionar grupo..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {groups
-                    .filter((g) => g.id !== selectedGroupId)
-                    .map((group) => (
-                      <SelectItem key={group.id} value={group.id.toString()}>
-                        {group.name} ({group.totalSubscribers})
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline" className="border-beige-medium">
-                Cancelar
-              </Button>
-            </DialogClose>
-            <Button
-              onClick={handleMove}
-              disabled={!moveTargetGroupId || movingSubscribers}
-              className="bg-vermelho hover:bg-vermelho/90"
-            >
-              {movingSubscribers ? (
-                <>
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Movendo...
-                </>
-              ) : (
-                <>
-                  <ArrowRightLeft className="h-4 w-4 mr-2" />
-                  Mover
                 </>
               )}
             </Button>

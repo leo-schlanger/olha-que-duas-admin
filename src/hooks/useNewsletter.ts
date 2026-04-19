@@ -7,15 +7,19 @@ export function useNewsletter() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [totalCampaigns, setTotalCampaigns] = useState(0);
   const [groups, setGroups] = useState<SubscriberGroup[]>([]);
+  const [groupSubscribers, setGroupSubscribers] = useState<Subscriber[]>([]);
+  const [totalGroupSubscribers, setTotalGroupSubscribers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingCampaigns, setLoadingCampaigns] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(false);
+  const [loadingGroupSubscribers, setLoadingGroupSubscribers] = useState(false);
   const [sending, setSending] = useState(false);
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
   const [movingSubscribers, setMovingSubscribers] = useState(false);
   const [savingGroup, setSavingGroup] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [groupError, setGroupError] = useState<string | null>(null);
   const isFetchingCampaigns = useRef(false);
 
   const baseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -34,7 +38,7 @@ export function useNewsletter() {
 
   const fetchGroups = useCallback(async () => {
     setLoadingGroups(true);
-    setError(null);
+    setGroupError(null);
     try {
       const response = await fetch(
         `${baseUrl}/functions/v1/brevo-lists`,
@@ -48,7 +52,8 @@ export function useNewsletter() {
       const result: GroupsResponse = await response.json();
       setGroups(result.groups);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar grupos');
+      console.error('Failed to fetch groups:', err);
+      setGroupError(err instanceof Error ? err.message : 'Erro ao carregar grupos');
     } finally {
       setLoadingGroups(false);
     }
@@ -56,7 +61,7 @@ export function useNewsletter() {
 
   const createGroup = async (name: string): Promise<boolean> => {
     setSavingGroup(true);
-    setError(null);
+    setGroupError(null);
     try {
       const response = await fetch(
         `${baseUrl}/functions/v1/brevo-lists`,
@@ -76,7 +81,7 @@ export function useNewsletter() {
       await fetchGroups();
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar grupo');
+      setGroupError(err instanceof Error ? err.message : 'Erro ao criar grupo');
       return false;
     } finally {
       setSavingGroup(false);
@@ -85,7 +90,7 @@ export function useNewsletter() {
 
   const updateGroup = async (id: number, name: string): Promise<boolean> => {
     setSavingGroup(true);
-    setError(null);
+    setGroupError(null);
     try {
       const response = await fetch(
         `${baseUrl}/functions/v1/brevo-lists`,
@@ -105,7 +110,7 @@ export function useNewsletter() {
       await fetchGroups();
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao renomear grupo');
+      setGroupError(err instanceof Error ? err.message : 'Erro ao renomear grupo');
       return false;
     } finally {
       setSavingGroup(false);
@@ -114,7 +119,7 @@ export function useNewsletter() {
 
   const deleteGroup = async (id: number): Promise<boolean> => {
     setSavingGroup(true);
-    setError(null);
+    setGroupError(null);
     try {
       const response = await fetch(
         `${baseUrl}/functions/v1/brevo-lists?id=${id}`,
@@ -133,25 +138,53 @@ export function useNewsletter() {
       await fetchGroups();
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao remover grupo');
+      setGroupError(err instanceof Error ? err.message : 'Erro ao remover grupo');
       return false;
     } finally {
       setSavingGroup(false);
     }
   };
 
+  // ===== GROUP SUBSCRIBERS =====
+
+  const fetchGroupSubscribers = useCallback(async (listId: number, limit = 50, offset = 0) => {
+    setLoadingGroupSubscribers(true);
+    setGroupError(null);
+    try {
+      const response = await fetch(
+        `${baseUrl}/functions/v1/brevo-subscribers?limit=${limit}&offset=${offset}&listId=${listId}`,
+        { headers }
+      );
+
+      if (!response.ok) {
+        throw new Error('Erro ao carregar subscritores do grupo');
+      }
+
+      const result: SubscribersResponse = await response.json();
+      setGroupSubscribers(result.subscribers);
+      setTotalGroupSubscribers(result.total);
+    } catch (err) {
+      setGroupError(err instanceof Error ? err.message : 'Erro ao carregar subscritores do grupo');
+    } finally {
+      setLoadingGroupSubscribers(false);
+    }
+  }, [baseUrl, anonKey]);
+
+  const clearGroupSubscribers = useCallback(() => {
+    setGroupSubscribers([]);
+    setTotalGroupSubscribers(0);
+  }, []);
+
   // ===== SUBSCRIBERS =====
 
-  const fetchSubscribers = useCallback(async (limit = 50, offset = 0, listId?: number) => {
+  const fetchSubscribers = useCallback(async (limit = 50, offset = 0) => {
     setLoading(true);
     setError(null);
     try {
-      let url = `${baseUrl}/functions/v1/brevo-subscribers?limit=${limit}&offset=${offset}`;
-      if (listId) {
-        url += `&listId=${listId}`;
-      }
-
-      const response = await fetch(url, { headers });
+      const response = await fetch(
+        `${baseUrl}/functions/v1/brevo-subscribers?limit=${limit}&offset=${offset}`,
+        { headers }
+      );
 
       if (!response.ok) {
         throw new Error('Erro ao carregar subscritores');
@@ -231,8 +264,6 @@ export function useNewsletter() {
         throw new Error(data.error || 'Erro ao adicionar subscritor');
       }
 
-      // Refresh the list
-      await fetchSubscribers();
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao adicionar subscritor');
@@ -261,7 +292,6 @@ export function useNewsletter() {
         throw new Error(data.error || 'Erro ao remover subscritor');
       }
 
-      // Update local state immediately
       setSubscribers((prev) => prev.filter((s) => s.email !== email));
       setTotalSubscribers((prev) => prev - 1);
       return true;
@@ -279,7 +309,7 @@ export function useNewsletter() {
     toListId: number
   ): Promise<boolean> => {
     setMovingSubscribers(true);
-    setError(null);
+    setGroupError(null);
     try {
       const response = await fetch(
         `${baseUrl}/functions/v1/brevo-move-subscriber?action=move`,
@@ -298,7 +328,7 @@ export function useNewsletter() {
 
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao mover subscritores');
+      setGroupError(err instanceof Error ? err.message : 'Erro ao mover subscritores');
       return false;
     } finally {
       setMovingSubscribers(false);
@@ -307,7 +337,7 @@ export function useNewsletter() {
 
   const removeFromGroup = async (emails: string[], listId: number): Promise<boolean> => {
     setMovingSubscribers(true);
-    setError(null);
+    setGroupError(null);
     try {
       const response = await fetch(
         `${baseUrl}/functions/v1/brevo-move-subscriber?action=remove-from-list`,
@@ -326,7 +356,7 @@ export function useNewsletter() {
 
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao remover do grupo');
+      setGroupError(err instanceof Error ? err.message : 'Erro ao remover do grupo');
       return false;
     } finally {
       setMovingSubscribers(false);
@@ -336,7 +366,6 @@ export function useNewsletter() {
   // ===== CAMPAIGNS =====
 
   const fetchCampaigns = useCallback(async (limit = 20, offset = 0) => {
-    // Prevent multiple concurrent fetches
     if (isFetchingCampaigns.current) return;
     isFetchingCampaigns.current = true;
 
@@ -370,18 +399,24 @@ export function useNewsletter() {
     campaigns,
     totalCampaigns,
     groups,
+    groupSubscribers,
+    totalGroupSubscribers,
     loading,
     loadingCampaigns,
     loadingGroups,
+    loadingGroupSubscribers,
     sending,
     adding,
     removing,
     movingSubscribers,
     savingGroup,
     error,
+    groupError,
     fetchSubscribers,
     fetchCampaigns,
     fetchGroups,
+    fetchGroupSubscribers,
+    clearGroupSubscribers,
     sendNewsletter,
     sendTestEmail,
     addSubscriber,
