@@ -301,6 +301,7 @@ export function AudienceView({
         {groups.map((group, index) => {
           const color = getTagColor(index);
           const isActive = activeTagId === group.id;
+          const count = isActive ? totalGroupSubscribers : group.totalSubscribers;
           return (
             <button
               key={group.id}
@@ -313,7 +314,7 @@ export function AudienceView({
             >
               <Tag className="h-3 w-3" />
               {group.name}
-              <span className="text-xs opacity-70">({group.totalSubscribers})</span>
+              <span className="text-xs opacity-70">({count})</span>
             </button>
           );
         })}

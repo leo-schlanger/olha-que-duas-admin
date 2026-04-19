@@ -148,6 +148,8 @@ export function useNewsletter() {
   // ===== GROUP SUBSCRIBERS =====
 
   const fetchGroupSubscribers = useCallback(async (listId: number, limit = 50, offset = 0) => {
+    setGroupSubscribers([]);
+    setTotalGroupSubscribers(0);
     setLoadingGroupSubscribers(true);
     setGroupError(null);
     try {
