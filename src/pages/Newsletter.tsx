@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { PenLine, Users, History, FolderOpen } from 'lucide-react';
+import { PenLine, Users, History } from 'lucide-react';
 import { useNewsletter } from '../hooks/useNewsletter';
 import { ComposeNewsletter } from '../components/newsletter/ComposeNewsletter';
-import { SubscriberList } from '../components/newsletter/SubscriberList';
+import { AudienceView } from '../components/newsletter/AudienceView';
 import { CampaignHistory } from '../components/newsletter/CampaignHistory';
-import { GroupManager } from '../components/newsletter/GroupManager';
 import type { ContentBlock } from '../components/newsletter/BlockEditor';
 
 export function Newsletter() {
@@ -19,22 +18,20 @@ export function Newsletter() {
     groups,
     groupSubscribers,
     totalGroupSubscribers,
-    loading: subscribersLoading,
+    loading,
     loadingCampaigns,
-    loadingGroups,
     loadingGroupSubscribers,
     sending,
     adding,
     removing,
     movingSubscribers,
     savingGroup,
-    error: newsletterError,
+    error,
     groupError,
     fetchSubscribers,
     fetchCampaigns,
     fetchGroups,
     fetchGroupSubscribers,
-    clearGroupSubscribers,
     sendNewsletter,
     addSubscriber,
     removeSubscriber,
@@ -61,30 +58,26 @@ export function Newsletter() {
     return sendNewsletter({ subject, blocks, testEmail });
   };
 
-  // Load campaigns when history tab is selected
   useEffect(() => {
     if (activeTab === 'history') {
       fetchCampaigns();
     }
   }, [activeTab, fetchCampaigns]);
 
-  // Load groups when groups or compose tab is selected
   useEffect(() => {
-    if (activeTab === 'groups' || activeTab === 'compose') {
+    if (activeTab === 'audience' || activeTab === 'compose') {
       fetchGroups();
     }
   }, [activeTab, fetchGroups]);
 
   return (
     <div className="space-y-6">
-      {/* Error Display - only for subscriber/campaign errors, not groups */}
-      {newsletterError && (
-        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">
-          {newsletterError}
+      {error && (
+        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md text-sm">
+          {error}
         </div>
       )}
 
-      {/* Sub-navigation */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-cream border border-beige-medium p-1 h-auto">
           <TabsTrigger
@@ -95,18 +88,11 @@ export function Newsletter() {
             <span className="font-medium">Compor</span>
           </TabsTrigger>
           <TabsTrigger
-            value="subscribers"
+            value="audience"
             className="flex items-center gap-2 px-4 py-2 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
           >
             <Users className="h-4 w-4" />
-            <span className="font-medium">Subscritores</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="groups"
-            className="flex items-center gap-2 px-4 py-2 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-          >
-            <FolderOpen className="h-4 w-4" />
-            <span className="font-medium">Grupos</span>
+            <span className="font-medium">Audiência</span>
           </TabsTrigger>
           <TabsTrigger
             value="history"
@@ -128,42 +114,30 @@ export function Newsletter() {
             />
           </TabsContent>
 
-          <TabsContent value="subscribers" className="mt-0">
-            <SubscriberList
+          <TabsContent value="audience" className="mt-0">
+            <AudienceView
               subscribers={subscribers}
               total={totalSubscribers}
-              loading={subscribersLoading}
-              adding={adding}
-              removing={removing}
-              groups={groups}
-              onRefresh={fetchSubscribers}
-              onAdd={addSubscriber}
-              onRemove={removeSubscriber}
-            />
-          </TabsContent>
-
-          <TabsContent value="groups" className="mt-0">
-            <GroupManager
               groups={groups}
               groupSubscribers={groupSubscribers}
               totalGroupSubscribers={totalGroupSubscribers}
-              loading={loadingGroups}
-              loadingSubscribers={loadingGroupSubscribers}
-              saving={savingGroup}
-              moving={movingSubscribers}
+              loading={loading}
+              loadingGroupSubscribers={loadingGroupSubscribers}
               adding={adding}
               removing={removing}
+              moving={movingSubscribers}
+              savingGroup={savingGroup}
               groupError={groupError}
+              onRefresh={fetchSubscribers}
               onRefreshGroups={fetchGroups}
               onFetchGroupSubscribers={fetchGroupSubscribers}
-              onClearGroupSubscribers={clearGroupSubscribers}
-              onCreate={createGroup}
-              onUpdate={updateGroup}
-              onDelete={deleteGroup}
-              onAddSubscriber={addSubscriber}
-              onRemoveSubscriber={removeSubscriber}
+              onAdd={addSubscriber}
+              onRemove={removeSubscriber}
               onMoveSubscribers={moveSubscribers}
               onRemoveFromGroup={removeFromGroup}
+              onCreateGroup={createGroup}
+              onUpdateGroup={updateGroup}
+              onDeleteGroup={deleteGroup}
             />
           </TabsContent>
 

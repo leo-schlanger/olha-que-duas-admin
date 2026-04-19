@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Send, FlaskConical, AlertCircle } from 'lucide-react';
+import { Send, FlaskConical, AlertCircle, Users, Tag, X } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Checkbox } from '../ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -16,8 +15,6 @@ import {
 import { BlockEditor } from './BlockEditor';
 import { EmailPreview } from './EmailPreview';
 import type { ContentBlock, SubscriberGroup } from '../../types';
-
-type SendTarget = 'all' | 'selected';
 
 interface ComposeNewsletterProps {
   totalSubscribers: number;
@@ -44,8 +41,30 @@ export function ComposeNewsletter({
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [sendTarget, setSendTarget] = useState<SendTarget>('all');
-  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<number>>(new Set());
+  const [selectedTagIds, setSelectedTagIds] = useState<Set<number>>(new Set());
+
+  const sendingToAll = selectedTagIds.size === 0;
+
+  const toggleTag = (id: number) => {
+    setSelectedTagIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const removeTag = (id: number) => {
+    setSelectedTagIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  };
+
+  const selectedGroups = groups.filter((g) => selectedTagIds.has(g.id));
+  const recipientCount = sendingToAll
+    ? totalSubscribers
+    : selectedGroups.reduce((sum, g) => sum + g.totalSubscribers, 0);
 
   const handleSendTest = async () => {
     if (!testEmail) return;
@@ -58,50 +77,24 @@ export function ComposeNewsletter({
   };
 
   const handleSend = async () => {
-    const listIds = sendTarget === 'selected' && selectedGroupIds.size > 0
-      ? Array.from(selectedGroupIds)
-      : undefined;
-
+    const listIds = sendingToAll ? undefined : Array.from(selectedTagIds);
     const success = await onSend(subject, blocks, listIds);
     if (success) {
       setConfirmDialogOpen(false);
       setSuccessMessage('Newsletter enviada com sucesso!');
       setSubject('');
       setBlocks([]);
+      setSelectedTagIds(new Set());
       setTimeout(() => setSuccessMessage(null), 5000);
     }
   };
 
-  const toggleGroupSelection = (groupId: number) => {
-    setSelectedGroupIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(groupId)) {
-        next.delete(groupId);
-      } else {
-        next.add(groupId);
-      }
-      return next;
-    });
-  };
-
   const hasContent = blocks.some((block) => {
-    if (block.type === 'text') {
-      return block.content.trim().length > 0;
-    }
-    if (block.type === 'image') {
-      return !!block.imageUrl;
-    }
+    if (block.type === 'text') return block.content.trim().length > 0;
+    if (block.type === 'image') return !!block.imageUrl;
     return false;
   });
   const canSend = subject.trim() && hasContent;
-
-  const selectedGroupCount = sendTarget === 'selected'
-    ? groups.filter((g) => selectedGroupIds.has(g.id)).reduce((sum, g) => sum + g.totalSubscribers, 0)
-    : totalSubscribers;
-
-  const recipientLabel = sendTarget === 'all'
-    ? `${totalSubscribers} subscritores (todos)`
-    : `${selectedGroupCount} subscritores (${selectedGroupIds.size} grupo${selectedGroupIds.size !== 1 ? 's' : ''})`;
 
   return (
     <div className="space-y-6">
@@ -115,101 +108,82 @@ export function ComposeNewsletter({
 
       {/* Header */}
       <div>
-        <h2 className="font-display text-2xl font-bold text-charcoal">
-          Compor Newsletter
-        </h2>
+        <h2 className="font-display text-2xl font-bold text-charcoal">Compor Newsletter</h2>
         <p className="text-muted-foreground mt-1">
-          Cria o conteúdo e envia para {recipientLabel}
+          Cria e envia para {recipientCount} subscritor{recipientCount !== 1 ? 'es' : ''}
         </p>
       </div>
 
       {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left Column - Form */}
+        {/* Left Column */}
         <div className="space-y-6">
-          {/* Subject */}
+          {/* Subject + Recipients */}
           <Card className="bg-cream border-beige-medium">
             <CardContent className="p-4 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="subject">Assunto do Email</Label>
+                <Label htmlFor="subject">Assunto</Label>
                 <Input
                   id="subject"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Ex: Novidades e promoções desta semana!"
+                  placeholder="Ex: Novidades da semana!"
                   className="bg-white"
                 />
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Send Target */}
-          {groups.length > 0 && (
-            <Card className="bg-cream border-beige-medium">
-              <CardContent className="p-4 space-y-4">
-                <Label className="text-base font-semibold">Enviar para</Label>
-
-                <div className="space-y-3">
-                  {/* All option */}
-                  <label className="flex items-center gap-3 p-3 rounded-lg border border-beige-medium bg-white cursor-pointer hover:bg-beige-light/50 transition-colors">
-                    <input
-                      type="radio"
-                      name="sendTarget"
-                      value="all"
-                      checked={sendTarget === 'all'}
-                      onChange={() => setSendTarget('all')}
-                      className="w-4 h-4 text-vermelho accent-vermelho"
-                    />
-                    <div>
-                      <span className="font-medium text-charcoal">Todos os subscritores</span>
-                      <span className="text-sm text-muted-foreground ml-2">({totalSubscribers})</span>
-                    </div>
-                  </label>
-
-                  {/* Selected groups option */}
-                  <label className="flex items-center gap-3 p-3 rounded-lg border border-beige-medium bg-white cursor-pointer hover:bg-beige-light/50 transition-colors">
-                    <input
-                      type="radio"
-                      name="sendTarget"
-                      value="selected"
-                      checked={sendTarget === 'selected'}
-                      onChange={() => setSendTarget('selected')}
-                      className="w-4 h-4 text-vermelho accent-vermelho"
-                    />
-                    <div>
-                      <span className="font-medium text-charcoal">Grupos específicos</span>
-                    </div>
-                  </label>
-
-                  {/* Group checkboxes */}
-                  {sendTarget === 'selected' && (
-                    <div className="ml-7 space-y-2 border-l-2 border-vermelho/20 pl-4">
-                      {groups.map((group) => (
-                        <label
-                          key={group.id}
-                          className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-beige-light/50 transition-colors"
-                        >
-                          <Checkbox
-                            checked={selectedGroupIds.has(group.id)}
-                            onCheckedChange={() => toggleGroupSelection(group.id)}
-                          />
-                          <span className="text-sm text-charcoal">{group.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            ({group.totalSubscribers})
-                          </span>
-                        </label>
-                      ))}
-                      {selectedGroupIds.size === 0 && (
-                        <p className="text-sm text-amber-600">
-                          Seleciona pelo menos um grupo.
-                        </p>
-                      )}
-                    </div>
+              {/* Recipients */}
+              <div className="space-y-2">
+                <Label>Destinatários</Label>
+                <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-beige-medium bg-white min-h-[44px]">
+                  {sendingToAll ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-charcoal text-white">
+                      <Users className="h-3 w-3" />
+                      Todos ({totalSubscribers})
+                    </span>
+                  ) : (
+                    selectedGroups.map((g) => (
+                      <span key={g.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium bg-vermelho/10 text-vermelho">
+                        <Tag className="h-3 w-3" />
+                        {g.name}
+                        <button onClick={() => removeTag(g.id)} className="ml-0.5 hover:bg-vermelho/20 rounded-full p-0.5">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+
+                {groups.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <button
+                      onClick={() => setSelectedTagIds(new Set())}
+                      className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
+                        sendingToAll
+                          ? 'bg-charcoal text-white'
+                          : 'bg-beige-light text-muted-foreground hover:bg-beige-medium'
+                      }`}
+                    >
+                      Todos
+                    </button>
+                    {groups.map((g) => (
+                      <button
+                        key={g.id}
+                        onClick={() => toggleTag(g.id)}
+                        className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
+                          selectedTagIds.has(g.id)
+                            ? 'bg-vermelho text-white'
+                            : 'bg-beige-light text-muted-foreground hover:bg-beige-medium'
+                        }`}
+                      >
+                        {g.name} ({g.totalSubscribers})
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Block Editor */}
           <Card className="bg-cream border-beige-medium">
@@ -231,7 +205,7 @@ export function ComposeNewsletter({
             </Button>
             <Button
               onClick={() => setConfirmDialogOpen(true)}
-              disabled={!canSend || sending || (sendTarget === 'selected' && selectedGroupIds.size === 0)}
+              disabled={!canSend || sending}
               className="flex-1 bg-vermelho hover:bg-vermelho-dark text-white"
             >
               <Send className="h-4 w-4 mr-2" />
@@ -254,38 +228,21 @@ export function ComposeNewsletter({
       <Dialog open={testDialogOpen} onOpenChange={setTestDialogOpen}>
         <DialogContent className="bg-cream border-beige-medium">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl text-charcoal">
-              Enviar Email de Teste
-            </DialogTitle>
+            <DialogTitle className="font-display text-xl text-charcoal">Enviar Teste</DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Envia uma pré-visualização para verificar como o email aparece.
+              Pré-visualização para verificar o email antes de enviar.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 py-4">
             <Label htmlFor="test-email">Email de teste</Label>
-            <Input
-              id="test-email"
-              type="email"
-              value={testEmail}
-              onChange={(e) => setTestEmail(e.target.value)}
-              placeholder="teste@exemplo.com"
-              className="bg-white"
-            />
+            <Input id="test-email" type="email" value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)} placeholder="teste@exemplo.com" className="bg-white" />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setTestDialogOpen(false)}
-              disabled={sending}
-              className="border-beige-medium"
-            >
+            <Button variant="outline" onClick={() => setTestDialogOpen(false)} disabled={sending} className="border-beige-medium">
               Cancelar
             </Button>
-            <Button
-              onClick={handleSendTest}
-              disabled={!testEmail || sending}
-              className="bg-vermelho hover:bg-vermelho-dark text-white"
-            >
+            <Button onClick={handleSendTest} disabled={!testEmail || sending} className="bg-vermelho hover:bg-vermelho-dark text-white">
               {sending ? 'Enviando...' : 'Enviar Teste'}
             </Button>
           </DialogFooter>
@@ -296,59 +253,45 @@ export function ComposeNewsletter({
       <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <DialogContent className="bg-cream border-beige-medium">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl text-charcoal">
-              Confirmar Envio
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Tens a certeza que queres enviar esta newsletter?
-            </DialogDescription>
+            <DialogTitle className="font-display text-xl text-charcoal">Confirmar Envio</DialogTitle>
           </DialogHeader>
-          <div className="py-4 space-y-2">
-            <p className="text-sm">
-              <strong>Assunto:</strong> {subject}
-            </p>
-            <p className="text-sm">
-              <strong>Blocos de conteúdo:</strong> {blocks.filter((block) => {
-                if (block.type === 'text') return block.content.trim().length > 0;
-                if (block.type === 'image') return !!block.imageUrl;
+          <div className="py-4 space-y-3">
+            <div className="space-y-2 text-sm">
+              <p><strong>Assunto:</strong> {subject}</p>
+              <p><strong>Conteúdo:</strong> {blocks.filter((b) => {
+                if (b.type === 'text') return b.content.trim().length > 0;
+                if (b.type === 'image') return !!b.imageUrl;
                 return false;
-              }).length}
-            </p>
-            <p className="text-sm">
-              <strong>Destinatários:</strong> {recipientLabel}
-            </p>
-            {sendTarget === 'selected' && selectedGroupIds.size > 0 && (
-              <div className="mt-2 p-3 bg-beige-light/50 rounded-lg">
-                <p className="text-xs font-medium text-muted-foreground mb-1">Grupos selecionados:</p>
-                <div className="flex flex-wrap gap-1">
-                  {groups
-                    .filter((g) => selectedGroupIds.has(g.id))
-                    .map((g) => (
-                      <span
-                        key={g.id}
-                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-vermelho/10 text-vermelho"
-                      >
-                        {g.name}
-                      </span>
-                    ))}
-                </div>
+              }).length} blocos</p>
+            </div>
+
+            <div className="p-3 rounded-lg bg-beige-light/50 border border-beige-medium/50">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Destinatários</p>
+              <div className="flex flex-wrap gap-1.5">
+                {sendingToAll ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-charcoal text-white">
+                    <Users className="h-3 w-3" />
+                    Todos ({totalSubscribers})
+                  </span>
+                ) : (
+                  selectedGroups.map((g) => (
+                    <span key={g.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-vermelho/10 text-vermelho">
+                      <Tag className="h-3 w-3" />
+                      {g.name} ({g.totalSubscribers})
+                    </span>
+                  ))
+                )}
               </div>
-            )}
+              <p className="text-xs text-muted-foreground mt-2">
+                Total: <strong className="text-charcoal">{recipientCount}</strong> subscritor{recipientCount !== 1 ? 'es' : ''}
+              </p>
+            </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDialogOpen(false)}
-              disabled={sending}
-              className="border-beige-medium"
-            >
+            <Button variant="outline" onClick={() => setConfirmDialogOpen(false)} disabled={sending} className="border-beige-medium">
               Cancelar
             </Button>
-            <Button
-              onClick={handleSend}
-              disabled={sending}
-              className="bg-vermelho hover:bg-vermelho-dark text-white"
-            >
+            <Button onClick={handleSend} disabled={sending} className="bg-vermelho hover:bg-vermelho-dark text-white">
               {sending ? 'Enviando...' : 'Confirmar Envio'}
             </Button>
           </DialogFooter>
