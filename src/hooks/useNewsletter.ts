@@ -365,6 +365,34 @@ export function useNewsletter() {
     }
   };
 
+  const addToTag = async (emails: string[], listId: number): Promise<boolean> => {
+    setMovingSubscribers(true);
+    setGroupError(null);
+    try {
+      const response = await fetch(
+        `${baseUrl}/functions/v1/brevo-move-subscriber?action=add-to-list`,
+        {
+          method: 'POST',
+          headers: jsonHeaders,
+          body: JSON.stringify({ emails, listId }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao adicionar à tag');
+      }
+
+      return true;
+    } catch (err) {
+      setGroupError(err instanceof Error ? err.message : 'Erro ao adicionar à tag');
+      return false;
+    } finally {
+      setMovingSubscribers(false);
+    }
+  };
+
   // ===== CAMPAIGNS =====
 
   const fetchCampaigns = useCallback(async (limit = 20, offset = 0) => {
@@ -425,6 +453,7 @@ export function useNewsletter() {
     removeSubscriber,
     moveSubscribers,
     removeFromGroup,
+    addToTag,
     createGroup,
     updateGroup,
     deleteGroup,

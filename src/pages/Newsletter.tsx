@@ -37,6 +37,7 @@ export function Newsletter() {
     removeSubscriber,
     moveSubscribers,
     removeFromGroup,
+    addToTag,
     createGroup,
     updateGroup,
     deleteGroup,
@@ -135,6 +136,7 @@ export function Newsletter() {
               onRemove={removeSubscriber}
               onMoveSubscribers={moveSubscribers}
               onRemoveFromGroup={removeFromGroup}
+              onAddToTag={addToTag}
               onCreateGroup={createGroup}
               onUpdateGroup={updateGroup}
               onDeleteGroup={deleteGroup}

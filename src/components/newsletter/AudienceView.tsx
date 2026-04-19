@@ -14,6 +14,7 @@ import {
   Pencil,
   Save,
   FolderPlus,
+  TagIcon,
 } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
@@ -37,7 +38,6 @@ import {
 } from '../ui/dialog';
 import type { Subscriber, SubscriberGroup } from '../../types';
 
-// Tag color palette
 const TAG_COLORS = [
   { bg: 'bg-vermelho/10', text: 'text-vermelho', activeBg: 'bg-vermelho', activeText: 'text-white' },
   { bg: 'bg-blue-100', text: 'text-blue-700', activeBg: 'bg-blue-600', activeText: 'text-white' },
@@ -73,6 +73,7 @@ interface AudienceViewProps {
   onRemove: (email: string) => Promise<boolean>;
   onMoveSubscribers: (emails: string[], fromListId: number, toListId: number) => Promise<boolean>;
   onRemoveFromGroup: (emails: string[], listId: number) => Promise<boolean>;
+  onAddToTag: (emails: string[], listId: number) => Promise<boolean>;
   onCreateGroup: (name: string) => Promise<boolean>;
   onUpdateGroup: (id: number, name: string) => Promise<boolean>;
   onDeleteGroup: (id: number) => Promise<boolean>;
@@ -98,6 +99,7 @@ export function AudienceView({
   onRemove,
   onMoveSubscribers,
   onRemoveFromGroup,
+  onAddToTag,
   onCreateGroup,
   onUpdateGroup,
   onDeleteGroup,
@@ -107,6 +109,7 @@ export function AudienceView({
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
   const [showMoveDialog, setShowMoveDialog] = useState(false);
   const [showRemoveFromTagDialog, setShowRemoveFromTagDialog] = useState(false);
+  const [showAddToTagDialog, setShowAddToTagDialog] = useState(false);
   const [showTagManager, setShowTagManager] = useState(false);
   const [showCreateTag, setShowCreateTag] = useState(false);
   const [newEmail, setNewEmail] = useState('');
@@ -115,6 +118,7 @@ export function AudienceView({
   const [emailError, setEmailError] = useState('');
   const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
   const [moveTargetId, setMoveTargetId] = useState<string>('');
+  const [addToTagTargetId, setAddToTagTargetId] = useState<string>('');
   const [newTagName, setNewTagName] = useState('');
   const [newTagError, setNewTagError] = useState('');
   const [editingTagId, setEditingTagId] = useState<number | null>(null);
@@ -122,11 +126,11 @@ export function AudienceView({
   const [deleteTagTarget, setDeleteTagTarget] = useState<SubscriberGroup | null>(null);
 
   const activeTag = groups.find((g) => g.id === activeTagId);
-  const displayedSubscribers = activeTagId ? groupSubscribers : subscribers;
-  const displayedTotal = activeTagId ? totalGroupSubscribers : total;
-  const isLoadingList = activeTagId ? loadingGroupSubscribers : loading;
+  const isFiltered = activeTagId !== null;
+  const displayedSubscribers = isFiltered ? groupSubscribers : subscribers;
+  const displayedTotal = isFiltered ? totalGroupSubscribers : total;
+  const isLoadingList = isFiltered ? loadingGroupSubscribers : loading;
 
-  // Fetch group subscribers when tag changes
   useEffect(() => {
     if (activeTagId) {
       onFetchGroupSubscribers(activeTagId);
@@ -137,9 +141,7 @@ export function AudienceView({
   const handleTagClick = (tagId: number | null) => {
     if (tagId === activeTagId) return;
     setActiveTagId(tagId);
-    if (!tagId) {
-      onRefresh();
-    }
+    if (!tagId) onRefresh();
   };
 
   const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -156,9 +158,7 @@ export function AudienceView({
       setNewEmail('');
       setNewNome('');
       setAddToTagId('');
-      if (activeTagId) onFetchGroupSubscribers(activeTagId);
-      else onRefresh();
-      onRefreshGroups();
+      refreshCurrentView();
     }
   };
 
@@ -166,9 +166,14 @@ export function AudienceView({
     const success = await onRemove(email);
     if (success) {
       setShowDeleteDialog(null);
-      if (activeTagId) onFetchGroupSubscribers(activeTagId);
-      onRefreshGroups();
+      refreshCurrentView();
     }
+  };
+
+  const refreshCurrentView = () => {
+    if (activeTagId) onFetchGroupSubscribers(activeTagId);
+    else onRefresh();
+    onRefreshGroups();
   };
 
   const toggleSelect = (email: string) => {
@@ -187,6 +192,7 @@ export function AudienceView({
     );
   };
 
+  // Move subscribers between tags
   const handleMove = async () => {
     if (!moveTargetId || !activeTagId || selectedEmails.size === 0) return;
     const success = await onMoveSubscribers(Array.from(selectedEmails), activeTagId, parseInt(moveTargetId));
@@ -194,18 +200,29 @@ export function AudienceView({
       setShowMoveDialog(false);
       setSelectedEmails(new Set());
       setMoveTargetId('');
-      onFetchGroupSubscribers(activeTagId);
-      onRefreshGroups();
+      refreshCurrentView();
     }
   };
 
+  // Remove subscribers from current tag
   const handleRemoveFromTag = async () => {
     if (!activeTagId || selectedEmails.size === 0) return;
     const success = await onRemoveFromGroup(Array.from(selectedEmails), activeTagId);
     if (success) {
       setShowRemoveFromTagDialog(false);
       setSelectedEmails(new Set());
-      onFetchGroupSubscribers(activeTagId);
+      refreshCurrentView();
+    }
+  };
+
+  // Add existing subscribers to a tag (from "Todos" view)
+  const handleAddToTag = async () => {
+    if (!addToTagTargetId || selectedEmails.size === 0) return;
+    const success = await onAddToTag(Array.from(selectedEmails), parseInt(addToTagTargetId));
+    if (success) {
+      setShowAddToTagDialog(false);
+      setSelectedEmails(new Set());
+      setAddToTagTargetId('');
       onRefreshGroups();
     }
   };
@@ -214,10 +231,7 @@ export function AudienceView({
     setNewTagError('');
     if (!newTagName.trim()) { setNewTagError('Nome é obrigatório'); return; }
     const success = await onCreateGroup(newTagName.trim());
-    if (success) {
-      setShowCreateTag(false);
-      setNewTagName('');
-    }
+    if (success) { setShowCreateTag(false); setNewTagName(''); }
   };
 
   const handleSaveTagEdit = async (id: number) => {
@@ -235,7 +249,7 @@ export function AudienceView({
     }
   };
 
-  if (loading && !activeTagId) {
+  if (loading && !isFiltered) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <div className="w-12 h-12 border-4 border-vermelho/20 border-t-vermelho rounded-full animate-spin mb-4" />
@@ -261,7 +275,10 @@ export function AudienceView({
         <div>
           <h2 className="font-display text-2xl font-bold text-charcoal">Audiência</h2>
           <p className="text-muted-foreground mt-1">
-            {total} subscritor{total !== 1 ? 'es' : ''} &bull; {groups.length} tag{groups.length !== 1 ? 's' : ''}
+            {isFiltered
+              ? <>{displayedTotal} subscritor{displayedTotal !== 1 ? 'es' : ''} na tag <strong>{activeTag?.name}</strong></>
+              : <>{total} subscritor{total !== 1 ? 'es' : ''} &bull; {groups.length} tag{groups.length !== 1 ? 's' : ''}</>
+            }
           </p>
         </div>
         <div className="flex gap-2">
@@ -273,11 +290,7 @@ export function AudienceView({
             <Settings2 className="h-4 w-4 mr-2" />
             Tags
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => activeTagId ? onFetchGroupSubscribers(activeTagId) : onRefresh()}
-            className="border-beige-medium"
-          >
+          <Button variant="outline" onClick={refreshCurrentView} className="border-beige-medium">
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
@@ -288,7 +301,7 @@ export function AudienceView({
         <button
           onClick={() => handleTagClick(null)}
           className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all ${
-            activeTagId === null
+            !isFiltered
               ? 'bg-charcoal text-white shadow-sm'
               : 'bg-beige-light text-charcoal hover:bg-beige-medium'
           }`}
@@ -301,7 +314,8 @@ export function AudienceView({
         {groups.map((group, index) => {
           const color = getTagColor(index);
           const isActive = activeTagId === group.id;
-          const count = isActive ? totalGroupSubscribers : group.totalSubscribers;
+          // When active and loaded, show the real fetched count
+          const count = isActive && !loadingGroupSubscribers ? totalGroupSubscribers : group.totalSubscribers;
           return (
             <button
               key={group.id}
@@ -314,7 +328,9 @@ export function AudienceView({
             >
               <Tag className="h-3 w-3" />
               {group.name}
-              <span className="text-xs opacity-70">({count})</span>
+              <span className="text-xs opacity-70">
+                ({isActive && loadingGroupSubscribers ? '...' : count})
+              </span>
             </button>
           );
         })}
@@ -328,17 +344,6 @@ export function AudienceView({
         </button>
       </div>
 
-      {/* Active Tag Info */}
-      {activeTag && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Tag className="h-3.5 w-3.5" />
-          A mostrar subscritores com a tag <strong className="text-charcoal">{activeTag.name}</strong>
-          <button onClick={() => setActiveTagId(null)} className="text-vermelho hover:underline ml-1">
-            Limpar filtro
-          </button>
-        </div>
-      )}
-
       {/* Bulk Actions Bar */}
       {selectedEmails.size > 0 && (
         <div className="sticky top-2 z-10">
@@ -348,28 +353,29 @@ export function AudienceView({
                 <span className="text-sm font-medium text-white">
                   {selectedEmails.size} selecionado{selectedEmails.size > 1 ? 's' : ''}
                 </span>
-                <button
-                  onClick={() => setSelectedEmails(new Set())}
-                  className="text-xs text-white/60 hover:text-white underline"
-                >
+                <button onClick={() => setSelectedEmails(new Set())} className="text-xs text-white/60 hover:text-white underline">
                   Limpar
                 </button>
               </div>
-              <div className="flex gap-2">
-                {activeTagId && groups.length > 1 && (
+              <div className="flex gap-2 flex-wrap">
+                {/* In "Todos" view: Add to tag */}
+                {!isFiltered && groups.length > 0 && (
+                  <Button size="sm" variant="secondary" onClick={() => setShowAddToTagDialog(true)} disabled={moving}>
+                    <TagIcon className="h-3.5 w-3.5 mr-1.5" />
+                    Adicionar a tag...
+                  </Button>
+                )}
+                {/* In tag view: Move to another tag */}
+                {isFiltered && groups.length > 1 && (
                   <Button size="sm" variant="secondary" onClick={() => setShowMoveDialog(true)} disabled={moving}>
                     <ArrowRightLeft className="h-3.5 w-3.5 mr-1.5" />
                     Mover para...
                   </Button>
                 )}
-                {activeTagId && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => setShowRemoveFromTagDialog(true)}
-                    disabled={moving}
-                    className="text-amber-700 bg-amber-100 hover:bg-amber-200 border-0"
-                  >
+                {/* In tag view: Remove from tag */}
+                {isFiltered && (
+                  <Button size="sm" variant="secondary" onClick={() => setShowRemoveFromTagDialog(true)} disabled={moving}
+                    className="text-amber-700 bg-amber-100 hover:bg-amber-200 border-0">
                     <X className="h-3.5 w-3.5 mr-1.5" />
                     Remover da tag
                   </Button>
@@ -392,18 +398,26 @@ export function AudienceView({
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-beige-medium mb-4">
               <Users className="h-7 w-7 text-muted-foreground" />
             </div>
-            <h3 className="font-display text-lg font-semibold text-charcoal mb-2">
-              {activeTagId ? 'Nenhum subscritor nesta tag' : 'Nenhum subscritor'}
-            </h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              {activeTagId
-                ? 'Adiciona subscritores a esta tag ou limpa o filtro.'
-                : 'Os subscritores aparecerão aqui quando se inscreverem.'}
-            </p>
-            <Button onClick={() => setShowAddDialog(true)} className="bg-vermelho hover:bg-vermelho/90">
-              <UserPlus className="h-4 w-4 mr-2" />
-              Adicionar subscritor
-            </Button>
+            {isFiltered ? (
+              <>
+                <h3 className="font-display text-lg font-semibold text-charcoal mb-2">
+                  Tag &quot;{activeTag?.name}&quot; está vazia
+                </h3>
+                <p className="text-muted-foreground mb-4 text-sm max-w-md mx-auto">
+                  Vai a <button onClick={() => setActiveTagId(null)} className="text-vermelho font-medium hover:underline">Todos</button>,
+                  seleciona os subscritores que queres e clica em &quot;Adicionar a tag&quot;.
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="font-display text-lg font-semibold text-charcoal mb-2">Nenhum subscritor</h3>
+                <p className="text-muted-foreground mb-4 text-sm">Os subscritores aparecerão aqui quando se inscreverem.</p>
+                <Button onClick={() => setShowAddDialog(true)} className="bg-vermelho hover:bg-vermelho/90">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Adicionar subscritor
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -436,10 +450,7 @@ export function AudienceView({
                     }`}
                   >
                     <td className="w-10 px-3 py-3">
-                      <Checkbox
-                        checked={selectedEmails.has(sub.email)}
-                        onCheckedChange={() => toggleSelect(sub.email)}
-                      />
+                      <Checkbox checked={selectedEmails.has(sub.email)} onCheckedChange={() => toggleSelect(sub.email)} />
                     </td>
                     <td className="px-3 py-3">
                       <div className="text-sm font-medium text-charcoal">{sub.email}</div>
@@ -452,24 +463,17 @@ export function AudienceView({
                     <td className="px-3 py-3 text-center">
                       {sub.isActive ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                          <CheckCircle className="h-3 w-3" />
-                          Ativo
+                          <CheckCircle className="h-3 w-3" />Ativo
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                          <XCircle className="h-3 w-3" />
-                          Inativo
+                          <XCircle className="h-3 w-3" />Inativo
                         </span>
                       )}
                     </td>
                     <td className="w-12 px-3 py-3 text-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowDeleteDialog(sub.email)}
-                        disabled={removing === sub.email}
-                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => setShowDeleteDialog(sub.email)}
+                        disabled={removing === sub.email} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0">
                         {removing === sub.email ? (
                           <div className="h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                         ) : (
@@ -515,9 +519,7 @@ export function AudienceView({
               <div className="space-y-2">
                 <Label>Tag (opcional)</Label>
                 <Select value={addToTagId} onValueChange={setAddToTagId}>
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Sem tag" />
-                  </SelectTrigger>
+                  <SelectTrigger className="bg-white"><SelectValue placeholder="Sem tag" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="default">Sem tag</SelectItem>
                     {groups.map((g) => (
@@ -529,15 +531,10 @@ export function AudienceView({
             )}
           </div>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline" className="border-beige-medium">Cancelar</Button>
-            </DialogClose>
+            <DialogClose asChild><Button variant="outline" className="border-beige-medium">Cancelar</Button></DialogClose>
             <Button onClick={handleAdd} disabled={adding} className="bg-vermelho hover:bg-vermelho/90">
-              {adding ? (
-                <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Adicionando...</>
-              ) : (
-                <><UserPlus className="h-4 w-4 mr-2" />Adicionar</>
-              )}
+              {adding ? <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Adicionando...</>
+                : <><UserPlus className="h-4 w-4 mr-2" />Adicionar</>}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -549,20 +546,43 @@ export function AudienceView({
           <DialogHeader>
             <DialogTitle className="font-display text-xl text-charcoal">Remover Subscritor</DialogTitle>
           </DialogHeader>
-          <p className="text-muted-foreground py-2">
-            Remover <strong className="text-charcoal">{showDeleteDialog}</strong> permanentemente?
-          </p>
+          <p className="text-muted-foreground py-2">Remover <strong className="text-charcoal">{showDeleteDialog}</strong> permanentemente?</p>
           <p className="text-sm text-muted-foreground">O email será eliminado de todos os grupos.</p>
           <DialogFooter className="mt-4">
-            <DialogClose asChild>
-              <Button variant="outline" className="border-beige-medium">Cancelar</Button>
-            </DialogClose>
+            <DialogClose asChild><Button variant="outline" className="border-beige-medium">Cancelar</Button></DialogClose>
             <Button variant="destructive" onClick={() => showDeleteDialog && handleDelete(showDeleteDialog)} disabled={!!removing}>
-              {removing ? (
-                <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Removendo...</>
-              ) : (
-                <><Trash2 className="h-4 w-4 mr-2" />Remover</>
-              )}
+              {removing ? <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Removendo...</>
+                : <><Trash2 className="h-4 w-4 mr-2" />Remover</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add to Tag (from Todos view) */}
+      <Dialog open={showAddToTagDialog} onOpenChange={setShowAddToTagDialog}>
+        <DialogContent className="bg-cream border-beige-medium">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl text-charcoal">Adicionar a Tag</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-muted-foreground text-sm">
+              Adicionar <strong className="text-charcoal">{selectedEmails.size}</strong> subscritor{selectedEmails.size > 1 ? 'es' : ''} à tag:
+            </p>
+            <Select value={addToTagTargetId} onValueChange={setAddToTagTargetId}>
+              <SelectTrigger className="bg-white"><SelectValue placeholder="Selecionar tag..." /></SelectTrigger>
+              <SelectContent>
+                {groups.map((g) => (
+                  <SelectItem key={g.id} value={g.id.toString()}>{g.name} ({g.totalSubscribers})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Os subscritores continuam na lista principal.</p>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline" className="border-beige-medium">Cancelar</Button></DialogClose>
+            <Button onClick={handleAddToTag} disabled={!addToTagTargetId || moving} className="bg-vermelho hover:bg-vermelho/90">
+              {moving ? <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Adicionando...</>
+                : <><TagIcon className="h-4 w-4 mr-2" />Adicionar</>}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -576,8 +596,7 @@ export function AudienceView({
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-muted-foreground text-sm">
-              Mover <strong className="text-charcoal">{selectedEmails.size}</strong> subscritor{selectedEmails.size > 1 ? 'es' : ''} de{' '}
-              <strong className="text-charcoal">{activeTag?.name}</strong> para:
+              Mover <strong className="text-charcoal">{selectedEmails.size}</strong> de <strong className="text-charcoal">{activeTag?.name}</strong> para:
             </p>
             <Select value={moveTargetId} onValueChange={setMoveTargetId}>
               <SelectTrigger className="bg-white"><SelectValue placeholder="Selecionar tag..." /></SelectTrigger>
@@ -591,11 +610,8 @@ export function AudienceView({
           <DialogFooter>
             <DialogClose asChild><Button variant="outline" className="border-beige-medium">Cancelar</Button></DialogClose>
             <Button onClick={handleMove} disabled={!moveTargetId || moving} className="bg-vermelho hover:bg-vermelho/90">
-              {moving ? (
-                <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Movendo...</>
-              ) : (
-                <><ArrowRightLeft className="h-4 w-4 mr-2" />Mover</>
-              )}
+              {moving ? <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Movendo...</>
+                : <><ArrowRightLeft className="h-4 w-4 mr-2" />Mover</>}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -608,17 +624,14 @@ export function AudienceView({
             <DialogTitle className="font-display text-xl text-charcoal">Remover da Tag</DialogTitle>
           </DialogHeader>
           <p className="text-muted-foreground py-2 text-sm">
-            Remover <strong className="text-charcoal">{selectedEmails.size}</strong> subscritor{selectedEmails.size > 1 ? 'es' : ''} da tag{' '}
-            <strong className="text-charcoal">&quot;{activeTag?.name}&quot;</strong>? Os contactos não serão eliminados.
+            Remover <strong className="text-charcoal">{selectedEmails.size}</strong> subscritor{selectedEmails.size > 1 ? 'es' : ''} da tag
+            <strong className="text-charcoal"> &quot;{activeTag?.name}&quot;</strong>? Os contactos não serão eliminados.
           </p>
           <DialogFooter>
             <DialogClose asChild><Button variant="outline" className="border-beige-medium">Cancelar</Button></DialogClose>
             <Button variant="destructive" onClick={handleRemoveFromTag} disabled={moving}>
-              {moving ? (
-                <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Removendo...</>
-              ) : (
-                <><X className="h-4 w-4 mr-2" />Remover</>
-              )}
+              {moving ? <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Removendo...</>
+                : <><X className="h-4 w-4 mr-2" />Remover</>}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -643,11 +656,8 @@ export function AudienceView({
           <DialogFooter>
             <DialogClose asChild><Button variant="outline" className="border-beige-medium">Cancelar</Button></DialogClose>
             <Button onClick={handleCreateTag} disabled={savingGroup} className="bg-vermelho hover:bg-vermelho/90">
-              {savingGroup ? (
-                <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Criando...</>
-              ) : (
-                <><FolderPlus className="h-4 w-4 mr-2" />Criar Tag</>
-              )}
+              {savingGroup ? <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Criando...</>
+                : <><FolderPlus className="h-4 w-4 mr-2" />Criar Tag</>}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -661,9 +671,7 @@ export function AudienceView({
           </DialogHeader>
           <div className="py-4 space-y-3">
             {groups.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-6">
-                Nenhuma tag criada. Clica em &quot;Nova tag&quot; para começar.
-              </p>
+              <p className="text-muted-foreground text-sm text-center py-6">Nenhuma tag criada.</p>
             ) : (
               groups.map((group, index) => {
                 const color = getTagColor(index);
@@ -671,35 +679,26 @@ export function AudienceView({
                   <div key={group.id} className="flex items-center gap-3 p-3 rounded-lg bg-white border border-beige-medium/50">
                     {editingTagId === group.id ? (
                       <>
-                        <Input value={editTagName} onChange={(e) => setEditTagName(e.target.value)} className="flex-1 h-8 text-sm"
-                          autoFocus onKeyDown={(e) => {
+                        <Input value={editTagName} onChange={(e) => setEditTagName(e.target.value)} className="flex-1 h-8 text-sm" autoFocus
+                          onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSaveTagEdit(group.id);
                             if (e.key === 'Escape') { setEditingTagId(null); setEditTagName(''); }
                           }} />
                         <Button size="sm" onClick={() => handleSaveTagEdit(group.id)} disabled={savingGroup || !editTagName.trim()}
-                          className="bg-vermelho hover:bg-vermelho/90 h-8 w-8 p-0">
-                          <Save className="h-3.5 w-3.5" />
-                        </Button>
+                          className="bg-vermelho hover:bg-vermelho/90 h-8 w-8 p-0"><Save className="h-3.5 w-3.5" /></Button>
                         <Button size="sm" variant="outline" onClick={() => { setEditingTagId(null); setEditTagName(''); }}
-                          className="border-beige-medium h-8 w-8 p-0">
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
+                          className="border-beige-medium h-8 w-8 p-0"><X className="h-3.5 w-3.5" /></Button>
                       </>
                     ) : (
                       <>
                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${color.bg} ${color.text}`}>
-                          <Tag className="h-3 w-3" />
-                          {group.name}
+                          <Tag className="h-3 w-3" />{group.name}
                         </span>
                         <span className="text-xs text-muted-foreground ml-auto">{group.totalSubscribers} sub.</span>
                         <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-charcoal"
-                          onClick={() => { setEditingTagId(group.id); setEditTagName(group.name); }}>
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
+                          onClick={() => { setEditingTagId(group.id); setEditTagName(group.name); }}><Pencil className="h-3.5 w-3.5" /></Button>
                         <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                          onClick={() => setDeleteTagTarget(group)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                          onClick={() => setDeleteTagTarget(group)}><Trash2 className="h-3.5 w-3.5" /></Button>
                       </>
                     )}
                   </div>
@@ -716,16 +715,14 @@ export function AudienceView({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Tag Confirmation */}
+      {/* Delete Tag */}
       <Dialog open={!!deleteTagTarget} onOpenChange={() => setDeleteTagTarget(null)}>
         <DialogContent className="bg-cream border-beige-medium">
           <DialogHeader>
             <DialogTitle className="font-display text-xl text-charcoal">Eliminar Tag</DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-3">
-            <p className="text-muted-foreground">
-              Eliminar a tag <strong className="text-charcoal">&quot;{deleteTagTarget?.name}&quot;</strong>?
-            </p>
+            <p className="text-muted-foreground">Eliminar a tag <strong className="text-charcoal">&quot;{deleteTagTarget?.name}&quot;</strong>?</p>
             {deleteTagTarget && deleteTagTarget.totalSubscribers > 0 && (
               <div className="bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded-lg text-sm">
                 <strong>{deleteTagTarget.totalSubscribers}</strong> subscritor(es) serão removidos desta tag (não eliminados).
@@ -735,11 +732,8 @@ export function AudienceView({
           <DialogFooter>
             <DialogClose asChild><Button variant="outline" className="border-beige-medium">Cancelar</Button></DialogClose>
             <Button variant="destructive" onClick={handleDeleteTag} disabled={savingGroup}>
-              {savingGroup ? (
-                <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Eliminando...</>
-              ) : (
-                <><Trash2 className="h-4 w-4 mr-2" />Eliminar</>
-              )}
+              {savingGroup ? <><div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Eliminando...</>
+                : <><Trash2 className="h-4 w-4 mr-2" />Eliminar</>}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -43,7 +43,7 @@ serve(async (req) => {
       "api-key": BREVO_API_KEY,
     };
 
-    // GET - List all groups
+    // GET - List all groups with real contact counts
     if (req.method === "GET") {
       const response = await fetch(
         "https://api.brevo.com/v3/contacts/lists?limit=50&offset=0",
@@ -59,14 +59,34 @@ serve(async (req) => {
       }
 
       const data = await response.json();
+      const lists: BrevoList[] = data.lists || [];
 
-      const groups = (data.lists || []).map((list: BrevoList) => ({
-        id: list.id,
-        name: list.name,
-        totalSubscribers: list.totalSubscribers,
-        totalBlacklisted: list.totalBlacklisted,
-        createdAt: list.createdAt,
-      }));
+      // Fetch real contact count for each list (totalSubscribers from lists API can be stale)
+      const groups = await Promise.all(
+        lists.map(async (list) => {
+          let realCount = list.totalSubscribers;
+          try {
+            const countResponse = await fetch(
+              `https://api.brevo.com/v3/contacts/lists/${list.id}/contacts?limit=1&offset=0`,
+              { method: "GET", headers: brevoHeaders }
+            );
+            if (countResponse.ok) {
+              const countData = await countResponse.json();
+              realCount = countData.count ?? list.totalSubscribers;
+            }
+          } catch {
+            // Fall back to the cached count
+          }
+
+          return {
+            id: list.id,
+            name: list.name,
+            totalSubscribers: realCount,
+            totalBlacklisted: list.totalBlacklisted,
+            createdAt: list.createdAt,
+          };
+        })
+      );
 
       return new Response(
         JSON.stringify({ groups, total: data.count || groups.length }),
@@ -95,7 +115,6 @@ serve(async (req) => {
       if (folderId) {
         body.folderId = folderId;
       } else {
-        // Use default folder (1)
         body.folderId = 1;
       }
 
@@ -110,12 +129,12 @@ serve(async (req) => {
         throw new Error(errorData.message || "Failed to create list");
       }
 
-      const data = await response.json();
+      const resData = await response.json();
 
       return new Response(
         JSON.stringify({
           success: true,
-          id: data.id,
+          id: resData.id,
           message: `Grupo "${name}" criado com sucesso!`,
         }),
         {
