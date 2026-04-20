@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Clock, Calendar } from 'lucide-react';
+import { Plus, X, Clock, Calendar, Sun } from 'lucide-react';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
 import {
@@ -24,7 +24,7 @@ interface ScheduleEditorProps {
   onOpenChange: (open: boolean) => void;
   activeEvents: Event[];
   selectedDay?: DayOfWeek;
-  onAdd: (eventId: string, dayOfWeek: DayOfWeek, time: string) => Promise<boolean>;
+  onAdd: (eventId: string, dayOfWeek: DayOfWeek, time: string, endTime?: string | null, isAllDay?: boolean) => Promise<boolean>;
 }
 
 const MINUTES = ['00', '15', '30', '45'];
@@ -33,6 +33,10 @@ interface DayTimeSlot {
   day: DayOfWeek;
   hour: string;
   minute: string;
+  endHour: string;
+  endMinute: string;
+  hasEnd: boolean;
+  isAllDay: boolean;
 }
 
 export function ScheduleEditor({
@@ -51,7 +55,15 @@ export function ScheduleEditor({
   useEffect(() => {
     if (open) {
       setEventId('');
-      setSlots([{ day: selectedDay ?? 0, hour: '12', minute: '00' }]);
+      setSlots([{
+        day: selectedDay ?? 0,
+        hour: '12',
+        minute: '00',
+        endHour: '13',
+        endMinute: '00',
+        hasEnd: false,
+        isAllDay: false,
+      }]);
       setError(null);
     }
   }, [open, selectedDay]);
@@ -70,12 +82,29 @@ export function ScheduleEditor({
       return;
     }
 
+    // Validate end times
+    for (const slot of slots) {
+      if (!slot.isAllDay && slot.hasEnd) {
+        const startMinutes = parseInt(slot.hour) * 60 + parseInt(slot.minute);
+        const endMinutes = parseInt(slot.endHour) * 60 + parseInt(slot.endMinute);
+        if (endMinutes <= startMinutes) {
+          setError('O horário de término deve ser depois do início');
+          return;
+        }
+      }
+    }
+
     setLoading(true);
     let hasError = false;
 
     for (const slot of slots) {
-      const time = `${slot.hour.padStart(2, '0')}:${slot.minute}`;
-      const success = await onAdd(eventId, slot.day, time);
+      const time = slot.isAllDay
+        ? '00:00'
+        : `${slot.hour.padStart(2, '0')}:${slot.minute}`;
+      const endTime = (!slot.isAllDay && slot.hasEnd)
+        ? `${slot.endHour.padStart(2, '0')}:${slot.endMinute}`
+        : null;
+      const success = await onAdd(eventId, slot.day, time, endTime, slot.isAllDay);
       if (!success) {
         hasError = true;
       }
@@ -98,6 +127,10 @@ export function ScheduleEditor({
         day: lastSlot?.day ?? selectedDay ?? 0,
         hour: lastSlot?.hour ?? '12',
         minute: lastSlot?.minute ?? '00',
+        endHour: lastSlot?.endHour ?? '13',
+        endMinute: lastSlot?.endMinute ?? '00',
+        hasEnd: lastSlot?.hasEnd ?? false,
+        isAllDay: lastSlot?.isAllDay ?? false,
       },
     ]);
   };
@@ -120,7 +153,7 @@ export function ScheduleEditor({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[520px] bg-cream border-beige-medium">
+      <DialogContent className="sm:max-w-[560px] bg-cream border-beige-medium">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl text-charcoal flex items-center gap-2">
             <Calendar className="h-6 w-6 text-amarelo" />
@@ -201,82 +234,180 @@ export function ScheduleEditor({
               </Button>
             </div>
 
-            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
               {slots.map((slot, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 p-3 bg-beige-light rounded-xl border border-beige-medium animate-fade-in"
+                  className="p-3 bg-beige-light rounded-xl border border-beige-medium animate-fade-in space-y-3"
                 >
-                  {/* Day Selection */}
-                  <Select
-                    value={slot.day.toString()}
-                    onValueChange={(v) =>
-                      updateSlot(index, { day: parseInt(v) as DayOfWeek })
-                    }
-                  >
-                    <SelectTrigger className="w-[100px] h-10 bg-cream border-beige-medium focus:border-vermelho">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-cream border-beige-medium">
-                      {Object.entries(DAYS_OF_WEEK_SHORT).map(([value, label]) => (
-                        <SelectItem key={value} value={value} className="focus:bg-beige-light">
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Hour Selection */}
-                  <Select
-                    value={slot.hour}
-                    onValueChange={(v) => updateSlot(index, { hour: v })}
-                  >
-                    <SelectTrigger className="w-[80px] h-10 bg-cream border-beige-medium focus:border-vermelho">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-cream border-beige-medium max-h-[200px]">
-                      {Array.from({ length: 24 }, (_, i) => i).map((h) => (
-                        <SelectItem
-                          key={h}
-                          value={h.toString().padStart(2, '0')}
-                          className="focus:bg-beige-light"
-                        >
-                          {h.toString().padStart(2, '0')}h
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <span className="text-lg font-bold text-muted-foreground">:</span>
-
-                  {/* Minute Selection */}
-                  <Select
-                    value={slot.minute}
-                    onValueChange={(v) => updateSlot(index, { minute: v })}
-                  >
-                    <SelectTrigger className="w-[75px] h-10 bg-cream border-beige-medium focus:border-vermelho">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-cream border-beige-medium">
-                      {MINUTES.map((m) => (
-                        <SelectItem key={m} value={m} className="focus:bg-beige-light">
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Remove Button */}
-                  {slots.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-10 w-10 ml-auto hover:bg-red-50 hover:text-red-600"
-                      onClick={() => removeSlot(index)}
+                  {/* Row 1: Day + All Day toggle */}
+                  <div className="flex items-center gap-2">
+                    {/* Day Selection */}
+                    <Select
+                      value={slot.day.toString()}
+                      onValueChange={(v) =>
+                        updateSlot(index, { day: parseInt(v) as DayOfWeek })
+                      }
                     >
-                      <X className="h-4 w-4" />
-                    </Button>
+                      <SelectTrigger className="w-[100px] h-10 bg-cream border-beige-medium focus:border-vermelho">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-cream border-beige-medium">
+                        {Object.entries(DAYS_OF_WEEK_SHORT).map(([value, label]) => (
+                          <SelectItem key={value} value={value} className="focus:bg-beige-light">
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* All Day Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => updateSlot(index, {
+                        isAllDay: !slot.isAllDay,
+                        hasEnd: false,
+                      })}
+                      className={`flex items-center gap-1.5 px-3 h-10 rounded-lg border transition-all text-sm font-medium ${
+                        slot.isAllDay
+                          ? 'bg-purple-100 border-purple-300 text-purple-700'
+                          : 'bg-cream border-beige-medium text-muted-foreground hover:border-purple-300 hover:text-purple-600'
+                      }`}
+                    >
+                      <Sun className="h-4 w-4" />
+                      Dia inteiro
+                    </button>
+
+                    {/* Remove Button */}
+                    {slots.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 ml-auto hover:bg-red-50 hover:text-red-600"
+                        onClick={() => removeSlot(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Row 2: Time pickers (hidden when all day) */}
+                  {!slot.isAllDay && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Start Time */}
+                      <div className="flex items-center gap-1">
+                        <Select
+                          value={slot.hour}
+                          onValueChange={(v) => updateSlot(index, { hour: v })}
+                        >
+                          <SelectTrigger className="w-[75px] h-9 bg-cream border-beige-medium focus:border-vermelho text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-cream border-beige-medium max-h-[200px]">
+                            {Array.from({ length: 24 }, (_, i) => i).map((h) => (
+                              <SelectItem
+                                key={h}
+                                value={h.toString().padStart(2, '0')}
+                                className="focus:bg-beige-light"
+                              >
+                                {h.toString().padStart(2, '0')}h
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <span className="text-lg font-bold text-muted-foreground">:</span>
+
+                        <Select
+                          value={slot.minute}
+                          onValueChange={(v) => updateSlot(index, { minute: v })}
+                        >
+                          <SelectTrigger className="w-[70px] h-9 bg-cream border-beige-medium focus:border-vermelho text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-cream border-beige-medium">
+                            {MINUTES.map((m) => (
+                              <SelectItem key={m} value={m} className="focus:bg-beige-light">
+                                {m}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* End Time Toggle + Pickers */}
+                      {slot.hasEnd ? (
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm text-muted-foreground mx-1">até</span>
+                          <Select
+                            value={slot.endHour}
+                            onValueChange={(v) => updateSlot(index, { endHour: v })}
+                          >
+                            <SelectTrigger className="w-[75px] h-9 bg-cream border-beige-medium focus:border-vermelho text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-cream border-beige-medium max-h-[200px]">
+                              {Array.from({ length: 24 }, (_, i) => i).map((h) => (
+                                <SelectItem
+                                  key={h}
+                                  value={h.toString().padStart(2, '0')}
+                                  className="focus:bg-beige-light"
+                                >
+                                  {h.toString().padStart(2, '0')}h
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          <span className="text-lg font-bold text-muted-foreground">:</span>
+
+                          <Select
+                            value={slot.endMinute}
+                            onValueChange={(v) => updateSlot(index, { endMinute: v })}
+                          >
+                            <SelectTrigger className="w-[70px] h-9 bg-cream border-beige-medium focus:border-vermelho text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-cream border-beige-medium">
+                              {MINUTES.map((m) => (
+                                <SelectItem key={m} value={m} className="focus:bg-beige-light">
+                                  {m}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 hover:bg-red-50 hover:text-red-600"
+                            onClick={() => updateSlot(index, { hasEnd: false })}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 text-xs text-muted-foreground hover:text-charcoal"
+                          onClick={() => {
+                            const nextHour = Math.min(parseInt(slot.hour) + 1, 23).toString().padStart(2, '0');
+                            updateSlot(index, {
+                              hasEnd: true,
+                              endHour: nextHour,
+                              endMinute: slot.minute,
+                            });
+                          }}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Término
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}

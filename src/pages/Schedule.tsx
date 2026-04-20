@@ -35,8 +35,8 @@ export function Schedule() {
         schedules={schedules}
         activeEvents={activeEvents}
         loading={loading}
-        onAdd={async (eventId, day, time) => {
-          const result = await addToSchedule(eventId, day, time);
+        onAdd={async (eventId, day, time, endTime, isAllDay) => {
+          const result = await addToSchedule(eventId, day, time, endTime, isAllDay);
           return !!result;
         }}
         onRemove={removeFromSchedule}

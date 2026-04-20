@@ -13,6 +13,8 @@ export interface Schedule {
   event_id: string;
   day_of_week: number; // 0=Domingo, 1=Segunda... 6=Sábado
   time: string; // HH:mm format
+  end_time: string | null; // HH:mm format, optional
+  is_all_day: boolean;
   is_active: boolean;
   created_at: string;
   event?: Event;

@@ -37,16 +37,35 @@ export function useSchedule() {
   const addToSchedule = async (
     eventId: string,
     dayOfWeek: DayOfWeek,
-    time: string
+    time: string,
+    endTime?: string | null,
+    isAllDay?: boolean
   ): Promise<Schedule | null> => {
     try {
+      // Validate: only 1 all-day event per day
+      if (isAllDay) {
+        const existingAllDay = schedules.find(
+          (s) => s.day_of_week === dayOfWeek && s.is_all_day
+        );
+        if (existingAllDay) {
+          setError(`Já existe um evento de dia inteiro neste dia (${existingAllDay.event?.name ?? 'evento'}). Apenas 1 é permitido.`);
+          return null;
+        }
+      }
+
+      const insertData: Record<string, unknown> = {
+        event_id: eventId,
+        day_of_week: dayOfWeek,
+        time: isAllDay ? '00:00' : time,
+        is_all_day: isAllDay ?? false,
+      };
+      if (endTime) {
+        insertData.end_time = endTime;
+      }
+
       const { data, error: insertError } = await supabase
         .from('schedule')
-        .insert({
-          event_id: eventId,
-          day_of_week: dayOfWeek,
-          time,
-        })
+        .insert(insertData)
         .select(`
           *,
           event:events(*)

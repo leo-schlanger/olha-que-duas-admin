@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Clock, Calendar } from 'lucide-react';
+import { Plus, Trash2, Clock, Calendar, Sun } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ScheduleEditor } from './ScheduleEditor';
@@ -11,7 +11,7 @@ interface ScheduleGridProps {
   schedules: ScheduleWithEvent[];
   activeEvents: Event[];
   loading: boolean;
-  onAdd: (eventId: string, dayOfWeek: DayOfWeek, time: string) => Promise<boolean>;
+  onAdd: (eventId: string, dayOfWeek: DayOfWeek, time: string, endTime?: string | null, isAllDay?: boolean) => Promise<boolean>;
   onRemove: (id: string) => Promise<boolean>;
 }
 
@@ -39,7 +39,12 @@ export function ScheduleGrid({
   const getSchedulesByDay = (day: DayOfWeek) => {
     return schedules
       .filter((s) => s.day_of_week === day)
-      .sort((a, b) => a.time.localeCompare(b.time));
+      .sort((a, b) => {
+        // All-day events first
+        if (a.is_all_day && !b.is_all_day) return -1;
+        if (!a.is_all_day && b.is_all_day) return 1;
+        return a.time.localeCompare(b.time);
+      });
   };
 
   const handleAddClick = (day?: DayOfWeek) => {
@@ -109,45 +114,103 @@ export function ScheduleGrid({
                     <p className="text-xs text-center">Sem programação</p>
                   </div>
                 ) : (
-                  daySchedules.map((schedule) => (
-                    <div
-                      key={schedule.id}
-                      className="group relative bg-beige-light hover:bg-beige rounded-lg p-2.5 transition-all border border-transparent hover:border-beige-medium"
-                    >
-                      {/* Time Badge */}
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <div className="flex items-center gap-1 px-2 py-0.5 bg-amarelo/20 rounded-full">
-                          <Clock className="h-3 w-3 text-charcoal" />
-                          <span className="text-xs font-bold text-charcoal">
-                            {formatTime(schedule.time)}
-                          </span>
-                        </div>
-                      </div>
+                  (() => {
+                    const allDayEvent = daySchedules.find((s) => s.is_all_day);
+                    const timedEvents = daySchedules.filter((s) => !s.is_all_day);
+                    return (
+                      <>
+                        {/* All-day base event banner */}
+                        {allDayEvent && (
+                          <div className="group relative bg-purple-50 border border-purple-200 rounded-lg p-2.5 transition-all hover:border-purple-300">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <div className="flex items-center gap-1 px-2 py-0.5 bg-purple-100 rounded-full">
+                                <Sun className="h-3 w-3 text-purple-700" />
+                                <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider">
+                                  Base do dia
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={allDayEvent.event.icon_url}
+                                alt=""
+                                className="w-6 h-6 object-contain rounded"
+                              />
+                              <span className="text-xs font-bold text-purple-800 truncate flex-1">
+                                {allDayEvent.event.name}
+                              </span>
+                            </div>
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute -top-1 -right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                              onClick={() => handleRemove(allDayEvent.id)}
+                              disabled={removingId === allDayEvent.id}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
 
-                      {/* Event Info */}
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={schedule.event.icon_url}
-                          alt=""
-                          className="w-6 h-6 object-contain rounded"
-                        />
-                        <span className="text-xs font-medium text-charcoal truncate flex-1">
-                          {schedule.event.name}
-                        </span>
-                      </div>
+                        {/* Divider when both all-day and timed events exist */}
+                        {allDayEvent && timedEvents.length > 0 && (
+                          <div className="flex items-center gap-1.5 px-1">
+                            <div className="flex-1 h-px bg-purple-200" />
+                            <span className="text-[9px] font-bold text-purple-400 uppercase tracking-wider">
+                              Interrupções
+                            </span>
+                            <div className="flex-1 h-px bg-purple-200" />
+                          </div>
+                        )}
 
-                      {/* Delete Button */}
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        className="absolute -top-1 -right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                        onClick={() => handleRemove(schedule.id)}
-                        disabled={removingId === schedule.id}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))
+                        {/* Timed events */}
+                        {timedEvents.map((schedule) => (
+                          <div
+                            key={schedule.id}
+                            className={`group relative rounded-lg p-2.5 transition-all border border-transparent hover:border-beige-medium ${
+                              allDayEvent
+                                ? 'bg-white/80 hover:bg-white border-l-2 border-l-amarelo'
+                                : 'bg-beige-light hover:bg-beige'
+                            }`}
+                          >
+                            {/* Time Badge */}
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <div className="flex items-center gap-1 px-2 py-0.5 bg-amarelo/20 rounded-full">
+                                <Clock className="h-3 w-3 text-charcoal" />
+                                <span className="text-xs font-bold text-charcoal">
+                                  {formatTime(schedule.time)}
+                                  {schedule.end_time && ` - ${formatTime(schedule.end_time)}`}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Event Info */}
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={schedule.event.icon_url}
+                                alt=""
+                                className="w-6 h-6 object-contain rounded"
+                              />
+                              <span className="text-xs font-medium text-charcoal truncate flex-1">
+                                {schedule.event.name}
+                              </span>
+                            </div>
+
+                            {/* Delete Button */}
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute -top-1 -right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                              onClick={() => handleRemove(schedule.id)}
+                              disabled={removingId === schedule.id}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </>
+                    );
+                  })()
                 )}
 
                 {/* Add Button */}
@@ -196,44 +259,102 @@ export function ScheduleGrid({
                     Nenhuma programação para este dia
                   </p>
                 ) : (
-                  <div className="space-y-2">
-                    {daySchedules.map((schedule) => (
-                      <div
-                        key={schedule.id}
-                        className="flex items-center justify-between bg-beige-light hover:bg-beige rounded-xl p-4 transition-all"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-xl bg-cream border border-beige-medium flex items-center justify-center overflow-hidden">
-                            <img
-                              src={schedule.event.icon_url}
-                              alt=""
-                              className="w-10 h-10 object-contain"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-display font-bold text-charcoal">
-                              {schedule.event.name}
-                            </p>
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="text-sm font-medium text-muted-foreground">
-                                {formatTime(schedule.time)}
-                              </span>
+                  (() => {
+                    const allDayEvent = daySchedules.find((s) => s.is_all_day);
+                    const timedEvents = daySchedules.filter((s) => !s.is_all_day);
+                    return (
+                      <div className="space-y-2">
+                        {/* All-day base event */}
+                        {allDayEvent && (
+                          <div className="flex items-center justify-between bg-purple-50 border border-purple-200 rounded-xl p-4">
+                            <div className="flex items-center gap-4">
+                              <div className="w-14 h-14 rounded-xl bg-purple-100 border border-purple-200 flex items-center justify-center overflow-hidden">
+                                <img
+                                  src={allDayEvent.event.icon_url}
+                                  alt=""
+                                  className="w-10 h-10 object-contain"
+                                />
+                              </div>
+                              <div>
+                                <p className="font-display font-bold text-purple-800">
+                                  {allDayEvent.event.name}
+                                </p>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                  <Sun className="h-3.5 w-3.5 text-purple-600" />
+                                  <span className="text-sm font-bold text-purple-600">
+                                    Base do dia
+                                  </span>
+                                </div>
+                              </div>
                             </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleRemove(allDayEvent.id)}
+                              disabled={removingId === allDayEvent.id}
+                              className="h-10 w-10 hover:bg-red-50 hover:text-red-600"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </Button>
                           </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemove(schedule.id)}
-                          disabled={removingId === schedule.id}
-                          className="h-10 w-10 hover:bg-red-50 hover:text-red-600"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </Button>
+                        )}
+
+                        {/* Divider */}
+                        {allDayEvent && timedEvents.length > 0 && (
+                          <div className="flex items-center gap-2 px-2">
+                            <div className="flex-1 h-px bg-purple-200" />
+                            <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+                              Interrupções
+                            </span>
+                            <div className="flex-1 h-px bg-purple-200" />
+                          </div>
+                        )}
+
+                        {/* Timed events */}
+                        {timedEvents.map((schedule) => (
+                          <div
+                            key={schedule.id}
+                            className={`flex items-center justify-between rounded-xl p-4 transition-all ${
+                              allDayEvent
+                                ? 'bg-white border-l-4 border-l-amarelo border border-beige-medium'
+                                : 'bg-beige-light hover:bg-beige'
+                            }`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-14 h-14 rounded-xl bg-cream border border-beige-medium flex items-center justify-center overflow-hidden">
+                                <img
+                                  src={schedule.event.icon_url}
+                                  alt=""
+                                  className="w-10 h-10 object-contain"
+                                />
+                              </div>
+                              <div>
+                                <p className="font-display font-bold text-charcoal">
+                                  {schedule.event.name}
+                                </p>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                                  <span className="text-sm font-medium text-muted-foreground">
+                                    {formatTime(schedule.time)}
+                                    {schedule.end_time && ` - ${formatTime(schedule.end_time)}`}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleRemove(schedule.id)}
+                              disabled={removingId === schedule.id}
+                              className="h-10 w-10 hover:bg-red-50 hover:text-red-600"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </Button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })()
                 )}
               </CardContent>
             </Card>
@@ -247,8 +368,8 @@ export function ScheduleGrid({
         onOpenChange={setEditorOpen}
         activeEvents={activeEvents}
         selectedDay={selectedDay}
-        onAdd={async (eventId, day, time) => {
-          const success = await onAdd(eventId, day, time);
+        onAdd={async (eventId, day, time, endTime, isAllDay) => {
+          const success = await onAdd(eventId, day, time, endTime, isAllDay);
           return success;
         }}
       />

@@ -15,6 +15,8 @@ CREATE TABLE schedule (
   event_id UUID REFERENCES events(id) ON DELETE CASCADE,
   day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6),
   time TIME NOT NULL,
+  end_time TIME DEFAULT NULL,
+  is_all_day BOOLEAN DEFAULT false,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
 
