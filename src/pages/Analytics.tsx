@@ -507,7 +507,7 @@ export function Analytics() {
         <>
           {/* Stats Grid */}
           {data.stats && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <StatCard
                 title="Visualizações"
                 value={data.stats.pageviews.value}
@@ -532,6 +532,13 @@ export function Analytics() {
                 prevValue={Math.round(data.stats.totalTime.prev / Math.max(data.stats.visits.prev, 1))}
                 icon={Clock}
                 format="time"
+              />
+              <StatCard
+                title="Taxa de Rejeição"
+                value={data.stats.bounceRate.value}
+                prevValue={data.stats.bounceRate.prev}
+                icon={TrendingDown}
+                format="percent"
               />
             </div>
           )}

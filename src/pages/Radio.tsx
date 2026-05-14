@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import {
   Headphones,
   Users,
@@ -19,6 +19,8 @@ import {
   Calendar,
   Timer,
   TrendingUp,
+  Star,
+  BarChart3,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -42,9 +44,10 @@ import {
 } from '../components/ui/dropdown-menu';
 import { useRadio } from '../hooks/useRadio';
 import { useRadioStats, type RadioPeriodStats } from '../hooks/useRadioStats';
+import { useRadioReports, type ReportPeriod } from '../hooks/useRadioReports';
 import { cn } from '../lib/utils';
 import { generateRadioCSV, generateRadioPDF } from '../lib/reportGenerator';
-import type { SongHistory, ListenersByCountry, NowPlayingInfo } from '../types/radio';
+import type { SongHistory, ListenersByCountry, NowPlayingInfo, AzuraMostPlayed, AzuraBestWorstSong } from '../types/radio';
 
 const CHART_COLORS = {
   vermelho: '#C4302B',
@@ -209,12 +212,7 @@ function NowPlayingCard({
   );
 }
 
-interface ListenerSnapshot {
-  time: string;
-  listeners: number;
-}
-
-function ListenersHistoryChart({ snapshots }: { snapshots: ListenerSnapshot[] }) {
+function ListenersHistoryChart({ snapshots }: { snapshots: Array<{ time: string; listeners: number }> }) {
   return (
     <Card className="bg-cream border-beige-medium">
       <CardHeader className="pb-3">
@@ -520,10 +518,10 @@ function PeriodStatsCards({ today, week, month }: { today: RadioPeriodStats; wee
               </p>
             ) : (
               <>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Users className="w-3 h-3" /> Média Ouvintes
+                      <Users className="w-3 h-3" /> Média
                     </p>
                     <p className="text-xl font-bold text-charcoal">{stats.avgListeners}</p>
                   </div>
@@ -533,19 +531,25 @@ function PeriodStatsCards({ today, week, month }: { today: RadioPeriodStats; wee
                     </p>
                     <p className="text-xl font-bold text-charcoal">{stats.maxListeners}</p>
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Headphones className="w-3 h-3" /> Únicos
+                      <Headphones className="w-3 h-3" /> Pico Únicos
                     </p>
-                    <p className="text-xl font-bold text-charcoal">{stats.totalUnique}</p>
+                    <p className="text-xl font-bold text-charcoal">{stats.peakUniqueListeners}</p>
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
                       <Timer className="w-3 h-3" /> Tempo Médio
                     </p>
                     <p className="text-xl font-bold text-charcoal">{formatListeningTime(stats.avgListeningTime)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> TLH
+                    </p>
+                    <p className="text-xl font-bold text-charcoal">{stats.tlh.toFixed(1)}h</p>
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground text-right">{stats.snapshotCount} amostras</p>
@@ -558,14 +562,14 @@ function PeriodStatsCards({ today, week, month }: { today: RadioPeriodStats; wee
   );
 }
 
-function ListenersTrendChart({ data }: { data: Array<{ time: string; listeners: number }> }) {
+function ListenersTrendChart({ data, periodLabel }: { data: Array<{ time: string; listeners: number }>; periodLabel: string }) {
   if (data.length < 2) {
     return (
       <Card className="bg-cream border-beige-medium">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
             <TrendingUp className="w-4 h-4 text-vermelho" />
-            Tendência de Ouvintes (7 dias)
+            Tendência de Ouvintes ({periodLabel})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -582,7 +586,7 @@ function ListenersTrendChart({ data }: { data: Array<{ time: string; listeners: 
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
           <TrendingUp className="w-4 h-4 text-vermelho" />
-          Tendência de Ouvintes (7 dias)
+          Tendência de Ouvintes ({periodLabel})
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -635,13 +639,97 @@ function ListenersTrendChart({ data }: { data: Array<{ time: string; listeners: 
   );
 }
 
+function MostPlayedCard({ songs, periodLabel }: { songs: AzuraMostPlayed[]; periodLabel: string }) {
+  if (songs.length === 0) return null;
+
+  return (
+    <Card className="bg-cream border-beige-medium">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+          <Star className="w-4 h-4 text-vermelho" />
+          Mais Tocadas ({periodLabel})
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3 max-h-80 overflow-y-auto">
+          {songs.slice(0, 10).map((item, i) => (
+            <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-beige-light transition-colors">
+              <span className="text-sm font-bold text-vermelho w-6 text-center">{i + 1}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-charcoal truncate">{item.song?.title || 'Desconhecida'}</p>
+                <p className="text-xs text-muted-foreground truncate">{item.song?.artist || 'Artista desconhecido'}</p>
+              </div>
+              <span className="text-xs font-semibold text-muted-foreground flex-shrink-0">
+                {item.num_plays}x
+              </span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SongImpactCard({ bestSongs, worstSongs, periodLabel }: { bestSongs: AzuraBestWorstSong[]; worstSongs: AzuraBestWorstSong[]; periodLabel: string }) {
+  if (bestSongs.length === 0 && worstSongs.length === 0) return null;
+
+  return (
+    <Card className="bg-cream border-beige-medium">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+          <BarChart3 className="w-4 h-4 text-vermelho" />
+          Impacto de Músicas ({periodLabel})
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {bestSongs.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-green-600 mb-2">Ganharam mais ouvintes</p>
+            <div className="space-y-2">
+              {bestSongs.slice(0, 5).map((item, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  <span className="text-green-600 font-bold w-12 text-right flex-shrink-0">+{item.stat_delta}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-charcoal truncate block">{item.song?.title || item.song?.text || 'Desconhecida'}</span>
+                    <span className="text-xs text-muted-foreground">{item.stat_start} → {item.stat_end}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {worstSongs.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-red-500 mb-2">Perderam mais ouvintes</p>
+            <div className="space-y-2">
+              {worstSongs.slice(0, 5).map((item, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  <span className="text-red-500 font-bold w-12 text-right flex-shrink-0">{item.stat_delta}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-charcoal truncate block">{item.song?.title || item.song?.text || 'Desconhecida'}</span>
+                    <span className="text-xs text-muted-foreground">{item.stat_start} → {item.stat_end}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+const reportPeriodLabels: Record<ReportPeriod, string> = {
+  today: 'Hoje',
+  week: '7 dias',
+  month: '30 dias',
+};
+
 export function Radio() {
   const { nowPlaying, history, listenersByCountry, loading, error, refresh } = useRadio();
   const { stats: radioStats, loading: statsLoading } = useRadioStats();
-
-  // Track listener snapshots for the real-time chart
-  const [listenerSnapshots, setListenerSnapshots] = useState<ListenerSnapshot[]>([]);
-  const prevListenersRef = useRef<number | null>(null);
+  const [reportPeriod, setReportPeriod] = useState<ReportPeriod>('week');
+  const { data: reports, loading: reportsLoading } = useRadioReports(reportPeriod);
 
   const isOnline = nowPlaying?.is_online ?? false;
   const currentListeners = nowPlaying?.listeners?.current ?? 0;
@@ -659,19 +747,11 @@ export function Radio() {
   const bitrate = mount?.bitrate ?? null;
   const format = mount?.format ?? null;
 
-  // Record listener snapshots on each poll
-  useEffect(() => {
-    if (nowPlaying && currentListeners !== prevListenersRef.current) {
-      prevListenersRef.current = currentListeners;
-      const now = new Date();
-      const time = now.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
-      setListenerSnapshots((prev) => {
-        const updated = [...prev, { time, listeners: currentListeners }];
-        // Keep last 60 snapshots (30 min at 30s intervals)
-        return updated.slice(-60);
-      });
-    }
-  }, [nowPlaying, currentListeners]);
+  // Use AzuraCast report chart data if it has non-zero values, fallback to snapshot history
+  const hasReportData = reports.chartData.some((p) => p.listeners > 0);
+  const trendData = hasReportData
+    ? reports.chartData.map((p) => ({ time: p.time, listeners: p.listeners }))
+    : radioStats.history;
 
   return (
     <div className="space-y-6">
@@ -805,7 +885,7 @@ export function Radio() {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
-              <ListenersHistoryChart snapshots={listenerSnapshots} />
+              <ListenersHistoryChart snapshots={radioStats.recentSnapshots} />
             </div>
             <StreamInfoCard
               stationUrl={stationUrl}
@@ -817,16 +897,70 @@ export function Radio() {
 
           {/* Historical Stats */}
           {!statsLoading && (
-            <>
-              <PeriodStatsCards
-                today={radioStats.today}
-                week={radioStats.week}
-                month={radioStats.month}
-              />
-
-              <ListenersTrendChart data={radioStats.history} />
-            </>
+            <PeriodStatsCards
+              today={radioStats.today}
+              week={radioStats.week}
+              month={radioStats.month}
+            />
           )}
+
+          {/* AzuraCast Reports Section */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-display font-semibold text-charcoal">Relatórios AzuraCast</h3>
+              <div className="flex bg-cream border border-beige-medium rounded-lg p-1">
+                {(Object.keys(reportPeriodLabels) as ReportPeriod[]).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setReportPeriod(p)}
+                    className={cn(
+                      'px-3 py-1.5 text-sm font-medium rounded-md transition-all',
+                      reportPeriod === p
+                        ? 'bg-vermelho text-white'
+                        : 'text-muted-foreground hover:text-charcoal'
+                    )}
+                  >
+                    {reportPeriodLabels[p]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {reportsLoading ? (
+              <Card className="bg-cream border-beige-medium animate-pulse">
+                <CardContent className="p-5">
+                  <div className="h-4 bg-beige-medium rounded w-48 mb-3" />
+                  <div className="h-48 bg-beige-medium rounded" />
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {/* TLH highlight */}
+                {reports.tlh > 0 && (
+                  <Card className="border-2 border-vermelho/20 bg-vermelho/5">
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-vermelho/10 flex items-center justify-center">
+                        <Clock className="w-6 h-6 text-vermelho" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground font-medium">Total Listening Hours ({reportPeriodLabels[reportPeriod]})</p>
+                        <p className="text-3xl font-bold text-charcoal">{reports.tlh.toFixed(1)}h</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Trend chart from AzuraCast reports */}
+                <ListenersTrendChart data={trendData} periodLabel={reportPeriodLabels[reportPeriod]} />
+
+                {/* Song Impact + Most Played */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <SongImpactCard bestSongs={reports.bestSongs} worstSongs={reports.worstSongs} periodLabel={reportPeriodLabels[reportPeriod]} />
+                  <MostPlayedCard songs={reports.mostPlayed} periodLabel={reportPeriodLabels[reportPeriod]} />
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Song History */}
           <SongHistoryCard history={history} />

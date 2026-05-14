@@ -173,6 +173,43 @@ export interface ServerStats {
   };
 }
 
+// AzuraCast Report Types
+
+// reports/charts response format
+export interface AzuraChartsResponse {
+  daily: {
+    metrics: Array<{ label: string; data: Array<{ x: number; y: number }> }>;
+    alt: Array<{ label: string; values: Array<{ label: string; value: string; original: number }> }>;
+  };
+  hourly: {
+    all: {
+      labels: string[];
+      metrics: Array<{ label: string; data: number[] }>;
+    };
+  };
+}
+
+// reports/best-worst response format (includes mostPlayed)
+export interface AzuraBestWorstSong {
+  song: { id: string; title: string; artist: string; art: string; text: string };
+  stat_start: number;
+  stat_end: number;
+  stat_delta: number;
+}
+
+export interface AzuraBestWorstResponse {
+  bestAndWorst: {
+    best: AzuraBestWorstSong[];
+    worst: AzuraBestWorstSong[];
+  };
+  mostPlayed: AzuraMostPlayed[];
+}
+
+export interface AzuraMostPlayed {
+  song: { id: string; title: string; artist: string; art: string; text: string };
+  num_plays: number;
+}
+
 // Aggregated listener stats by country
 export interface ListenersByCountry {
   country: string;

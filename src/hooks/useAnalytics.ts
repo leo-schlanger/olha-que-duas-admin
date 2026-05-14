@@ -3,20 +3,12 @@ import { useState, useEffect, useCallback } from 'react';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Raw API response from Umami
 interface UmamiStatsResponse {
   pageviews: number;
   visitors: number;
   visits: number;
   bounces: number;
   totaltime: number;
-  comparison?: {
-    pageviews: number;
-    visitors: number;
-    visits: number;
-    bounces: number;
-    totaltime: number;
-  };
 }
 
 export interface AnalyticsStats {
@@ -25,15 +17,20 @@ export interface AnalyticsStats {
   visits: { value: number; prev: number };
   bounces: { value: number; prev: number };
   totalTime: { value: number; prev: number };
+  bounceRate: { value: number; prev: number };
 }
 
-function transformStats(raw: UmamiStatsResponse): AnalyticsStats {
+function transformStats(current: UmamiStatsResponse, previous: UmamiStatsResponse): AnalyticsStats {
+  const curBounceRate = current.visits > 0 ? (current.bounces / current.visits) * 100 : 0;
+  const prevBounceRate = previous.visits > 0 ? (previous.bounces / previous.visits) * 100 : 0;
+
   return {
-    pageviews: { value: raw.pageviews || 0, prev: raw.comparison?.pageviews || 0 },
-    visitors: { value: raw.visitors || 0, prev: raw.comparison?.visitors || 0 },
-    visits: { value: raw.visits || 0, prev: raw.comparison?.visits || 0 },
-    bounces: { value: raw.bounces || 0, prev: raw.comparison?.bounces || 0 },
-    totalTime: { value: raw.totaltime || 0, prev: raw.comparison?.totaltime || 0 },
+    pageviews: { value: current.pageviews || 0, prev: previous.pageviews || 0 },
+    visitors: { value: current.visitors || 0, prev: previous.visitors || 0 },
+    visits: { value: current.visits || 0, prev: previous.visits || 0 },
+    bounces: { value: current.bounces || 0, prev: previous.bounces || 0 },
+    totalTime: { value: current.totaltime || 0, prev: previous.totaltime || 0 },
+    bounceRate: { value: curBounceRate, prev: prevBounceRate },
   };
 }
 
@@ -110,12 +107,19 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
     setError(null);
 
     const { startAt, endAt } = getTimeRange(timeRange);
+    const periodLength = endAt - startAt;
+    const prevStartAt = startAt - periodLength;
+    const prevEndAt = startAt;
+
     const baseParams = `startAt=${startAt}&endAt=${endAt}`;
+    const prevParams = `startAt=${prevStartAt}&endAt=${prevEndAt}`;
+    const unit = timeRange === '24h' ? 'hour' : 'day';
 
     try {
-      const [stats, pageviewsData, pages, countries, browsers, devices, os, referrers] = await Promise.all([
+      const [stats, prevStats, pageviewsData, pages, countries, browsers, devices, os, referrers] = await Promise.all([
         fetchFromProxy('stats', baseParams),
-        fetchFromProxy('pageviews', `${baseParams}&unit=day`),
+        fetchFromProxy('stats', prevParams),
+        fetchFromProxy('pageviews', `${baseParams}&unit=${unit}`),
         fetchFromProxy('metrics', `${baseParams}&type=url&limit=10`),
         fetchFromProxy('metrics', `${baseParams}&type=country&limit=10`),
         fetchFromProxy('metrics', `${baseParams}&type=browser&limit=5`),
@@ -125,7 +129,7 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
       ]);
 
       setData({
-        stats: transformStats(stats),
+        stats: transformStats(stats, prevStats),
         pageviews: pageviewsData.pageviews || [],
         sessions: pageviewsData.sessions || [],
         pages,

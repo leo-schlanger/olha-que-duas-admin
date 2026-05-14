@@ -71,7 +71,7 @@ export function generateAnalyticsCSV(data: AnalyticsReportData): void {
     { metrica: 'Visualizacoes', valor: data.stats.pageviews.value, anterior: data.stats.pageviews.prev },
     { metrica: 'Visitantes', valor: data.stats.visitors.value, anterior: data.stats.visitors.prev },
     { metrica: 'Sessoes', valor: data.stats.visits.value, anterior: data.stats.visits.prev },
-    { metrica: 'Taxa de Rejeicao', valor: data.stats.bounces.value, anterior: data.stats.bounces.prev },
+    { metrica: 'Taxa de Rejeicao (%)', valor: data.stats.bounceRate.value.toFixed(1), anterior: data.stats.bounceRate.prev.toFixed(1) },
     { metrica: 'Tempo Total (s)', valor: data.stats.totalTime.value, anterior: data.stats.totalTime.prev },
   ] : [];
 
@@ -111,7 +111,7 @@ export function generateAnalyticsPDF(data: AnalyticsReportData): void {
     h2 { color: #555; margin-top: 30px; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
     .date { color: #666; font-size: 14px; }
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0; }
+    .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin: 20px 0; }
     .stat-card { background: #f5f5f5; padding: 15px; border-radius: 8px; text-align: center; }
     .stat-value { font-size: 24px; font-weight: bold; color: #b4292b; }
     .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
@@ -166,6 +166,13 @@ export function generateAnalyticsPDF(data: AnalyticsReportData): void {
     <div class="stat-card">
       <div class="stat-value">${Math.round(data.stats.totalTime.value / Math.max(data.stats.visits.value, 1))}s</div>
       <div class="stat-label">Tempo Medio</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${data.stats.bounceRate.value.toFixed(1)}%</div>
+      <div class="stat-label">Taxa de Rejeicao</div>
+      <div class="stat-change ${Number(calcChange(data.stats.bounceRate.value, data.stats.bounceRate.prev)) <= 0 ? 'positive' : 'negative'}">
+        ${calcChange(data.stats.bounceRate.value, data.stats.bounceRate.prev)}% vs anterior
+      </div>
     </div>
   </div>
 `;

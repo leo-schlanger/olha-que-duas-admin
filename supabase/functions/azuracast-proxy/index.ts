@@ -34,6 +34,10 @@ serve(async (req) => {
       history: `/api/station/${AZURACAST_STATION_ID}/history`,
       listeners: `/api/station/${AZURACAST_STATION_ID}/listeners`,
       stats: `/api/admin/server/stats`,
+      "admin/settings": `/api/admin/settings`,
+      "reports/charts": `/api/station/${AZURACAST_STATION_ID}/reports/overview/charts`,
+      "reports/best-worst": `/api/station/${AZURACAST_STATION_ID}/reports/overview/best-and-worst`,
+      "reports/most-played": `/api/station/${AZURACAST_STATION_ID}/reports/overview/most-played`,
     };
 
     if (!endpointMap[endpoint]) {
@@ -51,15 +55,24 @@ serve(async (req) => {
     const queryString = queryParams.toString();
     const azuracastUrl = `${AZURACAST_URL}${endpointMap[endpoint]}${queryString ? `?${queryString}` : ""}`;
 
-    console.log(`Fetching: ${azuracastUrl}`);
+    console.log(`${req.method}: ${azuracastUrl}`);
 
-    const response = await fetch(azuracastUrl, {
-      method: "GET",
+    const fetchOptions: RequestInit = {
+      method: req.method === "OPTIONS" ? "GET" : req.method,
       headers: {
         "Accept": "application/json",
         "X-API-Key": AZURACAST_API_KEY,
+        "Content-Type": "application/json",
       },
-    });
+    };
+
+    // Forward body for PUT/POST requests
+    if (req.method === "PUT" || req.method === "POST") {
+      const body = await req.text();
+      if (body) fetchOptions.body = body;
+    }
+
+    const response = await fetch(azuracastUrl, fetchOptions);
 
     if (!response.ok) {
       const errorText = await response.text();
