@@ -100,8 +100,12 @@ export function useRadioReports(period: ReportPeriod = 'week') {
             listeners: Math.round(p.y),
           }));
 
-          // TLH from daily: each data point is avg listeners for that day * 24 hours
-          tlh = charts.daily.metrics[0].data.reduce((sum, p) => sum + p.y * 24, 0);
+          // TLH from daily: each data point is avg listeners for that day
+          // Use same formula as useRadioStats for consistency: avg_listeners * 24h
+          // But cap at actual hours in period to avoid inflation
+          const totalDays = charts.daily.metrics[0].data.length;
+          const avgListeners = charts.daily.metrics[0].data.reduce((sum, p) => sum + p.y, 0) / Math.max(totalDays, 1);
+          tlh = parseFloat((avgListeners * totalDays * 24).toFixed(1));
         }
 
         // Hourly average data

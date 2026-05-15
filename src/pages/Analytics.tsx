@@ -38,6 +38,7 @@ import {
 } from '../components/ui/dropdown-menu';
 import { useAnalytics, type MetricData } from '../hooks/useAnalytics';
 import { cn } from '../lib/utils';
+import { getCountryName } from '../lib/countries';
 import { generateAnalyticsCSV, generateAnalyticsPDF } from '../lib/reportGenerator';
 
 type TimeRange = '24h' | '7d' | '30d' | '90d';
@@ -47,23 +48,6 @@ const timeRangeLabels: Record<TimeRange, string> = {
   '7d': 'Últimos 7 dias',
   '30d': 'Últimos 30 dias',
   '90d': 'Últimos 90 dias',
-};
-
-const countryNames: Record<string, string> = {
-  PT: 'Portugal',
-  BR: 'Brasil',
-  US: 'Estados Unidos',
-  ES: 'Espanha',
-  FR: 'França',
-  GB: 'Reino Unido',
-  DE: 'Alemanha',
-  IT: 'Itália',
-  NL: 'Países Baixos',
-  BE: 'Bélgica',
-  CH: 'Suíça',
-  AO: 'Angola',
-  MZ: 'Moçambique',
-  CV: 'Cabo Verde',
 };
 
 const deviceIcons: Record<string, typeof Monitor> = {
@@ -571,7 +555,7 @@ export function Analytics() {
               title="Países"
               icon={Globe}
               data={data.countries}
-              formatLabel={(item) => countryNames[item.x] || item.x}
+              formatLabel={(item) => getCountryName(item.x)}
             />
             <MetricsList
               title="Referências"

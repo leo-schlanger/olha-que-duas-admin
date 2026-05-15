@@ -6,10 +6,11 @@ import { Newsletter } from './pages/Newsletter';
 import { Analytics } from './pages/Analytics';
 import { Radio } from './pages/Radio';
 import { DailySchedule } from './pages/DailySchedule';
+import { Audience } from './pages/Audience';
 import { isAuthenticated, logout } from './lib/auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
-import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music } from 'lucide-react';
+import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music, Users } from 'lucide-react';
 import { useState } from 'react';
 import logo from './assets/logo-olha-que-duas.png';
 
@@ -90,6 +91,13 @@ function Dashboard() {
                 <span className="font-medium">Radio</span>
               </TabsTrigger>
               <TabsTrigger
+                value="audience"
+                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
+              >
+                <Users className="h-4 w-4" />
+                <span className="font-medium">Audiência</span>
+              </TabsTrigger>
+              <TabsTrigger
                 value="events"
                 className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
               >
@@ -134,6 +142,10 @@ function Dashboard() {
 
             <TabsContent value="radio" className="mt-0">
               <Radio />
+            </TabsContent>
+
+            <TabsContent value="audience" className="mt-0">
+              <Audience />
             </TabsContent>
 
             <TabsContent value="events" className="mt-0">

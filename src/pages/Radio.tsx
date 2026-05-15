@@ -46,6 +46,7 @@ import { useRadio } from '../hooks/useRadio';
 import { useRadioStats, type RadioPeriodStats } from '../hooks/useRadioStats';
 import { useRadioReports, type ReportPeriod } from '../hooks/useRadioReports';
 import { cn } from '../lib/utils';
+import { getCountryName } from '../lib/countries';
 import { generateRadioCSV, generateRadioPDF } from '../lib/reportGenerator';
 import type { SongHistory, ListenersByCountry, NowPlayingInfo, AzuraMostPlayed, AzuraBestWorstSong } from '../types/radio';
 
@@ -56,24 +57,6 @@ const CHART_COLORS = {
 };
 
 const BAR_COLORS = ['#C4302B', '#D4A843', '#6366f1', '#22c55e', '#f59e0b'];
-
-const countryNames: Record<string, string> = {
-  PT: 'Portugal',
-  BR: 'Brasil',
-  US: 'Estados Unidos',
-  ES: 'Espanha',
-  FR: 'França',
-  GB: 'Reino Unido',
-  DE: 'Alemanha',
-  IT: 'Itália',
-  NL: 'Países Baixos',
-  BE: 'Bélgica',
-  CH: 'Suíça',
-  AO: 'Angola',
-  MZ: 'Moçambique',
-  CV: 'Cabo Verde',
-  Unknown: 'Desconhecido',
-};
 
 function StatCard({
   title,
@@ -279,7 +262,7 @@ function ListenersHistoryChart({ snapshots }: { snapshots: Array<{ time: string;
 
 function ListenersByCountryCard({ data }: { data: ListenersByCountry[] }) {
   const chartData = data.slice(0, 5).map((item) => ({
-    country: countryNames[item.country] || item.country,
+    country: getCountryName(item.country),
     count: item.count,
   }));
 
@@ -952,6 +935,32 @@ export function Radio() {
 
                 {/* Trend chart from AzuraCast reports */}
                 <ListenersTrendChart data={trendData} periodLabel={reportPeriodLabels[reportPeriod]} />
+
+                {/* Hourly Average Chart */}
+                {reports.hourlyAvg.length > 0 && (
+                  <Card className="bg-cream border-beige-medium">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+                        <Clock className="w-4 h-4 text-vermelho" />
+                        Média Horária de Ouvintes ({reportPeriodLabels[reportPeriod]})
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={reports.hourlyAvg} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5ddd0" vertical={false} />
+                          <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#999' }} tickLine={false} axisLine={{ stroke: '#e5ddd0' }} />
+                          <YAxis tick={{ fontSize: 11, fill: '#999' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                          <Tooltip
+                            contentStyle={{ backgroundColor: '#2d2d2d', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
+                            formatter={(value) => [`${value} ouvintes`, 'Média']}
+                          />
+                          <Bar dataKey="listeners" fill={CHART_COLORS.amarelo} radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Song Impact + Most Played */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
