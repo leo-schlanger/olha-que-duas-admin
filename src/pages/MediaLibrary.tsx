@@ -23,7 +23,7 @@ export function MediaLibrary() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredFiles = files.filter((f) =>
-    f.name.toLowerCase().includes(search.toLowerCase())
+    f.displayName.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,12 +60,12 @@ export function MediaLibrary() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleDelete = async (fileName: string) => {
-    if (confirmDelete === fileName) {
-      await deleteFile(fileName);
+  const handleDelete = async (file: MediaFile) => {
+    if (confirmDelete === file.name) {
+      await deleteFile(file.name, file.bucket);
       setConfirmDelete(null);
     } else {
-      setConfirmDelete(fileName);
+      setConfirmDelete(file.name);
       setTimeout(() => setConfirmDelete(null), 3000);
     }
   };
@@ -215,7 +215,7 @@ export function MediaLibrary() {
                         ? 'bg-red-500 hover:bg-red-600 text-white'
                         : 'bg-white/90 hover:bg-white text-charcoal'
                     }`}
-                    onClick={() => handleDelete(file.name)}
+                    onClick={() => handleDelete(file)}
                     title={
                       confirmDelete === file.name ? 'Clique novamente para confirmar' : 'Excluir'
                     }
@@ -226,10 +226,17 @@ export function MediaLibrary() {
               </div>
 
               <CardContent className="p-2">
-                <p className="text-xs text-muted-foreground truncate" title={file.name}>
-                  {file.name}
+                <p className="text-xs text-muted-foreground truncate" title={file.displayName}>
+                  {file.displayName}
                 </p>
-                <p className="text-xs text-muted-foreground/60">{formatSize(file.size)}</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground/60">{formatSize(file.size)}</p>
+                  {file.bucket === 'event-icons' && (
+                    <span className="text-[10px] px-1.5 py-0.5 bg-amarelo/20 text-charcoal rounded-full">
+                      evento
+                    </span>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

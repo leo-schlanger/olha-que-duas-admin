@@ -4,13 +4,16 @@ import { supabase } from '../lib/supabase';
 export interface MediaFile {
   id: string;
   name: string;
+  displayName: string;
   url: string;
   size: number;
   mimeType: string;
   createdAt: string;
+  bucket: string;
 }
 
 const BUCKET = 'media-library';
+const EVENT_ICONS_BUCKET = 'event-icons';
 
 export function useMediaLibrary() {
   const [files, setFiles] = useState<MediaFile[]>([]);
@@ -22,16 +25,30 @@ export function useMediaLibrary() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: listError } = await supabase.storage
+      // Fetch event names to map icon URLs to event names
+      const { data: events } = await supabase
+        .from('events')
+        .select('name, icon_url');
+
+      const iconUrlToName = new Map<string, string>();
+      (events || []).forEach((e) => {
+        if (e.icon_url) {
+          // Extract filename from URL
+          const parts = e.icon_url.split('/');
+          const key = parts.slice(-2).join('/'); // "icons/filename.png"
+          iconUrlToName.set(key, e.name);
+        }
+      });
+
+      // Fetch from media-library bucket
+      const { data: mediaData } = await supabase.storage
         .from(BUCKET)
         .list('', {
           limit: 200,
           sortBy: { column: 'created_at', order: 'desc' },
         });
 
-      if (listError) throw listError;
-
-      const mediaFiles: MediaFile[] = (data || [])
+      const mediaFiles: MediaFile[] = (mediaData || [])
         .filter((f) => f.name !== '.emptyFolderPlaceholder')
         .map((f) => {
           const { data: urlData } = supabase.storage
@@ -41,14 +58,51 @@ export function useMediaLibrary() {
           return {
             id: f.id,
             name: f.name,
+            displayName: f.name,
             url: urlData.publicUrl,
             size: f.metadata?.size || 0,
             mimeType: f.metadata?.mimetype || 'image/png',
             createdAt: f.created_at,
+            bucket: BUCKET,
           };
         });
 
-      setFiles(mediaFiles);
+      // Fetch from event-icons bucket
+      const { data: iconsData } = await supabase.storage
+        .from(EVENT_ICONS_BUCKET)
+        .list('icons', {
+          limit: 200,
+          sortBy: { column: 'created_at', order: 'desc' },
+        });
+
+      const iconFiles: MediaFile[] = (iconsData || [])
+        .filter((f) => f.name !== '.emptyFolderPlaceholder')
+        .map((f) => {
+          const filePath = `icons/${f.name}`;
+          const { data: urlData } = supabase.storage
+            .from(EVENT_ICONS_BUCKET)
+            .getPublicUrl(filePath);
+
+          const eventName = iconUrlToName.get(filePath);
+
+          return {
+            id: f.id,
+            name: filePath,
+            displayName: eventName ? `${eventName} (logo)` : f.name,
+            url: urlData.publicUrl,
+            size: f.metadata?.size || 0,
+            mimeType: f.metadata?.mimetype || 'image/png',
+            createdAt: f.created_at,
+            bucket: EVENT_ICONS_BUCKET,
+          };
+        });
+
+      // Merge both lists sorted by date
+      const allFiles = [...mediaFiles, ...iconFiles].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      setFiles(allFiles);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar ficheiros');
     } finally {
@@ -88,10 +142,12 @@ export function useMediaLibrary() {
       const newFile: MediaFile = {
         id: fileName,
         name: fileName,
+        displayName: file.name,
         url: urlData.publicUrl,
         size: file.size,
         mimeType: file.type,
         createdAt: new Date().toISOString(),
+        bucket: BUCKET,
       };
 
       setFiles((prev) => [newFile, ...prev]);
@@ -137,10 +193,11 @@ export function useMediaLibrary() {
     }
   };
 
-  const deleteFile = async (fileName: string): Promise<boolean> => {
+  const deleteFile = async (fileName: string, bucket?: string): Promise<boolean> => {
     try {
+      const targetBucket = bucket || BUCKET;
       const { error: deleteError } = await supabase.storage
-        .from(BUCKET)
+        .from(targetBucket)
         .remove([fileName]);
 
       if (deleteError) throw deleteError;
