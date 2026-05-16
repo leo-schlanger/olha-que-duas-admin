@@ -7,10 +7,11 @@ import { Analytics } from './pages/Analytics';
 import { Radio } from './pages/Radio';
 import { DailySchedule } from './pages/DailySchedule';
 import { Audience } from './pages/Audience';
+import { MediaLibrary } from './pages/MediaLibrary';
 import { isAuthenticated, logout } from './lib/auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
-import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music, Users } from 'lucide-react';
+import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music, Users, ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 import logo from './assets/logo-olha-que-duas.png';
 
@@ -125,6 +126,13 @@ function Dashboard() {
                 <Mail className="h-4 w-4" />
                 <span className="font-medium">Newsletter</span>
               </TabsTrigger>
+              <TabsTrigger
+                value="library"
+                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
+              >
+                <ImageIcon className="h-4 w-4" />
+                <span className="font-medium">Biblioteca</span>
+              </TabsTrigger>
             </TabsList>
 
             {/* Quick Info */}
@@ -162,6 +170,10 @@ function Dashboard() {
 
             <TabsContent value="newsletter" className="mt-0">
               <Newsletter />
+            </TabsContent>
+
+            <TabsContent value="library" className="mt-0">
+              <MediaLibrary />
             </TabsContent>
           </div>
         </Tabs>
