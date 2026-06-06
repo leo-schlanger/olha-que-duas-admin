@@ -57,8 +57,9 @@ CREATE TABLE daily_schedule (
   period_label VARCHAR(50) NOT NULL,  -- 'Manhã', 'Tarde', 'Noite', 'Madrugada'
   time_range VARCHAR(20) NOT NULL,    -- '07H - 12H'
   slot_time VARCHAR(10) NOT NULL,     -- '07h', '10h30'
-  slot_name VARCHAR(100) NOT NULL,    -- 'Wake Up Mix'
-  genres VARCHAR(255) DEFAULT '',     -- 'Pop, Rock, K-Pop'
+  slot_name VARCHAR(100) NOT NULL,    -- 'Bom Dia, Duas!'
+  genres VARCHAR(255) DEFAULT '',     -- estilo musical do bloco: 'Pop alegre, hits atuais'
+  icon_url VARCHAR(500) DEFAULT '',   -- ícone/foto do bloco (opcional, bucket schedule-icons)
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -101,6 +102,7 @@ CREATE POLICY "Allow all operations on radio_listener_snapshots" ON radio_listen
 -- Execute no Supabase Dashboard > Storage > Create new bucket
 -- Nome: event-icons
 -- Public: Yes
+-- (e também o bucket 'schedule-icons' para os ícones dos blocos da programação diária — ver update-daily-schedule.sql)
 
 -- Política de storage para leitura pública
 -- No Supabase Dashboard > Storage > event-icons > Policies

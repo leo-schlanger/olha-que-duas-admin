@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
+import { IconUpload } from '../components/IconUpload';
 import {
   Sun, Sunset, Moon, CloudMoon, Plus, Trash2, Pencil, Clock, Loader2, Music,
 } from 'lucide-react';
@@ -60,6 +61,8 @@ export function DailySchedule() {
     genres: '',
     sort_order: 0,
   });
+  const [iconFile, setIconFile] = useState<File | null>(null);
+  const [currentIconUrl, setCurrentIconUrl] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
 
   const openAdd = (periodKey: string) => {
@@ -72,6 +75,8 @@ export function DailySchedule() {
       genres: '',
       sort_order: periodSlots.length + 1,
     });
+    setIconFile(null);
+    setCurrentIconUrl(undefined);
     setIsDialogOpen(true);
   };
 
@@ -86,6 +91,8 @@ export function DailySchedule() {
       genres: slot.genres || '',
       sort_order: slot.sort_order,
     });
+    setIconFile(null);
+    setCurrentIconUrl(slot.icon_url || undefined);
     setIsDialogOpen(true);
   };
 
@@ -99,7 +106,7 @@ export function DailySchedule() {
         slot_name: form.slot_name,
         genres: form.genres,
         sort_order: form.sort_order,
-      });
+      }, iconFile);
     } else {
       const period = PERIODS.find((p) => p.key === form.period);
       if (!period) return;
@@ -111,7 +118,7 @@ export function DailySchedule() {
         slot_name: form.slot_name,
         genres: form.genres,
         sort_order: form.sort_order,
-      });
+      }, iconFile);
     }
 
     setSaving(false);
@@ -190,6 +197,15 @@ export function DailySchedule() {
                         }`}
                       >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {slot.icon_url && (
+                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-white border border-charcoal/10 shrink-0">
+                              <img
+                                src={slot.icon_url}
+                                alt={slot.slot_name}
+                                className="w-full h-full object-contain p-0.5"
+                              />
+                            </div>
+                          )}
                           <div className="flex items-center gap-1.5 text-sm font-mono bg-charcoal/5 px-2.5 py-1 rounded-md shrink-0">
                             <Clock className="w-3 h-3 text-muted-foreground" />
                             {slot.slot_time}
@@ -280,11 +296,27 @@ export function DailySchedule() {
             </div>
 
             <div className="space-y-2">
-              <Label>Géneros</Label>
+              <Label>Estilo musical</Label>
               <Input
-                placeholder="Ex: Pop, Rock, K-Pop, Eletrónica"
+                placeholder="Ex: Energia positiva, pop alegre, hits atuais"
                 value={form.genres}
                 onChange={(e) => setForm({ ...form, genres: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Descreve o estilo/vibe do bloco, não a lista de músicas.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>
+                Ícone / Foto{' '}
+                <span className="text-muted-foreground font-normal">
+                  (opcional{editingId ? ' — deixa vazio para manter' : ''})
+                </span>
+              </Label>
+              <IconUpload
+                currentIconUrl={currentIconUrl}
+                onFileSelect={setIconFile}
               />
             </div>
 

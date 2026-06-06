@@ -2,6 +2,27 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import type { DailyScheduleSlot } from '../types';
 
+const ICONS_BUCKET = 'schedule-icons';
+
+// Upload do ícone/foto do bloco para o storage (mesmo fluxo dos eventos)
+async function uploadIcon(file: File): Promise<string> {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+  const filePath = `icons/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(ICONS_BUCKET)
+    .upload(filePath, file);
+
+  if (uploadError) throw uploadError;
+
+  const { data: urlData } = supabase.storage
+    .from(ICONS_BUCKET)
+    .getPublicUrl(filePath);
+
+  return urlData.publicUrl;
+}
+
 export function useDailySchedule() {
   const [slots, setSlots] = useState<DailyScheduleSlot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,11 +58,12 @@ export function useDailySchedule() {
     slot_name: string;
     genres?: string;
     sort_order: number;
-  }): Promise<DailyScheduleSlot | null> => {
+  }, iconFile?: File | null): Promise<DailyScheduleSlot | null> => {
     try {
+      const icon_url = iconFile ? await uploadIcon(iconFile) : '';
       const { data, error: insertError } = await supabase
         .from('daily_schedule')
-        .insert(slot)
+        .insert({ ...slot, icon_url })
         .select()
         .single();
 
@@ -62,12 +84,14 @@ export function useDailySchedule() {
 
   const updateSlot = async (
     id: string,
-    updates: Partial<Pick<DailyScheduleSlot, 'slot_time' | 'slot_name' | 'genres' | 'sort_order'>>
+    updates: Partial<Pick<DailyScheduleSlot, 'slot_time' | 'slot_name' | 'genres' | 'icon_url' | 'sort_order'>>,
+    newIconFile?: File | null
   ): Promise<boolean> => {
     try {
+      const iconUrl = newIconFile ? await uploadIcon(newIconFile) : undefined;
       const { error: updateError } = await supabase
         .from('daily_schedule')
-        .update(updates)
+        .update({ ...updates, ...(iconUrl !== undefined && { icon_url: iconUrl }) })
         .eq('id', id);
 
       if (updateError) throw updateError;

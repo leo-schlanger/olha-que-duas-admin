@@ -144,6 +144,7 @@ export interface DailyScheduleSlot {
   slot_time: string;
   slot_name: string;
   genres: string;
+  icon_url: string;
   sort_order: number;
   is_active: boolean;
   created_at: string;
