@@ -45,9 +45,11 @@ npx supabase secrets set BREVO_SENDER_NAME="Olha que Duas"
 ```
 
 **Umami (Analytics):**
+A aba Analytics usa a Share URL pública do Umami (`VITE_UMAMI_SHARE_URL`).
+Não precisa de plano Pro. Opcional, para o proxy (ad blockers):
 ```bash
-npx supabase secrets set UMAMI_API_KEY=your-umami-api-key
-npx supabase secrets set UMAMI_WEBSITE_ID=your-website-id
+npx supabase secrets set UMAMI_SHARE_ID=your-share-id
+npx supabase secrets set UMAMI_REGION=eu
 ```
 
 **AzuraCast (Radio):**
