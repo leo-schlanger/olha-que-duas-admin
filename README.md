@@ -46,7 +46,8 @@ npx supabase secrets set BREVO_SENDER_NAME="Olha que Duas"
 
 **Umami (Analytics):**
 A aba Analytics usa a Share URL pública do Umami (`VITE_UMAMI_SHARE_URL`).
-Não precisa de plano Pro. Opcional, para o proxy (ad blockers):
+O browser nunca chama `cloud.umami.is` diretamente (ad blockers bloqueiam);
+os pedidos passam por `/api/umami-proxy` no Vercel. Opcional, para o proxy Supabase:
 ```bash
 npx supabase secrets set UMAMI_SHARE_ID=your-share-id
 npx supabase secrets set UMAMI_REGION=eu

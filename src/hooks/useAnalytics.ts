@@ -4,7 +4,6 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const SHARE_URL = import.meta.env.VITE_UMAMI_SHARE_URL as string | undefined;
 const REGION_OVERRIDE = import.meta.env.VITE_UMAMI_REGION as string | undefined;
-const SHARE_TOKEN_TTL_MS = 50 * 60 * 1000;
 
 interface UmamiStatsResponse {
   pageviews: number;
@@ -77,9 +76,7 @@ export type TimeRange = '24h' | '7d' | '30d' | '90d';
 export interface ShareConfig {
   shareId: string;
   region: string;
-  origin: string;
   shareUrl: string;
-  apiBase: string;
 }
 
 export function parseShareConfig(shareUrl = SHARE_URL, regionOverride = REGION_OVERRIDE): ShareConfig | null {
@@ -94,15 +91,11 @@ export function parseShareConfig(shareUrl = SHARE_URL, regionOverride = REGION_O
 
     const regionFromPath = parts[0] === 'analytics' && parts[1] ? parts[1] : 'eu';
     const region = (regionOverride || regionFromPath).toLowerCase();
-    const origin = url.origin;
-    const isCloud = /(?:^|\.)umami\.is$/i.test(url.hostname);
 
     return {
       shareId,
       region,
-      origin,
       shareUrl: shareUrl.trim(),
-      apiBase: isCloud ? `${origin}/analytics/${region}/api` : `${origin}/api`,
     };
   } catch {
     return null;
@@ -122,14 +115,6 @@ const getTimeRange = (range: TimeRange): { startAt: number; endAt: number } => {
     endAt: now,
   };
 };
-
-interface ShareSession {
-  websiteId: string;
-  token: string;
-  expiresAt: number;
-}
-
-let cachedSession: ShareSession | null = null;
 
 function normalizeMetrics(payload: unknown): MetricData[] {
   const rows = Array.isArray(payload)
@@ -196,12 +181,23 @@ async function readJson(response: Response): Promise<unknown> {
   return payload;
 }
 
-async function fetchViaProxy(endpoint: string, params: string, share: ShareConfig): Promise<unknown> {
+function proxyQuery(endpoint: string, params: string, share: ShareConfig): string {
+  return `endpoint=${endpoint}&shareId=${encodeURIComponent(share.shareId)}&region=${encodeURIComponent(share.region)}&${params}`;
+}
+
+async function fetchViaSameOrigin(endpoint: string, params: string, share: ShareConfig): Promise<unknown> {
+  const response = await fetch(`/api/umami-proxy?${proxyQuery(endpoint, params, share)}`, {
+    headers: { Accept: 'application/json' },
+  });
+  return readJson(response);
+}
+
+async function fetchViaSupabaseProxy(endpoint: string, params: string, share: ShareConfig): Promise<unknown> {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     throw new Error('Supabase não configurado');
   }
 
-  const url = `${SUPABASE_URL}/functions/v1/umami-proxy?endpoint=${endpoint}&shareId=${encodeURIComponent(share.shareId)}&region=${encodeURIComponent(share.region)}&${params}`;
+  const url = `${SUPABASE_URL}/functions/v1/umami-proxy?${proxyQuery(endpoint, params, share)}`;
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
@@ -211,62 +207,14 @@ async function fetchViaProxy(endpoint: string, params: string, share: ShareConfi
   return readJson(response);
 }
 
-async function getShareSession(share: ShareConfig): Promise<ShareSession> {
-  if (cachedSession && cachedSession.expiresAt > Date.now()) {
-    return cachedSession;
-  }
-
-  const response = await fetch(`${share.apiBase}/share/${share.shareId}`, {
-    headers: { Accept: 'application/json' },
-  });
-  const payload = await readJson(response) as { websiteId?: string; token?: string };
-  if (!payload.websiteId || !payload.token) {
-    throw new Error('Share URL do Umami inválida ou expirada');
-  }
-
-  cachedSession = {
-    websiteId: payload.websiteId,
-    token: payload.token,
-    expiresAt: Date.now() + SHARE_TOKEN_TTL_MS,
-  };
-  return cachedSession;
-}
-
-async function fetchViaShareApi(endpoint: string, params: string, share: ShareConfig): Promise<unknown> {
-  const session = await getShareSession(share);
-  const url = `${share.apiBase}/websites/${session.websiteId}/${endpoint}?${params}`;
-  const response = await fetch(url, {
-    headers: {
-      Accept: 'application/json',
-      'x-umami-share-token': session.token,
-      'x-umami-share-context': '1',
-    },
-  });
-
-  if (response.status === 401) {
-    cachedSession = null;
-    const retrySession = await getShareSession(share);
-    const retry = await fetch(`${share.apiBase}/websites/${retrySession.websiteId}/${endpoint}?${params}`, {
-      headers: {
-        Accept: 'application/json',
-        'x-umami-share-token': retrySession.token,
-        'x-umami-share-context': '1',
-      },
-    });
-    return readJson(retry);
-  }
-
-  return readJson(response);
-}
-
 async function fetchUmami(endpoint: string, params: string, share: ShareConfig): Promise<unknown> {
   try {
-    return await fetchViaShareApi(endpoint, params, share);
-  } catch (shareError) {
+    return await fetchViaSameOrigin(endpoint, params, share);
+  } catch (originError) {
     try {
-      return await fetchViaProxy(endpoint, params, share);
+      return await fetchViaSupabaseProxy(endpoint, params, share);
     } catch {
-      throw shareError instanceof Error ? shareError : new Error('Erro ao carregar analytics');
+      throw originError instanceof Error ? originError : new Error('Erro ao carregar analytics');
     }
   }
 }

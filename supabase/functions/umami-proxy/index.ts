@@ -36,7 +36,10 @@ async function getShareSession(shareId: string, region: string): Promise<ShareSe
   }
 
   const response = await fetch(`${cloudApiBase(region)}/share/${shareId}`, {
-    headers: { Accept: "application/json" },
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "Mozilla/5.0 (compatible; OlhaQueDuasAdmin/1.0)",
+    },
   });
   if (!response.ok) {
     const text = await response.text();
@@ -69,6 +72,7 @@ async function fetchShareEndpoint(
     method: "GET",
     headers: {
       Accept: "application/json",
+      "User-Agent": "Mozilla/5.0 (compatible; OlhaQueDuasAdmin/1.0)",
       "x-umami-share-token": session.token,
       "x-umami-share-context": "1",
     },
