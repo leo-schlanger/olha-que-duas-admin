@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { authHeaders } from '../lib/auth';
 import type { Subscriber, SubscribersResponse, NewsletterCampaign, Campaign, CampaignsResponse, SubscriberGroup, GroupsResponse } from '../types';
 
 export function useNewsletter() {
@@ -23,16 +24,6 @@ export function useNewsletter() {
   const isFetchingCampaigns = useRef(false);
 
   const baseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-  const headers = {
-    'Authorization': `Bearer ${anonKey}`,
-  };
-
-  const jsonHeaders = {
-    ...headers,
-    'Content-Type': 'application/json',
-  };
 
   // ===== GROUPS =====
 
@@ -42,7 +33,7 @@ export function useNewsletter() {
     try {
       const response = await fetch(
         `${baseUrl}/functions/v1/brevo-lists`,
-        { headers }
+        { headers: await authHeaders() }
       );
 
       if (!response.ok) {
@@ -57,7 +48,7 @@ export function useNewsletter() {
     } finally {
       setLoadingGroups(false);
     }
-  }, [baseUrl, anonKey]);
+  }, [baseUrl]);
 
   const createGroup = async (name: string): Promise<boolean> => {
     setSavingGroup(true);
@@ -67,7 +58,7 @@ export function useNewsletter() {
         `${baseUrl}/functions/v1/brevo-lists`,
         {
           method: 'POST',
-          headers: jsonHeaders,
+          headers: await authHeaders(true),
           body: JSON.stringify({ name }),
         }
       );
@@ -96,7 +87,7 @@ export function useNewsletter() {
         `${baseUrl}/functions/v1/brevo-lists`,
         {
           method: 'PUT',
-          headers: jsonHeaders,
+          headers: await authHeaders(true),
           body: JSON.stringify({ id, name }),
         }
       );
@@ -125,7 +116,7 @@ export function useNewsletter() {
         `${baseUrl}/functions/v1/brevo-lists?id=${id}`,
         {
           method: 'DELETE',
-          headers,
+          headers: await authHeaders(),
         }
       );
 
@@ -155,7 +146,7 @@ export function useNewsletter() {
     try {
       const response = await fetch(
         `${baseUrl}/functions/v1/brevo-subscribers?limit=${limit}&offset=${offset}&listId=${listId}`,
-        { headers }
+        { headers: await authHeaders() }
       );
 
       if (!response.ok) {
@@ -170,7 +161,7 @@ export function useNewsletter() {
     } finally {
       setLoadingGroupSubscribers(false);
     }
-  }, [baseUrl, anonKey]);
+  }, [baseUrl]);
 
   const clearGroupSubscribers = useCallback(() => {
     setGroupSubscribers([]);
@@ -185,7 +176,7 @@ export function useNewsletter() {
     try {
       const response = await fetch(
         `${baseUrl}/functions/v1/brevo-subscribers?limit=${limit}&offset=${offset}`,
-        { headers }
+        { headers: await authHeaders() }
       );
 
       if (!response.ok) {
@@ -201,7 +192,7 @@ export function useNewsletter() {
     } finally {
       setLoading(false);
     }
-  }, [baseUrl, anonKey]);
+  }, [baseUrl]);
 
   useEffect(() => {
     fetchSubscribers();
@@ -215,7 +206,7 @@ export function useNewsletter() {
         `${baseUrl}/functions/v1/brevo-send`,
         {
           method: 'POST',
-          headers: jsonHeaders,
+          headers: await authHeaders(true),
           body: JSON.stringify(campaign),
         }
       );
@@ -255,7 +246,7 @@ export function useNewsletter() {
         `${baseUrl}/functions/v1/brevo-subscribe`,
         {
           method: 'POST',
-          headers: jsonHeaders,
+          headers: await authHeaders(true),
           body: JSON.stringify(body),
         }
       );
@@ -283,7 +274,7 @@ export function useNewsletter() {
         `${baseUrl}/functions/v1/brevo-unsubscribe`,
         {
           method: 'POST',
-          headers: jsonHeaders,
+          headers: await authHeaders(true),
           body: JSON.stringify({ email }),
         }
       );
@@ -317,7 +308,7 @@ export function useNewsletter() {
         `${baseUrl}/functions/v1/brevo-move-subscriber?action=move`,
         {
           method: 'POST',
-          headers: jsonHeaders,
+          headers: await authHeaders(true),
           body: JSON.stringify({ emails, fromListId, toListId }),
         }
       );
@@ -345,7 +336,7 @@ export function useNewsletter() {
         `${baseUrl}/functions/v1/brevo-move-subscriber?action=remove-from-list`,
         {
           method: 'POST',
-          headers: jsonHeaders,
+          headers: await authHeaders(true),
           body: JSON.stringify({ emails, listId }),
         }
       );
@@ -373,7 +364,7 @@ export function useNewsletter() {
         `${baseUrl}/functions/v1/brevo-move-subscriber?action=add-to-list`,
         {
           method: 'POST',
-          headers: jsonHeaders,
+          headers: await authHeaders(true),
           body: JSON.stringify({ emails, listId }),
         }
       );
@@ -404,7 +395,7 @@ export function useNewsletter() {
     try {
       const response = await fetch(
         `${baseUrl}/functions/v1/brevo-campaigns?limit=${limit}&offset=${offset}`,
-        { headers }
+        { headers: await authHeaders() }
       );
 
       if (!response.ok) {
@@ -421,7 +412,7 @@ export function useNewsletter() {
       setLoadingCampaigns(false);
       isFetchingCampaigns.current = false;
     }
-  }, [baseUrl, anonKey]);
+  }, [baseUrl]);
 
   return {
     subscribers,

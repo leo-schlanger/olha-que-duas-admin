@@ -9,15 +9,35 @@ import { DailySchedule } from './pages/DailySchedule';
 import { Audience } from './pages/Audience';
 import { MediaLibrary } from './pages/MediaLibrary';
 import { Stories } from './pages/Stories';
-import { isAuthenticated, logout } from './lib/auth';
+import { signOut } from './lib/auth';
+import { supabase } from './lib/supabase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
 import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music, Users, ImageIcon, BookOpen } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import logo from './assets/logo-olha-que-duas.png';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  if (!isAuthenticated()) {
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  if (session === undefined) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-beige-light">
+        <div className="w-8 h-8 border-2 border-vermelho/30 border-t-vermelho rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!session) {
     return <Navigate to="/login" replace />;
   }
   return <>{children}</>;
@@ -26,8 +46,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function Dashboard() {
   const [activeTab, setActiveTab] = useState('analytics');
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     window.location.href = '/login';
   };
 

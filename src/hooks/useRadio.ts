@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { RadioNowPlaying, ListenerInfo, ListenersByCountry, RadioData } from '../types/radio';
+import { authHeaders } from '../lib/auth';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const POLLING_INTERVAL = 30000; // 30 seconds
 
@@ -23,7 +23,7 @@ export function useRadio() {
 
     const response = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        ...(await authHeaders()),
         'Accept': 'application/json',
       },
     });

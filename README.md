@@ -18,23 +18,35 @@ cp .env.example .env
 Variaveis necessarias:
 - `VITE_SUPABASE_URL` - URL do projeto Supabase
 - `VITE_SUPABASE_ANON_KEY` - Chave anonima do Supabase
-- `VITE_ADMIN_PASSWORD` - Senha de acesso ao painel
 - `VITE_IMGBB_API_KEY` - Chave da API ImgBB (obter em https://api.imgbb.com/)
 
 3. Execute o SQL em `supabase-schema.sql` no Supabase para criar as tabelas
 
 4. Crie o bucket `event-icons` no Supabase Storage (publico para leitura)
 
-5. Deploy das edge functions:
+5. Autenticacao e analytics da radio (executar por esta ordem):
+   - `supabase/admin-auth.sql` - tabela `admin_users`, funcao `is_admin()` e RLS (escrita so para admins)
+   - `supabase/analytics-v2.sql` - tabela `listener_connections` e RPCs da aba Audiencia
+   - Em Auth, desative os registos publicos (`disable_signup`), crie o utilizador admin e insira o email:
+     ```sql
+     INSERT INTO admin_users (email) VALUES ('admin@exemplo.com');
+     ```
+
+6. Deploy das edge functions (as funcoes do painel validam a sessao de admin no codigo):
 ```bash
-npx supabase functions deploy brevo-send
-npx supabase functions deploy brevo-subscribers
-npx supabase functions deploy brevo-campaigns
+npx supabase functions deploy brevo-send --no-verify-jwt
+npx supabase functions deploy brevo-subscribers --no-verify-jwt
+npx supabase functions deploy brevo-campaigns --no-verify-jwt
+npx supabase functions deploy brevo-lists --no-verify-jwt
+npx supabase functions deploy brevo-move-subscriber --no-verify-jwt
+npx supabase functions deploy brevo-unsubscribe --no-verify-jwt
+npx supabase functions deploy brevo-subscribe
 npx supabase functions deploy umami-proxy
-npx supabase functions deploy azuracast-proxy
+npx supabase functions deploy azuracast-proxy --no-verify-jwt
+npx supabase functions deploy radio-snapshot-cron --no-verify-jwt
 ```
 
-6. Configure as secrets no Supabase:
+7. Configure as secrets no Supabase:
 
 **Brevo (Newsletter):**
 ```bash
@@ -58,9 +70,20 @@ npx supabase secrets set UMAMI_REGION=eu
 npx supabase secrets set AZURACAST_URL=https://radio.olhaqueduas.com
 npx supabase secrets set AZURACAST_API_KEY=your-azuracast-api-key
 npx supabase secrets set AZURACAST_STATION_ID=1
+npx supabase secrets set CRON_SECRET=$(openssl rand -hex 32)
 ```
 
-7. Inicie o servidor de desenvolvimento:
+O `radio-snapshot-cron` corre a cada 5 min via pg_cron (`supabase/create-snapshot-cron.sql`).
+Para recolher o historico de ligacoes do AzuraCast (guarda cerca de 60 dias):
+```bash
+curl -X POST "$SUPABASE_URL/functions/v1/radio-snapshot-cron" \
+  -H "x-cron-secret: $CRON_SECRET" -H "Content-Type: application/json" \
+  -d '{"backfill_from": "2026-07-01", "backfill_to": "2026-09-15"}'
+```
+
+Testes da logica de recolha: `npx deno test supabase/functions/radio-snapshot-cron/connections.test.ts`
+
+8. Inicie o servidor de desenvolvimento:
 ```bash
 npm run dev
 ```
@@ -109,7 +132,8 @@ npm run dev
 
 ### Radio (AzuraCast)
 - **Status em tempo real** - Online/Offline, Ao Vivo/AutoDJ
-- **Ouvintes** - Atuais, unicos, total de conexoes
+- **Ouvintes agora** - Atuais, unicos, total de conexoes
+- **Musicas** - Mais tocadas e impacto de cada musica nos ouvintes
 - **Tocando agora** - Musica atual com artwork e barra de progresso
 - **Proxima musica** - Preview da proxima faixa
 - **Ouvintes por pais** - Distribuicao geografica
@@ -117,6 +141,16 @@ npm run dev
 - **Informacoes do stream** - Bitrate, formato, URL
 - **Exportacao de relatorios** - PDF e CSV
 - **Polling automatico** - Atualizacao a cada 30 segundos
+
+### Audiencia
+Fonte: historico de ligacoes do AzuraCast (todas as ligacoes, incluindo as curtas) e fotografias de
+ouvintes simultaneos a cada 5 minutos. Tudo em hora de Lisboa.
+- **Ouvintes** - IP + aplicacao com pelo menos 1 minuto no periodo
+- **Horas ouvidas, sessao tipica, media e pico de simultaneos** - com comparacao ao periodo anterior
+- **Origem** - App Android, browser, myTuner, iOS, outras apps (pelo user-agent)
+- **Mapa de horas, paises e ouvintes mais fieis** (IP mascarado; IPs apagados apos 90 dias)
+- **Audiencia por programa** - grelha diaria e eventos semanais cruzados com as ligacoes
+- **Exportacao** - PDF e CSV
 
 ## Tecnologias
 

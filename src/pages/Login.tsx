@@ -4,10 +4,11 @@ import { Lock, Radio } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { checkPassword, setAuthenticated } from '../lib/auth';
+import { signIn } from '../lib/auth';
 import logo from '../assets/logo-olha-que-duas.png';
 
 export function Login() {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,16 +19,14 @@ export function Login() {
     setError('');
     setLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    if (checkPassword(password)) {
-      setAuthenticated(true);
-      navigate('/');
-    } else {
-      setError('Senha incorreta');
-    }
-
+    const signInError = await signIn(email, password);
     setLoading(false);
+
+    if (signInError) {
+      setError(signInError);
+    } else {
+      navigate('/');
+    }
   };
 
   return (
@@ -81,11 +80,28 @@ export function Login() {
                 Área Restrita
               </h2>
               <p className="text-muted-foreground mt-2">
-                Digite a senha para acessar o painel
+                Entre com a sua conta de administrador
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-charcoal font-medium">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="username"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nome@exemplo.com"
+                  className="h-12 bg-beige-light border-beige-medium focus:border-vermelho focus:ring-vermelho"
+                  required
+                  autoFocus
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-charcoal font-medium">
                   Senha de Acesso
@@ -93,11 +109,12 @@ export function Login() {
                 <Input
                   id="password"
                   type="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="h-12 bg-beige-light border-beige-medium focus:border-vermelho focus:ring-vermelho"
-                  autoFocus
+                  required
                 />
               </div>
 

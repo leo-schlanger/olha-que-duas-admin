@@ -1,16 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireAdmin } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Só leitura, só os endpoints usados pelo painel. A chave do AzuraCast tem
+// permissões de administração, por isso nada de PUT/POST nem /api/admin.
+const ALLOWED_PARAMS = new Set(["start", "end", "unique"]);
+
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+
+  const json = (body: unknown, status: number) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
+  if (req.method !== "GET") {
+    return json({ error: "Method not allowed" }, 405);
+  }
+
+  const denied = await requireAdmin(req, corsHeaders);
+  if (denied) return denied;
 
   try {
     const AZURACAST_URL = Deno.env.get("AZURACAST_URL");
@@ -24,76 +42,40 @@ serve(async (req) => {
     const url = new URL(req.url);
     const endpoint = url.searchParams.get("endpoint");
 
-    if (!endpoint) {
-      throw new Error("Missing endpoint parameter");
-    }
-
-    // Map endpoints to AzuraCast API paths
     const endpointMap: Record<string, string> = {
       nowplaying: `/api/nowplaying/${AZURACAST_STATION_ID}`,
       history: `/api/station/${AZURACAST_STATION_ID}/history`,
       listeners: `/api/station/${AZURACAST_STATION_ID}/listeners`,
-      stats: `/api/admin/server/stats`,
-      "admin/settings": `/api/admin/settings`,
-      "reports/charts": `/api/station/${AZURACAST_STATION_ID}/reports/overview/charts`,
       "reports/best-worst": `/api/station/${AZURACAST_STATION_ID}/reports/overview/best-and-worst`,
-      "reports/most-played": `/api/station/${AZURACAST_STATION_ID}/reports/overview/most-played`,
     };
 
-    if (!endpointMap[endpoint]) {
-      throw new Error(`Invalid endpoint: ${endpoint}. Allowed: ${Object.keys(endpointMap).join(", ")}`);
+    if (!endpoint || !endpointMap[endpoint]) {
+      return json({ error: `Invalid endpoint. Allowed: ${Object.keys(endpointMap).join(", ")}` }, 400);
     }
 
-    // Build query string from remaining parameters
     const queryParams = new URLSearchParams();
     url.searchParams.forEach((value, key) => {
-      if (key !== "endpoint") {
-        queryParams.set(key, value);
-      }
+      if (ALLOWED_PARAMS.has(key)) queryParams.set(key, value);
     });
 
     const queryString = queryParams.toString();
     const azuracastUrl = `${AZURACAST_URL}${endpointMap[endpoint]}${queryString ? `?${queryString}` : ""}`;
 
-    console.log(`${req.method}: ${azuracastUrl}`);
-
-    const fetchOptions: RequestInit = {
-      method: req.method === "OPTIONS" ? "GET" : req.method,
+    const response = await fetch(azuracastUrl, {
       headers: {
         "Accept": "application/json",
         "X-API-Key": AZURACAST_API_KEY,
-        "Content-Type": "application/json",
       },
-    };
-
-    // Forward body for PUT/POST requests
-    if (req.method === "PUT" || req.method === "POST") {
-      const body = await req.text();
-      if (body) fetchOptions.body = body;
-    }
-
-    const response = await fetch(azuracastUrl, fetchOptions);
+    });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AzuraCast API error:", errorText);
+      console.error("AzuraCast API error:", response.status, await response.text());
       throw new Error(`AzuraCast API error: ${response.status}`);
     }
 
-    const data = await response.json();
-
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json(await response.json(), 200);
   } catch (error) {
     console.error("Error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return json({ error: (error as Error).message || "Internal server error" }, 500);
   }
 });

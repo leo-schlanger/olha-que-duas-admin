@@ -1,31 +1,29 @@
 import { useState } from 'react';
 import {
   Users,
-  UserPlus,
-  UserCheck,
-  TrendingUp,
-  TrendingDown,
-  RefreshCw,
   Clock,
   Activity,
   Globe,
   Radio,
-  BarChart3,
-  Calendar,
+  RefreshCw,
   Download,
   FileText,
+  Headphones,
+  TrendingUp,
+  Timer,
+  Smartphone,
+  UserCheck,
+  Info,
 } from 'lucide-react';
 import {
-  AreaChart,
-  Area,
+  ComposedChart,
+  Bar,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
   Legend,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -36,77 +34,129 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
-import { useRetentionStats, type CohortRow, type HeatmapCell, type ProgramPerformance } from '../hooks/useRetentionStats';
+import {
+  useAudienceStats,
+  type AudienceData,
+  type AudienceSeriesPoint,
+  type AudienceBySource,
+  type AudienceByCountry,
+  type HeatmapCell,
+  type ProgramPerformance,
+  type TopListener,
+  type ListenerSource,
+} from '../hooks/useAudienceStats';
 import { getCountryName } from '../lib/countries';
 import { cn } from '../lib/utils';
 
 const CHART_COLORS = {
   vermelho: '#C4302B',
-  vermelhoSoft: '#e06560',
   amarelo: '#D4A843',
-  amareloSoft: '#e0c070',
-  green: '#22c55e',
-  greenSoft: '#86efac',
-  indigo: '#6366f1',
-  indigoSoft: '#a5b4fc',
 };
 
-type PeriodRange = 7 | 14 | 30 | 90;
+type PeriodRange = 1 | 7 | 30 | 90;
 
 const periodLabels: Record<PeriodRange, string> = {
+  1: 'Hoje',
   7: '7 dias',
-  14: '14 dias',
   30: '30 dias',
   90: '90 dias',
 };
 
 const DAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-// --- Components ---
+const SOURCE_LABELS: Record<ListenerSource, string> = {
+  app_android: 'App Android Olha Que Duas',
+  browser: 'Browser (site e diretórios web)',
+  mytuner: 'myTuner',
+  ios: 'iOS (app ou Safari)',
+  outras_apps: 'Outras apps e players',
+  bot: 'Bots',
+};
 
-function OverviewCard({
+const SOURCE_COLORS: Record<ListenerSource, string> = {
+  app_android: '#C4302B',
+  browser: '#D4A843',
+  mytuner: '#6366f1',
+  ios: '#22c55e',
+  outras_apps: '#94a3b8',
+  bot: '#cbd5e1',
+};
+
+// --- Formatação ---
+
+const nf = (value: number, digits = 0) =>
+  value.toLocaleString('pt-PT', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
+const plural = (n: number, singular: string, pluralForm: string) => `${nf(n)} ${n === 1 ? singular : pluralForm}`;
+
+function formatMinutes(minutes: number | null): string {
+  if (minutes == null) return '—';
+  if (minutes >= 60) return `${Math.floor(minutes / 60)}h ${Math.round(minutes % 60)}m`;
+  return `${nf(minutes, minutes < 10 ? 1 : 0)} min`;
+}
+
+function formatPercent(ratio: number | null, digits = 0): string {
+  if (ratio == null) return '—';
+  return `${nf(ratio * 100, digits)}%`;
+}
+
+function formatDateTime(iso: string | null): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('pt-PT', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Lisbon',
+  });
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!);
+}
+
+// --- Componentes ---
+
+function Delta({ current, previous, periodLabel }: { current: number; previous: number | null; periodLabel: string }) {
+  if (previous == null || (current === 0 && previous === 0)) return null;
+  const label = periodLabel === 'Hoje' ? 'vs ontem' : 'vs período anterior';
+
+  if (previous === 0) {
+    return <p className="text-xs text-green-600 mt-1">sem dados antes · {label}</p>;
+  }
+
+  const change = (current - previous) / previous;
+  const up = change >= 0;
+  return (
+    <p className={cn('text-xs mt-1', up ? 'text-green-600' : 'text-red-500')}>
+      {up ? '▲' : '▼'} {formatPercent(Math.abs(change))} {label}
+    </p>
+  );
+}
+
+function KpiCard({
   title,
   value,
   icon: Icon,
-  trend,
-  format = 'number',
+  hint,
+  children,
 }: {
   title: string;
-  value: number;
+  value: string;
   icon: typeof Users;
-  trend?: 'up' | 'down' | 'neutral';
-  format?: 'number' | 'percent' | 'time' | 'ratio';
+  hint?: string;
+  children?: React.ReactNode;
 }) {
-  const formatValue = (val: number) => {
-    if (format === 'percent') return `${(val * 100).toFixed(1)}%`;
-    if (format === 'ratio') return val.toFixed(3);
-    if (format === 'time') {
-      if (val === 0) return '0s';
-      const hours = Math.floor(val / 3600);
-      const minutes = Math.floor((val % 3600) / 60);
-      if (hours > 0) return `${hours}h ${minutes}m`;
-      return `${minutes}m`;
-    }
-    return val.toLocaleString('pt-PT');
-  };
-
-  const trendColors = {
-    up: 'text-green-600',
-    down: 'text-red-500',
-    neutral: 'text-muted-foreground',
-  };
-
   return (
     <Card className="bg-cream border-beige-medium">
       <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground font-medium">{title}</p>
-            <p className={cn('text-3xl font-bold mt-1', trend ? trendColors[trend] : 'text-charcoal')}>
-              {formatValue(value)}
-            </p>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-sm text-muted-foreground font-medium" title={hint}>{title}</p>
+            <p className="text-3xl font-bold text-charcoal mt-1 tabular-nums">{value}</p>
+            {children}
           </div>
-          <div className="w-10 h-10 rounded-xl bg-vermelho/10 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-vermelho/10 flex items-center justify-center flex-shrink-0">
             <Icon className="w-5 h-5 text-vermelho" />
           </div>
         </div>
@@ -115,498 +165,355 @@ function OverviewCard({
   );
 }
 
-function DauMauChart({ data }: { data: Array<{ day: string; dau: number; mau: number; ratio: number }> }) {
-  if (data.length < 2) {
-    return (
-      <Card className="bg-cream border-beige-medium">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-            <Activity className="w-4 h-4 text-vermelho" />
-            DAU / MAU (Stickiness)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">
-            Dados insuficientes — o gráfico aparece após acumular dados de ouvintes
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+function EmptyState({ message }: { message: string }) {
+  return <p className="text-sm text-muted-foreground text-center py-8">{message}</p>;
+}
 
+function SectionCard({
+  title,
+  icon: Icon,
+  aside,
+  children,
+}: {
+  title: string;
+  icon: typeof Users;
+  aside?: string;
+  children: React.ReactNode;
+}) {
   return (
     <Card className="bg-cream border-beige-medium">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-          <Activity className="w-4 h-4 text-vermelho" />
-          DAU / MAU (Stickiness)
-          <span className="ml-auto text-xs text-muted-foreground font-normal">
-            Ratio ideal: &gt; 0.20
-          </span>
+        <CardTitle className="flex flex-wrap items-center gap-2 text-base font-semibold text-charcoal">
+          <Icon className="w-4 h-4 text-vermelho" />
+          {title}
+          {aside && <span className="ml-auto text-xs text-muted-foreground font-normal">{aside}</span>}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={240}>
-          <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorRatio" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={CHART_COLORS.vermelho} stopOpacity={0.3} />
-                <stop offset="95%" stopColor={CHART_COLORS.vermelho} stopOpacity={0} />
-              </linearGradient>
-            </defs>
+      <CardContent>{children}</CardContent>
+    </Card>
+  );
+}
+
+function SeriesChart({ data, hourly }: { data: AudienceSeriesPoint[]; hourly: boolean }) {
+  const hasData = data.some((p) => p.listeners > 0 || p.listening_hours > 0);
+
+  return (
+    <SectionCard
+      title={hourly ? 'Ouvintes e horas ouvidas por hora' : 'Ouvintes e horas ouvidas por dia'}
+      icon={TrendingUp}
+      aside="Hora de Lisboa"
+    >
+      {!hasData ? (
+        <EmptyState message="Sem ouvintes neste período" />
+      ) : (
+        <ResponsiveContainer width="100%" height={260}>
+          <ComposedChart data={data} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5ddd0" vertical={false} />
-            <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#999' }} tickLine={false} axisLine={{ stroke: '#e5ddd0' }} interval="preserveStartEnd" />
-            <YAxis tick={{ fontSize: 11, fill: '#999' }} tickLine={false} axisLine={false} domain={[0, 'auto']} />
+            <XAxis dataKey="bucket_label" tick={{ fontSize: 10, fill: '#999' }} tickLine={false} axisLine={{ stroke: '#e5ddd0' }} interval="preserveStartEnd" />
+            <YAxis yAxisId="listeners" tick={{ fontSize: 11, fill: '#999' }} tickLine={false} axisLine={false} allowDecimals={false} />
+            <YAxis yAxisId="hours" orientation="right" tick={{ fontSize: 11, fill: '#999' }} tickLine={false} axisLine={false} />
             <Tooltip
               contentStyle={{ backgroundColor: '#2d2d2d', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
               labelStyle={{ color: '#ccc' }}
               formatter={(value, name) => {
                 const v = Number(value);
-                if (name === 'ratio') return [`${(v * 100).toFixed(1)}%`, 'DAU/MAU'];
-                if (name === 'dau') return [v, 'DAU'];
-                return [v, 'MAU'];
+                if (name === 'Horas ouvidas') return [`${nf(v, 1)} h`, name];
+                return [nf(v), name];
               }}
             />
-            <Area type="monotone" dataKey="ratio" stroke={CHART_COLORS.vermelho} strokeWidth={2} fill="url(#colorRatio)" dot={false} activeDot={{ r: 4, fill: CHART_COLORS.vermelho }} />
-          </AreaChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
-  );
-}
-
-function NewVsReturningChart({ data }: { data: Array<{ day: string; new_listeners: number; returning_listeners: number }> }) {
-  if (data.length < 2) {
-    return (
-      <Card className="bg-cream border-beige-medium">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-            <Users className="w-4 h-4 text-vermelho" />
-            Novos vs Recorrentes
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">
-            Dados insuficientes — aguarde acumular sessões de ouvintes
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="bg-cream border-beige-medium">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-          <Users className="w-4 h-4 text-vermelho" />
-          Novos vs Recorrentes
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5ddd0" vertical={false} />
-            <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#999' }} tickLine={false} axisLine={{ stroke: '#e5ddd0' }} interval="preserveStartEnd" />
-            <YAxis tick={{ fontSize: 11, fill: '#999' }} tickLine={false} axisLine={false} allowDecimals={false} />
-            <Tooltip
-              contentStyle={{ backgroundColor: '#2d2d2d', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
-              labelStyle={{ color: '#ccc' }}
-            />
             <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-            <Bar dataKey="new_listeners" name="Novos" fill={CHART_COLORS.green} radius={[2, 2, 0, 0]} stackId="a" />
-            <Bar dataKey="returning_listeners" name="Recorrentes" fill={CHART_COLORS.indigo} radius={[2, 2, 0, 0]} stackId="a" />
-          </BarChart>
+            <Bar yAxisId="listeners" dataKey="listeners" name="Ouvintes" fill={CHART_COLORS.vermelho} radius={[3, 3, 0, 0]} />
+            <Line yAxisId="hours" dataKey="listening_hours" name="Horas ouvidas" stroke={CHART_COLORS.amarelo} strokeWidth={2} dot={false} type="monotone" />
+          </ComposedChart>
         </ResponsiveContainer>
-      </CardContent>
-    </Card>
+      )}
+    </SectionCard>
   );
 }
 
-function CohortTable({ data }: { data: CohortRow[] }) {
-  if (data.length === 0) {
-    return (
-      <Card className="bg-cream border-beige-medium">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-            <Calendar className="w-4 h-4 text-vermelho" />
-            Retenção por Cohort (Semanal)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">
-            Dados insuficientes — necessários pelo menos 2 semanas de dados
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Build cohort matrix
-  const cohorts = [...new Set(data.map((d) => d.cohort_week))];
-  const maxWeek = Math.max(...data.map((d) => d.week_number));
-
-  const getCell = (cohort: string, week: number) => {
-    return data.find((d) => d.cohort_week === cohort && d.week_number === week);
-  };
-
-  const getRetentionColor = (rate: number) => {
-    if (rate >= 0.8) return 'bg-green-600 text-white';
-    if (rate >= 0.6) return 'bg-green-500 text-white';
-    if (rate >= 0.4) return 'bg-green-400 text-white';
-    if (rate >= 0.2) return 'bg-green-300 text-charcoal';
-    if (rate > 0) return 'bg-green-200 text-charcoal';
-    return 'bg-gray-100 text-gray-400';
-  };
-
+function SourcesCard({ data }: { data: AudienceBySource[] }) {
   return (
-    <Card className="bg-cream border-beige-medium">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-          <Calendar className="w-4 h-4 text-vermelho" />
-          Retenção por Cohort (Semanal)
-          <span className="ml-auto text-xs text-muted-foreground font-normal">
-            % de ouvintes que retornam em cada semana
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th className="text-left py-2 px-2 text-muted-foreground font-medium text-xs">Cohort</th>
-                <th className="text-center py-2 px-1 text-muted-foreground font-medium text-xs">Tamanho</th>
-                {Array.from({ length: maxWeek + 1 }, (_, i) => (
-                  <th key={i} className="text-center py-2 px-1 text-muted-foreground font-medium text-xs">
-                    S{i}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {cohorts.map((cohort) => {
-                const sizeCell = getCell(cohort, 0);
-                return (
-                  <tr key={cohort}>
-                    <td className="py-1.5 px-2 text-charcoal font-medium text-xs whitespace-nowrap">{cohort}</td>
-                    <td className="py-1.5 px-1 text-center text-xs text-muted-foreground">
-                      {sizeCell?.cohort_size || '-'}
-                    </td>
-                    {Array.from({ length: maxWeek + 1 }, (_, weekNum) => {
-                      const cell = getCell(cohort, weekNum);
-                      if (!cell) return <td key={weekNum} className="py-1.5 px-1" />;
-
-                      return (
-                        <td key={weekNum} className="py-1.5 px-1">
-                          <div
-                            className={cn(
-                              'text-center text-xs font-medium py-1 px-1 rounded',
-                              getRetentionColor(cell.retention_rate)
-                            )}
-                            title={`${cell.retained} de ${cell.cohort_size} ouvintes`}
-                          >
-                            {(cell.retention_rate * 100).toFixed(0)}%
-                          </div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+    <SectionCard title="De onde ouvem" icon={Smartphone} aside="por horas ouvidas">
+      {data.length === 0 ? (
+        <EmptyState message="Sem ligações neste período" />
+      ) : (
+        <div className="space-y-4">
+          {data.map((row) => (
+            <div key={row.source} className="space-y-1.5">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm">
+                <span className="font-medium text-charcoal">{SOURCE_LABELS[row.source] ?? row.source}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {plural(row.listeners, 'ouvinte', 'ouvintes')} · {nf(row.listening_hours, 1)} h · {formatPercent(row.hours_share)}
+                </span>
+              </div>
+              <div className="h-2 bg-beige-medium rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${Math.max(row.hours_share * 100, row.hours_share > 0 ? 1 : 0)}%`, backgroundColor: SOURCE_COLORS[row.source] ?? '#94a3b8' }}
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {plural(row.sessions, 'sessão', 'sessões')}
+                {row.avg_session_minutes != null && <> · sessão média {formatMinutes(row.avg_session_minutes)}</>}
+                {row.short_connections > 0 && <> · {plural(row.short_connections, 'ligação', 'ligações')} com menos de 1 min</>}
+              </p>
+            </div>
+          ))}
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </SectionCard>
   );
 }
 
 function HeatmapChart({ data }: { data: HeatmapCell[] }) {
   if (data.length === 0) {
     return (
-      <Card className="bg-cream border-beige-medium">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-            <Clock className="w-4 h-4 text-vermelho" />
-            Padrão de Audiência (Heatmap)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">
-            Dados insuficientes — o heatmap aparece após acumular snapshots
-          </p>
-        </CardContent>
-      </Card>
+      <SectionCard title="Quando ouvem" icon={Clock}>
+        <EmptyState message="Sem fotografias de ouvintes neste período" />
+      </SectionCard>
     );
   }
 
-  const maxListeners = Math.max(...data.map((d) => d.avg_listeners), 1);
+  const maxListeners = Math.max(...data.map((d) => d.avg_listeners), 0.01);
+  const cells = new Map(data.map((d) => [`${d.day_of_week}-${d.hour_of_day}`, d.avg_listeners]));
+  const hours = Array.from({ length: 24 }, (_, i) => i);
 
   const getHeatColor = (value: number) => {
     const intensity = value / maxListeners;
+    if (value <= 0) return 'bg-gray-50 text-gray-300';
     if (intensity >= 0.8) return 'bg-red-600 text-white';
     if (intensity >= 0.6) return 'bg-red-400 text-white';
     if (intensity >= 0.4) return 'bg-orange-400 text-white';
     if (intensity >= 0.2) return 'bg-yellow-300 text-charcoal';
-    if (intensity > 0) return 'bg-yellow-100 text-charcoal';
-    return 'bg-gray-50 text-gray-300';
+    return 'bg-yellow-100 text-charcoal';
   };
-
-  const getCellValue = (dow: number, hour: number) => {
-    const cell = data.find((d) => d.day_of_week === dow && d.hour_of_day === hour);
-    return cell?.avg_listeners || 0;
-  };
-
-  // Only show even hours to fit
-  const hours = Array.from({ length: 24 }, (_, i) => i);
 
   return (
-    <Card className="bg-cream border-beige-medium">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-          <Clock className="w-4 h-4 text-vermelho" />
-          Padrão de Audiência (Heatmap)
-          <span className="ml-auto text-xs text-muted-foreground font-normal">
-            Média de ouvintes por dia/hora
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <SectionCard title="Quando ouvem" icon={Clock} aside="Média de ouvintes simultâneos · hora de Lisboa">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px]">
+          <thead>
+            <tr>
+              <th className="text-left py-1 px-1 text-xs text-muted-foreground w-10" />
+              {hours.map((h) => (
+                <th key={h} className="text-center py-1 px-0.5 text-[10px] text-muted-foreground">
+                  {h.toString().padStart(2, '0')}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {[1, 2, 3, 4, 5, 6, 0].map((dow) => (
+              <tr key={dow}>
+                <td className="py-0.5 px-1 text-xs font-medium text-charcoal">{DAY_NAMES[dow]}</td>
+                {hours.map((hour) => {
+                  const val = cells.get(`${dow}-${hour}`) ?? 0;
+                  return (
+                    <td key={hour} className="py-0.5 px-0.5">
+                      <div
+                        className={cn('w-full h-6 rounded-sm flex items-center justify-center text-[9px] font-medium', getHeatColor(val))}
+                        title={`${DAY_NAMES[dow]} ${hour}h: ${nf(val, 2)} ouvintes em média`}
+                      >
+                        {val >= 0.05 ? nf(val, 1) : ''}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </SectionCard>
+  );
+}
+
+function ProgramsCard({ data }: { data: ProgramPerformance[] }) {
+  return (
+    <SectionCard title="Audiência por programa" icon={Radio} aside="Grelha atual cruzada com as ligações">
+      {data.length === 0 ? (
+        <EmptyState message="Sem blocos na grelha para este período" />
+      ) : (
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
-              <tr>
-                <th className="text-left py-1 px-1 text-xs text-muted-foreground w-10" />
-                {hours.map((h) => (
-                  <th key={h} className="text-center py-1 px-0.5 text-[10px] text-muted-foreground">
-                    {h.toString().padStart(2, '0')}
-                  </th>
-                ))}
+              <tr className="text-xs text-muted-foreground border-b border-beige-medium">
+                <th className="text-left py-2 pr-2 font-medium">Programa</th>
+                <th className="text-left py-2 px-2 font-medium">Horário</th>
+                <th className="text-right py-2 px-2 font-medium" title="Segundos ouvidos a dividir pela duração do bloco">Média</th>
+                <th className="text-right py-2 px-2 font-medium" title="Máximo de ouvintes em simultâneo">Pico</th>
+                <th className="text-right py-2 px-2 font-medium" title="Ouvintes distintos com pelo menos 1 minuto">Ouvintes</th>
+                <th className="text-right py-2 pl-2 font-medium" title="Horas ouvidas por emissão">Horas/emissão</th>
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 7 }, (_, dow) => (
-                <tr key={dow}>
-                  <td className="py-0.5 px-1 text-xs font-medium text-charcoal">{DAY_NAMES[dow]}</td>
-                  {hours.map((hour) => {
-                    const val = getCellValue(dow, hour);
-                    return (
-                      <td key={hour} className="py-0.5 px-0.5">
-                        <div
-                          className={cn(
-                            'w-full h-6 rounded-sm flex items-center justify-center text-[9px] font-medium',
-                            getHeatColor(val)
-                          )}
-                          title={`${DAY_NAMES[dow]} ${hour}h: ${val} ouvintes`}
-                        >
-                          {val > 0 ? val : ''}
-                        </div>
-                      </td>
-                    );
-                  })}
+              {data.map((p) => (
+                <tr key={`${p.kind}-${p.program}-${p.schedule_label}`} className="border-b border-beige-medium/50 last:border-0">
+                  <td className="py-2 pr-2">
+                    <span className="font-medium text-charcoal">{p.program}</span>
+                    {p.kind === 'evento' && (
+                      <span className="ml-2 text-[10px] uppercase tracking-wide text-vermelho bg-vermelho/10 px-1.5 py-0.5 rounded">evento</span>
+                    )}
+                    <span className="block text-[11px] text-muted-foreground">{plural(p.occurrences, 'emissão', 'emissões')}</span>
+                  </td>
+                  <td className="py-2 px-2 text-muted-foreground whitespace-nowrap">{p.schedule_label}</td>
+                  <td className="py-2 px-2 text-right tabular-nums">{p.avg_listeners == null ? '—' : nf(p.avg_listeners, 2)}</td>
+                  <td className="py-2 px-2 text-right tabular-nums">{nf(p.peak_listeners)}</td>
+                  <td className="py-2 px-2 text-right tabular-nums">{nf(p.listeners)}</td>
+                  <td className="py-2 pl-2 text-right tabular-nums">{nf(p.hours_per_occurrence, 2)} h</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {/* Legend */}
-          <div className="flex items-center justify-end gap-1 mt-2">
-            <span className="text-[10px] text-muted-foreground mr-1">Menos</span>
-            <div className="w-4 h-3 rounded-sm bg-gray-50" />
-            <div className="w-4 h-3 rounded-sm bg-yellow-100" />
-            <div className="w-4 h-3 rounded-sm bg-yellow-300" />
-            <div className="w-4 h-3 rounded-sm bg-orange-400" />
-            <div className="w-4 h-3 rounded-sm bg-red-400" />
-            <div className="w-4 h-3 rounded-sm bg-red-600" />
-            <span className="text-[10px] text-muted-foreground ml-1">Mais</span>
-          </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </SectionCard>
   );
 }
 
-function CountriesDetailedCard({ data }: { data: Array<{ country: string; unique_listeners: number; total_sessions: number; avg_duration_seconds: number }> }) {
-  if (data.length === 0) {
-    return (
-      <Card className="bg-cream border-beige-medium">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-            <Globe className="w-4 h-4 text-vermelho" />
-            Audiência por País (Detalhado)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-4">Sem dados de localização</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const formatDuration = (seconds: number) => {
-    if (seconds === 0) return '-';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    if (h > 0) return `${h}h ${m}m`;
-    return `${m}m`;
-  };
-
-  const maxListeners = Math.max(...data.map((d) => d.unique_listeners));
-
-  const BAR_COLORS_LIST = ['#C4302B', '#D4A843', '#6366f1', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
-
+function CountriesCard({ data }: { data: AudienceByCountry[] }) {
+  const max = Math.max(...data.map((d) => d.listeners), 1);
   return (
-    <Card className="bg-cream border-beige-medium">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-          <Globe className="w-4 h-4 text-vermelho" />
-          Audiência por País (Detalhado)
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <SectionCard title="Países" icon={Globe}>
+      {data.length === 0 ? (
+        <EmptyState message="Sem dados de localização" />
+      ) : (
         <div className="space-y-3 max-h-96 overflow-y-auto">
-          {data.slice(0, 15).map((item, i) => (
+          {data.map((item) => (
             <div key={item.country} className="space-y-1">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-sm gap-3">
                 <span className="font-medium text-charcoal">{getCountryName(item.country)}</span>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>{item.unique_listeners} únicos</span>
-                  <span>{item.total_sessions} sessões</span>
-                  <span>{formatDuration(item.avg_duration_seconds)}</span>
-                </div>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {plural(item.listeners, 'ouvinte', 'ouvintes')} · {nf(item.listening_hours, 1)} h
+                </span>
               </div>
               <div className="h-2 bg-beige-medium rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${(item.unique_listeners / maxListeners) * 100}%`,
-                    backgroundColor: BAR_COLORS_LIST[i % BAR_COLORS_LIST.length],
-                  }}
-                />
+                <div className="h-full rounded-full bg-vermelho" style={{ width: `${(item.listeners / max) * 100}%` }} />
               </div>
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </SectionCard>
   );
 }
 
-function ProgramPerformanceCard({ data }: { data: ProgramPerformance[] }) {
-  if (data.length === 0) {
-    return (
-      <Card className="bg-cream border-beige-medium">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-            <Radio className="w-4 h-4 text-vermelho" />
-            Audiência por Programa
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-4">
-            Dados insuficientes — cruzando grelha com snapshots
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const chartData = data.slice(0, 12).map((p) => ({
-    name: p.slot_name.length > 18 ? p.slot_name.substring(0, 18) + '...' : p.slot_name,
-    avg: p.avg_listeners,
-    peak: p.peak_listeners,
-    time: p.slot_time,
-  }));
-
-  const BAR_COLORS_LIST = ['#C4302B', '#D4A843', '#6366f1', '#22c55e', '#f59e0b', '#8b5cf6'];
-
+function TopListenersCard({ data }: { data: TopListener[] }) {
   return (
-    <Card className="bg-cream border-beige-medium">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
-          <Radio className="w-4 h-4 text-vermelho" />
-          Audiência por Programa
-          <span className="ml-auto text-xs text-muted-foreground font-normal">
-            Média e pico de ouvintes por slot
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5ddd0" horizontal={false} />
-            <XAxis type="number" tick={{ fontSize: 11, fill: '#999' }} tickLine={false} axisLine={false} allowDecimals={false} />
-            <YAxis
-              type="category"
-              dataKey="name"
-              tick={{ fontSize: 10, fill: '#555' }}
-              tickLine={false}
-              axisLine={false}
-              width={120}
-            />
-            <Tooltip
-              contentStyle={{ backgroundColor: '#2d2d2d', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
-              formatter={(value, name) => [
-                `${value} ouvintes`,
-                name === 'avg' ? 'Média' : 'Pico',
-              ]}
-            />
-            <Bar dataKey="avg" name="Média" radius={[0, 4, 4, 0]}>
-              {chartData.map((_, index) => (
-                <Cell key={index} fill={BAR_COLORS_LIST[index % BAR_COLORS_LIST.length]} />
+    <SectionCard title="Ouvintes mais fiéis" icon={UserCheck} aside="IP mascarado · quem gera as horas ouvidas">
+      {data.length === 0 ? (
+        <EmptyState message="Sem ouvintes neste período" />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[560px]">
+            <thead>
+              <tr className="text-xs text-muted-foreground border-b border-beige-medium">
+                <th className="text-left py-2 pr-2 font-medium">#</th>
+                <th className="text-left py-2 px-2 font-medium">Origem</th>
+                <th className="text-left py-2 px-2 font-medium">Rede / local</th>
+                <th className="text-right py-2 px-2 font-medium">Horas</th>
+                <th className="text-right py-2 px-2 font-medium">% horas</th>
+                <th className="text-right py-2 px-2 font-medium">Dias</th>
+                <th className="text-right py-2 pl-2 font-medium">Última vez</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((l, i) => (
+                <tr key={l.listener_hash} className="border-b border-beige-medium/50 last:border-0">
+                  <td className="py-2 pr-2 text-muted-foreground">{i + 1}</td>
+                  <td className="py-2 px-2 text-charcoal">{SOURCE_LABELS[l.source] ?? l.source}</td>
+                  <td className="py-2 px-2 text-muted-foreground">
+                    <code className="text-xs">{l.ip_masked ?? 'anonimizado'}</code>
+                    {(l.city || l.country) && <span className="ml-2 text-xs">{[l.city, l.country].filter(Boolean).join(', ')}</span>}
+                  </td>
+                  <td className="py-2 px-2 text-right tabular-nums">{nf(l.listening_hours, 1)}</td>
+                  <td className="py-2 px-2 text-right tabular-nums">{formatPercent(l.hours_share)}</td>
+                  <td className="py-2 px-2 text-right tabular-nums">{nf(l.active_days)}</td>
+                  <td className="py-2 pl-2 text-right text-muted-foreground whitespace-nowrap">{formatDateTime(l.last_seen)}</td>
+                </tr>
               ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+            </tbody>
+          </table>
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
+function MethodologyNote({ data }: { data: AudienceData }) {
+  const o = data.overview;
+  return (
+    <Card className="bg-beige-light border-beige-medium">
+      <CardContent className="p-4 text-xs text-muted-foreground space-y-1.5">
+        <p className="flex items-center gap-1.5 font-semibold text-charcoal">
+          <Info className="w-3.5 h-3.5" /> Como estes números são calculados
+        </p>
+        <p>
+          <strong>Ouvintes, sessões e horas</strong> vêm do histórico do AzuraCast, que regista todas as ligações ao stream.
+          Um ouvinte é uma combinação de IP e aplicação com pelo menos 1 minuto no período; ligações mais curtas
+          {o ? ` (${nf(o.short_connections)} neste período)` : ''} não contam como ouvintes.
+          A mesma pessoa pode contar mais do que uma vez se mudar de rede (por exemplo, dados móveis).
+        </p>
+        <p>
+          <strong>Ouvintes simultâneos</strong> (média, pico, mapa de horas) vêm de fotografias a cada 5 minutos
+          {o?.snapshot_coverage != null ? ` — ${formatPercent(o.snapshot_coverage)} das fotografias esperadas foram recolhidas` : ''}.
+          Todas as horas estão em hora de Lisboa.
+        </p>
       </CardContent>
     </Card>
   );
 }
 
-function generateAudienceCSV(data: ReturnType<typeof useRetentionStats>['data']) {
+// --- Exportação ---
+
+function csvField(value: string | number | null | undefined): string {
+  const s = value == null ? '' : String(value);
+  return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function generateAudienceCSV(data: AudienceData, periodLabel: string) {
   const lines: string[] = [];
+  const row = (...cols: Array<string | number | null | undefined>) => lines.push(cols.map(csvField).join(','));
+  const o = data.overview;
 
-  // Overview
-  if (data.overview) {
-    lines.push('=== RESUMO GERAL ===');
-    lines.push(`Ouvintes Únicos Total,${data.overview.total_unique_listeners}`);
-    lines.push(`Ouvintes Hoje,${data.overview.listeners_today}`);
-    lines.push(`Ouvintes Semana,${data.overview.listeners_this_week}`);
-    lines.push(`Ouvintes Mês,${data.overview.listeners_this_month}`);
-    lines.push(`DAU/MAU,${data.overview.dau_mau_ratio}`);
-    lines.push(`Churn 30d,${(data.overview.churn_rate_30d * 100).toFixed(1)}%`);
+  row('Relatório de audiência', periodLabel);
+  if (o) {
+    row('Período', formatDateTime(o.period_start), formatDateTime(o.period_end));
+    lines.push('');
+    row('=== RESUMO ===');
+    row('Ouvintes (>= 1 min)', o.listeners, 'período anterior', o.prev_listeners);
+    row('Sessões', o.sessions, 'período anterior', o.prev_sessions);
+    row('Horas ouvidas', o.listening_hours, 'período anterior', o.prev_listening_hours);
+    row('Média de ouvintes simultâneos', o.avg_concurrent, 'período anterior', o.prev_avg_concurrent);
+    row('Pico simultâneo', o.peak_concurrent, 'em', formatDateTime(o.peak_at));
+    row('Sessão mediana (min)', o.median_session_minutes);
+    row('Sessão média (min)', o.avg_session_minutes);
+    row('% do tempo com ouvintes', o.pct_time_with_listeners);
+    row('% das horas dos 3 maiores ouvintes', o.top3_share);
+    row('Ligações com menos de 1 min', o.short_connections);
     lines.push('');
   }
 
-  // New vs Returning
-  if (data.newVsReturning.length > 0) {
-    lines.push('=== NOVOS vs RECORRENTES ===');
-    lines.push('Data,Novos,Recorrentes,Total');
-    data.newVsReturning.forEach((r) => {
-      lines.push(`${r.day},${r.new_listeners},${r.returning_listeners},${r.total_listeners}`);
-    });
-    lines.push('');
-  }
+  row('=== POR DIA/HORA ===');
+  row('Período', 'Ouvintes', 'Sessões', 'Horas ouvidas', 'Média simultâneos', 'Pico simultâneos');
+  data.series.forEach((p) => row(p.bucket_label, p.listeners, p.sessions, p.listening_hours, p.avg_concurrent, p.peak_concurrent));
+  lines.push('');
 
-  // Countries
-  if (data.countriesDetailed.length > 0) {
-    lines.push('=== AUDIÊNCIA POR PAÍS ===');
-    lines.push('País,Ouvintes Únicos,Total Sessões,Duração Média (s)');
-    data.countriesDetailed.forEach((c) => {
-      lines.push(`${getCountryName(c.country)},${c.unique_listeners},${c.total_sessions},${c.avg_duration_seconds}`);
-    });
-    lines.push('');
-  }
+  row('=== ORIGEM ===');
+  row('Origem', 'Ouvintes', 'Sessões', 'Ligações < 1 min', 'Horas ouvidas', 'Sessão média (min)', '% horas');
+  data.bySource.forEach((s) => row(SOURCE_LABELS[s.source] ?? s.source, s.listeners, s.sessions, s.short_connections, s.listening_hours, s.avg_session_minutes, s.hours_share));
+  lines.push('');
 
-  // Programs
-  if (data.programPerformance.length > 0) {
-    lines.push('=== AUDIÊNCIA POR PROGRAMA ===');
-    lines.push('Programa,Horário,Período,Média Ouvintes,Pico Ouvintes');
-    data.programPerformance.forEach((p) => {
-      lines.push(`${p.slot_name},${p.slot_time},${p.period_label},${p.avg_listeners},${p.peak_listeners}`);
-    });
-  }
+  row('=== PROGRAMAS ===');
+  row('Programa', 'Tipo', 'Horário', 'Emissões', 'Média ouvintes', 'Pico', 'Ouvintes distintos', 'Horas ouvidas', 'Horas por emissão');
+  data.programs.forEach((p) => row(p.program, p.kind, p.schedule_label, p.occurrences, p.avg_listeners, p.peak_listeners, p.listeners, p.listening_hours, p.hours_per_occurrence));
+  lines.push('');
 
-  const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  row('=== PAÍSES ===');
+  row('País', 'Ouvintes', 'Horas ouvidas');
+  data.byCountry.forEach((c) => row(getCountryName(c.country), c.listeners, c.listening_hours));
+
+  const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -615,7 +522,8 @@ function generateAudienceCSV(data: ReturnType<typeof useRetentionStats>['data'])
   URL.revokeObjectURL(url);
 }
 
-function generateAudiencePDF(data: ReturnType<typeof useRetentionStats>['data']) {
+function generateAudiencePDF(data: AudienceData, periodLabel: string) {
+  const o = data.overview;
   const html = `
     <!DOCTYPE html>
     <html><head>
@@ -625,48 +533,56 @@ function generateAudiencePDF(data: ReturnType<typeof useRetentionStats>['data'])
       body { font-family: 'Segoe UI', sans-serif; padding: 30px; color: #333; max-width: 900px; margin: 0 auto; }
       h1 { color: #C4302B; border-bottom: 2px solid #D4A843; padding-bottom: 10px; }
       h2 { color: #C4302B; margin-top: 30px; }
-      .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0; }
+      .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
       .stat-card { background: #f9f6f0; border: 1px solid #e5ddd0; border-radius: 8px; padding: 15px; text-align: center; }
       .stat-card .value { font-size: 24px; font-weight: bold; color: #333; }
       .stat-card .label { font-size: 12px; color: #666; margin-top: 4px; }
       table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
       th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #e5ddd0; }
       th { background: #f9f6f0; font-weight: 600; color: #555; }
+      .note { font-size: 11px; color: #777; margin-top: 30px; }
       .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #999; border-top: 1px solid #e5ddd0; padding-top: 15px; }
     </style>
     </head><body>
-    <h1>Relatório de Audiência</h1>
-    <p style="color: #666;">Gerado em ${new Date().toLocaleDateString('pt-PT')} às ${new Date().toLocaleTimeString('pt-PT')}</p>
+    <h1>Relatório de Audiência — ${escapeHtml(periodLabel)}</h1>
+    <p style="color: #666;">${o ? `${formatDateTime(o.period_start)} a ${formatDateTime(o.period_end)} · ` : ''}gerado em ${new Date().toLocaleString('pt-PT', { timeZone: 'Europe/Lisbon' })}</p>
 
-    ${data.overview ? `
+    ${o ? `
     <div class="stats-grid">
-      <div class="stat-card"><div class="value">${data.overview.total_unique_listeners}</div><div class="label">Ouvintes Únicos</div></div>
-      <div class="stat-card"><div class="value">${data.overview.listeners_this_month}</div><div class="label">Ouvintes (Mês)</div></div>
-      <div class="stat-card"><div class="value">${(data.overview.dau_mau_ratio * 100).toFixed(1)}%</div><div class="label">DAU/MAU</div></div>
-      <div class="stat-card"><div class="value">${(data.overview.churn_rate_30d * 100).toFixed(1)}%</div><div class="label">Churn 30d</div></div>
+      <div class="stat-card"><div class="value">${nf(o.listeners)}</div><div class="label">Ouvintes (≥ 1 min)</div></div>
+      <div class="stat-card"><div class="value">${nf(o.listening_hours, 1)} h</div><div class="label">Horas ouvidas</div></div>
+      <div class="stat-card"><div class="value">${o.avg_concurrent == null ? '—' : nf(o.avg_concurrent, 2)}</div><div class="label">Média de ouvintes simultâneos</div></div>
+      <div class="stat-card"><div class="value">${o.peak_concurrent ?? '—'}</div><div class="label">Pico simultâneo</div></div>
+      <div class="stat-card"><div class="value">${formatMinutes(o.median_session_minutes)}</div><div class="label">Sessão mediana</div></div>
+      <div class="stat-card"><div class="value">${formatPercent(o.top3_share)}</div><div class="label">Horas dos 3 maiores ouvintes</div></div>
     </div>
     ` : ''}
 
-    ${data.countriesDetailed.length > 0 ? `
-    <h2>Audiência por País</h2>
+    ${data.bySource.length > 0 ? `
+    <h2>De onde ouvem</h2>
     <table>
-      <tr><th>País</th><th>Ouvintes Únicos</th><th>Sessões</th><th>Duração Média</th></tr>
-      ${data.countriesDetailed.slice(0, 15).map((c) => {
-        const dur = c.avg_duration_seconds;
-        const durStr = dur > 3600 ? `${Math.floor(dur / 3600)}h ${Math.floor((dur % 3600) / 60)}m` : `${Math.floor(dur / 60)}m`;
-        return `<tr><td>${getCountryName(c.country)}</td><td>${c.unique_listeners}</td><td>${c.total_sessions}</td><td>${durStr}</td></tr>`;
-      }).join('')}
+      <tr><th>Origem</th><th>Ouvintes</th><th>Sessões</th><th>Horas</th><th>% horas</th></tr>
+      ${data.bySource.map((s) => `<tr><td>${escapeHtml(SOURCE_LABELS[s.source] ?? s.source)}</td><td>${nf(s.listeners)}</td><td>${nf(s.sessions)}</td><td>${nf(s.listening_hours, 1)}</td><td>${formatPercent(s.hours_share)}</td></tr>`).join('')}
     </table>
     ` : ''}
 
-    ${data.programPerformance.length > 0 ? `
-    <h2>Audiência por Programa</h2>
+    ${data.programs.length > 0 ? `
+    <h2>Audiência por programa</h2>
     <table>
-      <tr><th>Programa</th><th>Horário</th><th>Período</th><th>Média</th><th>Pico</th></tr>
-      ${data.programPerformance.map((p) => `<tr><td>${p.slot_name}</td><td>${p.slot_time}</td><td>${p.period_label}</td><td>${p.avg_listeners}</td><td>${p.peak_listeners}</td></tr>`).join('')}
+      <tr><th>Programa</th><th>Horário</th><th>Emissões</th><th>Média</th><th>Pico</th><th>Ouvintes</th><th>Horas/emissão</th></tr>
+      ${data.programs.map((p) => `<tr><td>${escapeHtml(p.program)}</td><td>${escapeHtml(p.schedule_label)}</td><td>${nf(p.occurrences)}</td><td>${p.avg_listeners == null ? '—' : nf(p.avg_listeners, 2)}</td><td>${nf(p.peak_listeners)}</td><td>${nf(p.listeners)}</td><td>${nf(p.hours_per_occurrence, 2)}</td></tr>`).join('')}
     </table>
     ` : ''}
 
+    ${data.byCountry.length > 0 ? `
+    <h2>Países</h2>
+    <table>
+      <tr><th>País</th><th>Ouvintes</th><th>Horas</th></tr>
+      ${data.byCountry.map((c) => `<tr><td>${escapeHtml(getCountryName(c.country))}</td><td>${nf(c.listeners)}</td><td>${nf(c.listening_hours, 1)}</td></tr>`).join('')}
+    </table>
+    ` : ''}
+
+    <p class="note">Ouvinte = IP + aplicação com pelo menos 1 minuto. Ligações, sessões e horas: histórico completo do AzuraCast. Simultâneos: fotografias a cada 5 minutos. Hora de Lisboa.</p>
     <div class="footer">Olha que Duas • Relatório de Audiência • ${new Date().getFullYear()}</div>
     </body></html>
   `;
@@ -679,12 +595,13 @@ function generateAudiencePDF(data: ReturnType<typeof useRetentionStats>['data'])
   }
 }
 
-// --- Main Page ---
+// --- Página ---
 
 export function Audience() {
   const [period, setPeriod] = useState<PeriodRange>(30);
-  const { data, loading, error, refresh } = useRetentionStats(period);
-
+  const { data, loading, error, refresh } = useAudienceStats(period);
+  const o = data.overview;
+  const periodLabel = periodLabels[period];
 
   return (
     <div className="space-y-6">
@@ -693,46 +610,39 @@ export function Audience() {
         <div>
           <h2 className="text-xl font-display font-bold text-charcoal">Audiência</h2>
           <p className="text-sm text-muted-foreground">
-            Retenção, comportamento e métricas detalhadas de ouvintes
+            Quem ouve a rádio, durante quanto tempo e por onde
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Period Selector */}
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex bg-cream border border-beige-medium rounded-lg p-1">
-            {(Object.keys(periodLabels) as unknown as PeriodRange[]).map((p) => {
-              const numP = Number(p) as PeriodRange;
-              return (
-                <button
-                  key={numP}
-                  onClick={() => setPeriod(numP)}
-                  className={cn(
-                    'px-3 py-1.5 text-sm font-medium rounded-md transition-all',
-                    period === numP
-                      ? 'bg-vermelho text-white'
-                      : 'text-muted-foreground hover:text-charcoal'
-                  )}
-                >
-                  {periodLabels[numP]}
-                </button>
-              );
-            })}
+            {([1, 7, 30, 90] as PeriodRange[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={cn(
+                  'px-3 py-1.5 text-sm font-medium rounded-md transition-all',
+                  period === p ? 'bg-vermelho text-white' : 'text-muted-foreground hover:text-charcoal'
+                )}
+              >
+                {periodLabels[p]}
+              </button>
+            ))}
           </div>
 
-          {/* Export */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="border-beige-medium" disabled={loading}>
+              <Button variant="outline" size="sm" className="border-beige-medium" disabled={loading || !o}>
                 <Download className="w-4 h-4 mr-2" />
                 Exportar
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => generateAudiencePDF(data)}>
+              <DropdownMenuItem onClick={() => generateAudiencePDF(data, periodLabel)}>
                 <FileText className="w-4 h-4 mr-2" />
                 Exportar PDF
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => generateAudienceCSV(data)}>
+              <DropdownMenuItem onClick={() => generateAudienceCSV(data, periodLabel)}>
                 <Download className="w-4 h-4 mr-2" />
                 Exportar CSV
               </DropdownMenuItem>
@@ -746,15 +656,11 @@ export function Audience() {
         </div>
       </div>
 
-      {/* Error */}
-      {error && (
-        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg">{error}</div>
-      )}
+      {error && <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg">{error}</div>}
 
-      {/* Loading */}
-      {loading && !data.overview ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => (
+      {loading && !o ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
             <Card key={i} className="bg-cream border-beige-medium animate-pulse">
               <CardContent className="p-5">
                 <div className="h-4 bg-beige-medium rounded w-24 mb-3" />
@@ -765,88 +671,61 @@ export function Audience() {
         </div>
       ) : (
         <>
-          {/* Overview Stats */}
-          {data.overview && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              <OverviewCard
-                title="Ouvintes Únicos"
-                value={data.overview.total_unique_listeners}
-                icon={Users}
-              />
-              <OverviewCard
-                title="Hoje"
-                value={data.overview.listeners_today}
+          {o && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <KpiCard title="Ouvintes" value={nf(o.listeners)} icon={Users} hint="IP + aplicação com pelo menos 1 minuto no período">
+                <Delta current={o.listeners} previous={o.prev_listeners} periodLabel={periodLabel} />
+              </KpiCard>
+              <KpiCard title="Horas ouvidas" value={`${nf(o.listening_hours, 1)} h`} icon={Headphones}>
+                <Delta current={o.listening_hours} previous={o.prev_listening_hours} periodLabel={periodLabel} />
+              </KpiCard>
+              <KpiCard
+                title="Média de ouvintes simultâneos"
+                value={o.avg_concurrent == null ? '—' : nf(o.avg_concurrent, 2)}
                 icon={Activity}
-              />
-              <OverviewCard
-                title="Novos Hoje"
-                value={data.overview.new_today}
-                icon={UserPlus}
-                trend="up"
-              />
-              <OverviewCard
-                title="Recorrentes Hoje"
-                value={data.overview.returning_today}
-                icon={UserCheck}
-                trend="up"
-              />
-              <OverviewCard
-                title="DAU/MAU"
-                value={data.overview.dau_mau_ratio}
-                icon={TrendingUp}
-                format="ratio"
-                trend={data.overview.dau_mau_ratio >= 0.2 ? 'up' : data.overview.dau_mau_ratio > 0 ? 'neutral' : 'down'}
-              />
-              <OverviewCard
-                title="Churn 30d"
-                value={data.overview.churn_rate_30d}
-                icon={TrendingDown}
-                format="percent"
-                trend={data.overview.churn_rate_30d <= 0.3 ? 'up' : 'down'}
-              />
-            </div>
-          )}
-
-          {/* Secondary Stats */}
-          {data.overview && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <OverviewCard
-                title="Ouvintes (Semana)"
-                value={data.overview.listeners_this_week}
-                icon={BarChart3}
-              />
-              <OverviewCard
-                title="Sessões por Ouvinte"
-                value={data.overview.avg_sessions_per_listener}
-                icon={Activity}
-                format="ratio"
-              />
-              <OverviewCard
-                title="Duração Média"
-                value={data.overview.avg_session_duration_seconds}
+                hint="Quantas pessoas estão a ouvir, em média, num momento qualquer"
+              >
+                {o.avg_concurrent != null && (
+                  <Delta current={o.avg_concurrent} previous={o.prev_avg_concurrent} periodLabel={periodLabel} />
+                )}
+              </KpiCard>
+              <KpiCard title="Pico simultâneo" value={o.peak_concurrent == null ? '—' : nf(o.peak_concurrent)} icon={TrendingUp}>
+                {o.peak_at && o.peak_concurrent != null && o.peak_concurrent > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">{formatDateTime(o.peak_at)}</p>
+                )}
+              </KpiCard>
+              <KpiCard title="Sessão típica (mediana)" value={formatMinutes(o.median_session_minutes)} icon={Timer}>
+                {o.avg_session_minutes != null && (
+                  <p className="text-xs text-muted-foreground mt-1">média {formatMinutes(o.avg_session_minutes)} · {plural(o.sessions, 'sessão', 'sessões')}</p>
+                )}
+              </KpiCard>
+              <KpiCard
+                title="Tempo com alguém a ouvir"
+                value={formatPercent(o.pct_time_with_listeners)}
                 icon={Clock}
-                format="time"
-              />
+                hint="Percentagem das fotografias de 5 em 5 minutos com pelo menos 1 ouvinte"
+              >
+                {o.top3_share != null && (
+                  <p className="text-xs text-muted-foreground mt-1">3 maiores ouvintes = {formatPercent(o.top3_share)} das horas</p>
+                )}
+              </KpiCard>
             </div>
           )}
 
-          {/* Heatmap */}
+          <SeriesChart data={data.series} hourly={period === 1} />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <SourcesCard data={data.bySource} />
+            <CountriesCard data={data.byCountry} />
+          </div>
+
           <HeatmapChart data={data.heatmap} />
 
-          {/* DAU/MAU + New vs Returning */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <DauMauChart data={data.dauMau} />
-            <NewVsReturningChart data={data.newVsReturning} />
-          </div>
+          <ProgramsCard data={data.programs} />
 
-          {/* Cohort Retention Table */}
-          <CohortTable data={data.cohort} />
+          <TopListenersCard data={data.topListeners} />
 
-          {/* Countries + Programs */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <CountriesDetailedCard data={data.countriesDetailed} />
-            <ProgramPerformanceCard data={data.programPerformance} />
-          </div>
+          <MethodologyNote data={data} />
         </>
       )}
     </div>
