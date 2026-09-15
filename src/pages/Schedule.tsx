@@ -1,6 +1,7 @@
 import { ScheduleGrid } from '../components/ScheduleGrid';
 import { useSchedule } from '../hooks/useSchedule';
 import { useEvents } from '../hooks/useEvents';
+import { useScheduleDates } from '../hooks/useScheduleDates';
 
 export function Schedule() {
   const {
@@ -13,9 +14,17 @@ export function Schedule() {
   } = useSchedule();
 
   const { events, loading: eventsLoading } = useEvents();
+  const {
+    dates,
+    loading: datesLoading,
+    error: datesError,
+    addDate,
+    removeDate,
+    clearError: clearDatesError,
+  } = useScheduleDates();
 
   const activeEvents = events.filter((e) => e.is_active);
-  const loading = scheduleLoading || eventsLoading;
+  const loading = scheduleLoading || eventsLoading || datesLoading;
 
   return (
     <div className="space-y-4">
@@ -24,6 +33,18 @@ export function Schedule() {
           <span>{scheduleError}</span>
           <button
             onClick={clearError}
+            className="text-sm underline hover:no-underline"
+          >
+            Fechar
+          </button>
+        </div>
+      )}
+
+      {datesError && (
+        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md flex justify-between items-center">
+          <span>{datesError}</span>
+          <button
+            onClick={clearDatesError}
             className="text-sm underline hover:no-underline"
           >
             Fechar
@@ -40,6 +61,9 @@ export function Schedule() {
           return !!result;
         }}
         onRemove={removeFromSchedule}
+        dates={dates}
+        onAddDate={addDate}
+        onRemoveDate={removeDate}
       />
     </div>
   );

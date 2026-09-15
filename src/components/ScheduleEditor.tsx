@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Clock, Calendar, Sun } from 'lucide-react';
+import { Plus, X, Clock, Calendar, Sun, Repeat, CalendarDays } from 'lucide-react';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
 import {
@@ -18,6 +18,7 @@ import {
 } from './ui/select';
 import type { Event, DayOfWeek } from '../types';
 import { DAYS_OF_WEEK_SHORT } from '../types';
+import { formatEventDate, isValidIsoDate, lisbonToday, nextDateForWeekday, weekdayOf } from '../lib/scheduleDates';
 
 interface ScheduleEditorProps {
   open: boolean;
@@ -25,12 +26,18 @@ interface ScheduleEditorProps {
   activeEvents: Event[];
   selectedDay?: DayOfWeek;
   onAdd: (eventId: string, dayOfWeek: DayOfWeek, time: string, endTime?: string | null, isAllDay?: boolean) => Promise<boolean>;
+  /** Evento com data: emissão num dia concreto, sem repetir. */
+  onAddDate: (eventId: string, eventDate: string, time: string, endTime?: string | null, isAllDay?: boolean) => Promise<boolean>;
 }
+
+type Repetition = 'weekly' | 'date';
 
 const MINUTES = ['00', '15', '30', '45'];
 
 interface DayTimeSlot {
   day: DayOfWeek;
+  /** YYYY-MM-DD, usado em "Data específica" */
+  date: string;
   hour: string;
   minute: string;
   endHour: string;
@@ -45,8 +52,10 @@ export function ScheduleEditor({
   activeEvents,
   selectedDay,
   onAdd,
+  onAddDate,
 }: ScheduleEditorProps) {
   const [eventId, setEventId] = useState<string>('');
+  const [repetition, setRepetition] = useState<Repetition>('weekly');
   const [slots, setSlots] = useState<DayTimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,8 +64,10 @@ export function ScheduleEditor({
   useEffect(() => {
     if (open) {
       setEventId('');
+      setRepetition('weekly');
       setSlots([{
         day: selectedDay ?? 0,
+        date: selectedDay != null ? nextDateForWeekday(selectedDay) : lisbonToday(),
         hour: '12',
         minute: '00',
         endHour: '13',
@@ -82,6 +93,20 @@ export function ScheduleEditor({
       return;
     }
 
+    if (repetition === 'date') {
+      const today = lisbonToday();
+      for (const slot of slots) {
+        if (!isValidIsoDate(slot.date)) {
+          setError('Escolha uma data válida');
+          return;
+        }
+        if (slot.date < today) {
+          setError('A data não pode estar no passado');
+          return;
+        }
+      }
+    }
+
     // Validate end times
     for (const slot of slots) {
       if (!slot.isAllDay && slot.hasEnd) {
@@ -104,7 +129,9 @@ export function ScheduleEditor({
       const endTime = (!slot.isAllDay && slot.hasEnd)
         ? `${slot.endHour.padStart(2, '0')}:${slot.endMinute}`
         : null;
-      const success = await onAdd(eventId, slot.day, time, endTime, slot.isAllDay);
+      const success = repetition === 'date'
+        ? await onAddDate(eventId, slot.date, time, endTime, slot.isAllDay)
+        : await onAdd(eventId, slot.day, time, endTime, slot.isAllDay);
       if (!success) {
         hasError = true;
       }
@@ -125,6 +152,7 @@ export function ScheduleEditor({
       ...slots,
       {
         day: lastSlot?.day ?? selectedDay ?? 0,
+        date: lastSlot?.date ?? lisbonToday(),
         hour: lastSlot?.hour ?? '12',
         minute: lastSlot?.minute ?? '00',
         endHour: lastSlot?.endHour ?? '13',
@@ -215,12 +243,40 @@ export function ScheduleEditor({
             </div>
           )}
 
+          {/* Repetition */}
+          <div className="space-y-2">
+            <Label className="text-charcoal font-medium">Repetição</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { value: 'weekly', label: 'Todas as semanas', hint: 'Grelha semanal', icon: Repeat },
+                { value: 'date', label: 'Data específica', hint: 'Emissão única', icon: CalendarDays },
+              ] as const).map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setRepetition(option.value)}
+                  className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${
+                    repetition === option.value
+                      ? 'bg-vermelho/10 border-vermelho text-charcoal'
+                      : 'bg-beige-light border-beige-medium text-muted-foreground hover:border-vermelho/50'
+                  }`}
+                >
+                  <option.icon className="h-4 w-4 flex-shrink-0" />
+                  <span>
+                    <span className="block text-sm font-medium">{option.label}</span>
+                    <span className="block text-xs text-muted-foreground">{option.hint}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Time Slots */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-charcoal font-medium flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                Dias e Horários
+                {repetition === 'date' ? 'Datas e Horários' : 'Dias e Horários'}
               </Label>
               <Button
                 type="button"
@@ -242,24 +298,35 @@ export function ScheduleEditor({
                 >
                   {/* Row 1: Day + All Day toggle */}
                   <div className="flex items-center gap-2">
-                    {/* Day Selection */}
-                    <Select
-                      value={slot.day.toString()}
-                      onValueChange={(v) =>
-                        updateSlot(index, { day: parseInt(v) as DayOfWeek })
-                      }
-                    >
-                      <SelectTrigger className="w-[100px] h-10 bg-cream border-beige-medium focus:border-vermelho">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-cream border-beige-medium">
-                        {Object.entries(DAYS_OF_WEEK_SHORT).map(([value, label]) => (
-                          <SelectItem key={value} value={value} className="focus:bg-beige-light">
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {/* Day or date selection */}
+                    {repetition === 'date' ? (
+                      <input
+                        type="date"
+                        value={slot.date}
+                        min={lisbonToday()}
+                        onChange={(e) => updateSlot(index, { date: e.target.value })}
+                        aria-label="Data"
+                        className="h-10 px-3 rounded-md bg-cream border border-beige-medium text-sm focus:outline-none focus:border-vermelho"
+                      />
+                    ) : (
+                      <Select
+                        value={slot.day.toString()}
+                        onValueChange={(v) =>
+                          updateSlot(index, { day: parseInt(v) as DayOfWeek })
+                        }
+                      >
+                        <SelectTrigger className="w-[100px] h-10 bg-cream border-beige-medium focus:border-vermelho">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-cream border-beige-medium">
+                          {Object.entries(DAYS_OF_WEEK_SHORT).map(([value, label]) => (
+                            <SelectItem key={value} value={value} className="focus:bg-beige-light">
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
 
                     {/* All Day Toggle */}
                     <button
@@ -291,6 +358,12 @@ export function ScheduleEditor({
                       </Button>
                     )}
                   </div>
+
+                  {repetition === 'date' && isValidIsoDate(slot.date) && (
+                    <p className="text-xs text-muted-foreground -mt-1">
+                      {formatEventDate(slot.date)} · só nesse dia ({DAYS_OF_WEEK_SHORT[weekdayOf(slot.date) as DayOfWeek]})
+                    </p>
+                  )}
 
                   {/* Row 2: Time pickers (hidden when all day) */}
                   {!slot.isAllDay && (

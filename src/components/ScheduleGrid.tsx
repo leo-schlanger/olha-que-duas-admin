@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { Plus, Trash2, Clock, Calendar, Sun } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Plus, Trash2, Clock, Calendar, Sun, CalendarDays } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ScheduleEditor } from './ScheduleEditor';
-import type { Event, ScheduleWithEvent, DayOfWeek } from '../types';
+import type { Event, ScheduleWithEvent, ScheduleDateWithEvent, DayOfWeek } from '../types';
+import { addDays, formatEventDate, lisbonToday, weekdayOf } from '../lib/scheduleDates';
 import { DAYS_OF_WEEK } from '../types';
 import { formatTime } from '../lib/utils';
 
@@ -13,6 +14,119 @@ interface ScheduleGridProps {
   loading: boolean;
   onAdd: (eventId: string, dayOfWeek: DayOfWeek, time: string, endTime?: string | null, isAllDay?: boolean) => Promise<boolean>;
   onRemove: (id: string) => Promise<boolean>;
+  dates: ScheduleDateWithEvent[];
+  onAddDate: (eventId: string, eventDate: string, time: string, endTime?: string | null, isAllDay?: boolean) => Promise<boolean>;
+  onRemoveDate: (id: string) => Promise<boolean>;
+}
+
+const timeLabel = (item: { time: string; end_time: string | null; is_all_day: boolean }) =>
+  item.is_all_day ? 'Dia inteiro' : `${formatTime(item.time)}${item.end_time ? ` - ${formatTime(item.end_time)}` : ''}`;
+
+// Emissões com data desta semana, mostradas no dia correspondente da grelha
+function WeekDatedChips({ items }: { items: ScheduleDateWithEvent[] }) {
+  if (items.length === 0) return null;
+  return (
+    <>
+      {items.map((item) => (
+        <div
+          key={item.id}
+          className="rounded-lg p-2.5 border border-dashed border-vermelho/40 bg-vermelho/5"
+          title="Evento com data — remove na secção Eventos com data"
+        >
+          <div className="flex items-center gap-1 mb-1.5 flex-wrap">
+            <span className="flex items-center gap-1 px-2 py-0.5 bg-vermelho/10 rounded-full text-[10px] font-bold text-vermelho">
+              <CalendarDays className="h-3 w-3" />
+              {item.event_date.slice(8, 10)}/{item.event_date.slice(5, 7)}
+            </span>
+            <span className="text-xs font-bold text-charcoal">{timeLabel(item)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <img src={item.event.icon_url} alt="" className="w-6 h-6 object-contain rounded" />
+            <span className="text-xs font-medium text-charcoal">{item.event.name}</span>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function DatedEventsCard({
+  dates,
+  removingId,
+  onRemove,
+  onAdd,
+}: {
+  dates: ScheduleDateWithEvent[];
+  removingId: string | null;
+  onRemove: (id: string) => void;
+  onAdd: () => void;
+}) {
+  const today = lisbonToday();
+  const upcoming = dates.filter((d) => d.event_date >= today);
+  const past = dates.filter((d) => d.event_date < today).reverse();
+
+  const row = (item: ScheduleDateWithEvent, isPast: boolean) => (
+    <div
+      key={item.id}
+      className={`flex items-center justify-between gap-3 rounded-xl p-3 border border-beige-medium ${
+        isPast ? 'bg-beige-light/60 opacity-70' : 'bg-white'
+      }`}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <img src={item.event.icon_url} alt="" className="w-10 h-10 object-contain rounded-lg bg-cream border border-beige-medium p-1" />
+        <div className="min-w-0">
+          <p className="font-medium text-charcoal">{item.event.name}</p>
+          <p className="text-sm text-muted-foreground">
+            {formatEventDate(item.event_date)} · {timeLabel(item)}
+            {item.event_date === today && <span className="ml-2 text-xs font-bold text-vermelho">HOJE</span>}
+          </p>
+        </div>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => onRemove(item.id)}
+        disabled={removingId === item.id}
+        className="h-9 w-9 flex-shrink-0 hover:bg-red-50 hover:text-red-600"
+        aria-label={`Remover ${item.event.name} de ${formatEventDate(item.event_date)}`}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+
+  return (
+    <Card className="bg-cream border-beige-medium">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
+            <CalendarDays className="h-4 w-4 text-vermelho" />
+            Eventos com data
+            <span className="text-xs font-normal text-muted-foreground">emissões únicas, não se repetem</span>
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={onAdd} className="border-beige-medium">
+            <Plus className="h-4 w-4 mr-1" />
+            Adicionar com data
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {upcoming.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-3">Sem eventos com data marcados</p>
+        ) : (
+          upcoming.map((item) => row(item, false))
+        )}
+        {past.length > 0 && (
+          <details className="pt-2">
+            <summary className="text-xs text-muted-foreground cursor-pointer">
+              Já emitidos nos últimos 30 dias ({past.length})
+            </summary>
+            <div className="space-y-2 mt-2">{past.map((item) => row(item, true))}</div>
+          </details>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 const DAY_COLORS: Record<DayOfWeek, string> = {
@@ -31,6 +145,9 @@ export function ScheduleGrid({
   loading,
   onAdd,
   onRemove,
+  dates,
+  onAddDate,
+  onRemoveDate,
 }: ScheduleGridProps) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<DayOfWeek | undefined>();
@@ -58,6 +175,25 @@ export function ScheduleGrid({
     setRemovingId(null);
   };
 
+  const handleRemoveDate = async (id: string) => {
+    setRemovingId(id);
+    await onRemoveDate(id);
+    setRemovingId(null);
+  };
+
+  // Emissões com data dos próximos 7 dias (hoje incluído), por dia da semana
+  const weekDatedByDay = useMemo(() => {
+    const today = lisbonToday();
+    const end = addDays(today, 6);
+    const map = new Map<number, ScheduleDateWithEvent[]>();
+    for (const item of dates) {
+      if (!item.is_active || item.event_date < today || item.event_date > end) continue;
+      const day = weekdayOf(item.event_date);
+      map.set(day, [...(map.get(day) ?? []), item]);
+    }
+    return map;
+  }, [dates]);
+
   const totalSlots = schedules.length;
 
   if (loading) {
@@ -78,7 +214,7 @@ export function ScheduleGrid({
             Programação Semanal
           </h2>
           <p className="text-muted-foreground mt-1">
-            {totalSlots} horários programados
+            {totalSlots} horários semanais · {dates.filter((d) => d.event_date >= lisbonToday()).length} eventos com data
           </p>
         </div>
         <Button
@@ -89,6 +225,13 @@ export function ScheduleGrid({
           Adicionar Horário
         </Button>
       </div>
+
+      <DatedEventsCard
+        dates={dates}
+        removingId={removingId}
+        onRemove={handleRemoveDate}
+        onAdd={() => handleAddClick()}
+      />
 
       {/* Desktop Grid */}
       <div className="hidden lg:grid lg:grid-cols-7 gap-3">
@@ -213,6 +356,8 @@ export function ScheduleGrid({
                   })()
                 )}
 
+                <WeekDatedChips items={weekDatedByDay.get(day) ?? []} />
+
                 {/* Add Button */}
                 <Button
                   variant="ghost"
@@ -253,7 +398,7 @@ export function ScheduleGrid({
                 </div>
               </CardHeader>
 
-              <CardContent className="pt-4">
+              <CardContent className="pt-4 space-y-2">
                 {daySchedules.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-6">
                     Nenhuma programação para este dia
@@ -356,6 +501,7 @@ export function ScheduleGrid({
                     );
                   })()
                 )}
+                <WeekDatedChips items={weekDatedByDay.get(day) ?? []} />
               </CardContent>
             </Card>
           );
@@ -372,6 +518,7 @@ export function ScheduleGrid({
           const success = await onAdd(eventId, day, time, endTime, isAllDay);
           return success;
         }}
+        onAddDate={onAddDate}
       />
     </div>
   );

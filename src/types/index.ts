@@ -24,6 +24,23 @@ export interface ScheduleWithEvent extends Schedule {
   event: Event;
 }
 
+// Evento com data: emissão num dia concreto (não se repete todas as semanas)
+export interface ScheduleDate {
+  id: string;
+  event_id: string;
+  event_date: string; // YYYY-MM-DD (Lisboa)
+  time: string; // HH:mm:ss
+  end_time: string | null;
+  is_all_day: boolean;
+  is_active: boolean;
+  created_at: string;
+  event?: Event;
+}
+
+export interface ScheduleDateWithEvent extends ScheduleDate {
+  event: Event;
+}
+
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export const DAYS_OF_WEEK: Record<DayOfWeek, string> = {

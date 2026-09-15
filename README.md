@@ -29,6 +29,7 @@ Variaveis necessarias:
    - `supabase/analytics-v2.sql` - tabela `listener_connections` e RPCs da aba Audiencia
    - `supabase/analytics-v2-sources.sql` - app identificada pelo user-agent `OlhaQueDuas/…`, divisao telemovel/computador,
      detalhe por aplicacao e saude da recolha (aplicar ANTES do deploy do `radio-snapshot-cron`)
+   - `supabase/schedule-dates.sql` - eventos com data (tabela `schedule_dates`, emissoes unicas) e audiencia por programa com essas emissoes
    - Em Auth, desative os registos publicos (`disable_signup`), crie o utilizador admin e insira o email:
      ```sql
      INSERT INTO admin_users (email) VALUES ('admin@exemplo.com');
