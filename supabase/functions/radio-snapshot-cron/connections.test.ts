@@ -1,5 +1,11 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { isoUtc, lisbonMidnight, toConnectionRows, type AzuraListener } from "./connections.ts";
+import {
+  clippedActiveConnections,
+  isoUtc,
+  lisbonMidnight,
+  toConnectionRows,
+  type AzuraListener,
+} from "./connections.ts";
 
 const listener = (overrides: Partial<AzuraListener>): AzuraListener => ({
   hash: "abc",
@@ -77,4 +83,23 @@ Deno.test("toConnectionRows: ligação ainda ativa sem connected_until termina n
   const start = 4_000_000;
   const [row] = toConnectionRows([listener({ connected_on: start + 100, connected_until: 0 })], start, start + 500);
   assertEquals(row.connected_seconds, 400);
+});
+
+Deno.test("clippedActiveConnections: só ligações cortadas no início e ainda ativas", () => {
+  const start = 5_000_000;
+  const end = start + 48 * 3600;
+  const result = clippedActiveConnections(
+    [
+      listener({ hash: "long", connected_on: start, connected_until: 0 }),
+      listener({ hash: "ended", connected_on: start, connected_until: start + 3600 }),
+      listener({ hash: "inside", connected_on: start + 60, connected_until: 0 }),
+      listener({ hash: "recent", connected_on: start, connected_until: end - 120 }),
+    ],
+    start,
+    end,
+  );
+  assertEquals(result, [
+    { listener_hash: "long", connected_until: end },
+    { listener_hash: "recent", connected_until: end - 120 },
+  ]);
 });

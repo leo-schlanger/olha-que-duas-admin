@@ -1,13 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { type AzuraListener, isoUtc, lisbonMidnight, toConnectionRows } from "./connections.ts";
+import {
+  type AzuraListener,
+  clippedActiveConnections,
+  isoUtc,
+  lisbonMidnight,
+  toConnectionRows,
+} from "./connections.ts";
 
 // Corre a cada 5 minutos (pg_cron) e faz duas coisas:
 //  1. Fotografia de ouvintes simultâneos → radio_listener_snapshots
 //  2. Histórico de ligações do AzuraCast (unique=false) → listener_connections
 //     O AzuraCast regista TODAS as ligações (incluindo as curtas) e corta cada
 //     uma ao intervalo pedido, por isso usamos janelas sobrepostas de 48 h e
-//     ignoramos as ligações cortadas no início da janela (já foram vistas).
+//     ignoramos as ligações cortadas no início da janela (já foram vistas),
+//     exceto as que continuam ativas, que prolongam a ligação já gravada.
+//     Cada fotografia regista em connections_ok se o histórico foi recolhido.
 //
 // Backfill: POST {"backfill_from": "2026-04-14", "backfill_to": "2026-09-15"}
 // (datas em hora de Lisboa) recolhe o histórico dia a dia sem tirar fotografia.
@@ -81,7 +89,7 @@ async function ingestWindow(
   stationId: string,
   windowStart: number,
   windowEnd: number,
-): Promise<{ fetched: number; upserted: number }> {
+): Promise<{ fetched: number; upserted: number; extended: number }> {
   const listeners = await azuraGet(
     `/api/station/${stationId}/listeners?unique=false&start=${isoUtc(windowStart)}&end=${isoUtc(windowEnd)}`,
   );
@@ -98,10 +106,34 @@ async function ingestWindow(
     if (error) throw new Error(`listener_connections upsert error: ${error.message}`);
   }
 
-  return { fetched: listeners.length, upserted: rows.length };
+  // Ouvintes ligados há mais tempo do que a janela: prolongar a ligação gravada
+  let extended = 0;
+  for (const c of clippedActiveConnections(listeners as AzuraListener[], windowStart, windowEnd)) {
+    const { data: existing, error: selectError } = await supabase
+      .from("listener_connections")
+      .select("id, connected_on")
+      .eq("listener_hash", c.listener_hash)
+      .lte("connected_on", isoUtc(windowStart))
+      .gte("connected_until", isoUtc(windowStart - LIVE_WINDOW_SECONDS))
+      .order("connected_on", { ascending: false })
+      .limit(1);
+    if (selectError) throw new Error(`listener_connections select error: ${selectError.message}`);
+    const row = existing?.[0];
+    if (!row) continue;
+
+    const on = Math.floor(new Date(row.connected_on).getTime() / 1000);
+    const { error } = await supabase
+      .from("listener_connections")
+      .update({ connected_until: isoUtc(c.connected_until), connected_seconds: c.connected_until - on })
+      .eq("id", row.id);
+    if (error) throw new Error(`listener_connections extend error: ${error.message}`);
+    extended++;
+  }
+
+  return { fetched: listeners.length, upserted: rows.length, extended };
 }
 
-async function takeSnapshot(supabase: SupabaseClient, stationId: string) {
+async function hasRecentSnapshot(supabase: SupabaseClient): Promise<boolean> {
   // Evitar duplicados se o cron disparar duas vezes
   const fourMinAgo = new Date(Date.now() - 4 * 60 * 1000).toISOString();
   const { data: recent } = await supabase
@@ -109,8 +141,12 @@ async function takeSnapshot(supabase: SupabaseClient, stationId: string) {
     .select("id")
     .gte("recorded_at", fourMinAgo)
     .limit(1);
-  if (recent && recent.length > 0) return { skipped: true };
+  return !!recent && recent.length > 0;
+}
 
+// connectionsOk = a recolha do histórico de ligações correu bem nesta execução
+// (o painel avisa quando falha, em vez de mostrar números incompletos).
+async function takeSnapshot(supabase: SupabaseClient, stationId: string, connectionsOk: boolean) {
   const nowPlaying = await azuraGet(`/api/nowplaying/${stationId}`) as AzuraNowPlaying;
 
   // Tempo médio de ligação de quem está a ouvir agora (informativo)
@@ -132,6 +168,7 @@ async function takeSnapshot(supabase: SupabaseClient, stationId: string) {
     avg_listening_time: avgListeningTime,
     is_online: nowPlaying.is_online ?? false,
     is_live: nowPlaying.live?.is_live ?? false,
+    connections_ok: connectionsOk,
   };
 
   const { error } = await supabase.from("radio_listener_snapshots").insert(snapshot);
@@ -177,7 +214,7 @@ serve(async (req) => {
         return json({ error: "backfill_from/backfill_to devem ser YYYY-MM-DD" }, 400);
       }
 
-      const days: Array<{ day: string; fetched: number; upserted: number }> = [];
+      const days: Array<{ day: string; fetched: number; upserted: number; extended: number }> = [];
       let day = body.backfill_from;
       while (day <= to) {
         const dayStart = lisbonMidnight(day);
@@ -204,12 +241,28 @@ serve(async (req) => {
     }
 
     // --- Execução normal (cron) ---
-    const snapshot = await takeSnapshot(supabase, stationId);
-    if (snapshot.skipped && access !== "trusted") {
-      return json({ success: true, mode: "cron", snapshot, connections: null });
+    const recent = await hasRecentSnapshot(supabase);
+    if (recent && access !== "trusted") {
+      return json({ success: true, mode: "cron", snapshot: { skipped: true }, connections: null });
     }
-    const connections = await ingestWindow(supabase, stationId, nowSec - LIVE_WINDOW_SECONDS, nowSec);
 
+    let connections: Awaited<ReturnType<typeof ingestWindow>> | null = null;
+    let connectionsError: string | null = null;
+    try {
+      connections = await ingestWindow(supabase, stationId, nowSec - LIVE_WINDOW_SECONDS, nowSec);
+    } catch (e) {
+      // A fotografia continua a ser tirada; o erro fica registado nela
+      connectionsError = (e as Error).message;
+      console.error("Connections ingest error:", e);
+    }
+
+    const snapshot = recent
+      ? { skipped: true }
+      : await takeSnapshot(supabase, stationId, connectionsError === null);
+
+    if (connectionsError) {
+      return json({ success: false, mode: "cron", snapshot, error: connectionsError }, 500);
+    }
     return json({ success: true, mode: "cron", snapshot, connections });
   } catch (error) {
     console.error("Snapshot cron error:", error);

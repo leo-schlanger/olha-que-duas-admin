@@ -91,3 +91,30 @@ export function toConnectionRows(
 
   return [...rows.values()];
 }
+
+export interface ClippedConnection {
+  listener_hash: string;
+  connected_until: number;
+}
+
+// Ligações que começaram antes da janela e continuam ativas no fim dela
+// (ouvintes com mais de 48 h seguidas). O AzuraCast devolve-as com o início
+// cortado, por isso não dá para as gravar pela chave hash+início: servem só
+// para prolongar a ligação que já está na base de dados.
+export function clippedActiveConnections(
+  listeners: AzuraListener[],
+  windowStart: number,
+  windowEnd: number,
+  activeSlackSeconds = 600,
+): ClippedConnection[] {
+  const byHash = new Map<string, number>();
+
+  for (const l of listeners) {
+    if (!l.hash || !l.connected_on || l.connected_on > windowStart) continue;
+    const until = Math.min(l.connected_until || windowEnd, windowEnd);
+    if (until < windowEnd - activeSlackSeconds) continue;
+    byHash.set(l.hash, Math.max(byHash.get(l.hash) ?? 0, until));
+  }
+
+  return [...byHash].map(([listener_hash, connected_until]) => ({ listener_hash, connected_until }));
+}

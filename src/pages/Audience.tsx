@@ -14,6 +14,9 @@ import {
   Smartphone,
   UserCheck,
   Info,
+  AlertTriangle,
+  MonitorSmartphone,
+  ListTree,
 } from 'lucide-react';
 import {
   ComposedChart,
@@ -39,6 +42,10 @@ import {
   type AudienceData,
   type AudienceSeriesPoint,
   type AudienceBySource,
+  type AudienceByDevice,
+  type AudienceByClient,
+  type CollectionHealth,
+  type ListenerDevice,
   type AudienceByCountry,
   type HeatmapCell,
   type ProgramPerformance,
@@ -65,22 +72,39 @@ const periodLabels: Record<PeriodRange, string> = {
 const DAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 const SOURCE_LABELS: Record<ListenerSource, string> = {
-  app_android: 'App Android Olha Que Duas',
+  app_android: 'App Olha Que Duas · Android',
+  app_ios: 'App Olha Que Duas · iPhone',
   browser: 'Browser (site e diretórios web)',
   mytuner: 'myTuner',
-  ios: 'iOS (app ou Safari)',
+  ios: 'iPhone/iPad (Safari e outras apps)',
   outras_apps: 'Outras apps e players',
   bot: 'Bots',
 };
 
 const SOURCE_COLORS: Record<ListenerSource, string> = {
   app_android: '#C4302B',
+  app_ios: '#8B1E1A',
   browser: '#D4A843',
   mytuner: '#6366f1',
   ios: '#22c55e',
   outras_apps: '#94a3b8',
   bot: '#cbd5e1',
 };
+
+const DEVICE_LABELS: Record<ListenerDevice, string> = {
+  telemovel: 'Telemóvel / tablet',
+  computador: 'Computador',
+  outro: 'Outros (colunas, TV, players)',
+};
+
+const DEVICE_COLORS: Record<ListenerDevice, string> = {
+  telemovel: '#C4302B',
+  computador: '#D4A843',
+  outro: '#94a3b8',
+};
+
+// Uma execução do cron a cada 5 min: sem fotografia há 20 min = recolha parada
+const STALE_COLLECTION_MINUTES = 20;
 
 // --- Formatação ---
 
@@ -440,6 +464,116 @@ function TopListenersCard({ data }: { data: TopListener[] }) {
   );
 }
 
+function minutesAgo(iso: string | null): number | null {
+  return iso ? (Date.now() - new Date(iso).getTime()) / 60000 : null;
+}
+
+function CollectionHealthBanner({ health }: { health: CollectionHealth | null }) {
+  if (!health) return null;
+  const snapshotAge = minutesAgo(health.last_snapshot_at);
+
+  if (snapshotAge == null || snapshotAge > STALE_COLLECTION_MINUTES) {
+    return (
+      <div className="flex items-start gap-2 bg-destructive/10 text-destructive px-4 py-3 rounded-lg text-sm">
+        <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+        <p>
+          <strong>A recolha de audiência parou.</strong> Última fotografia: {formatDateTime(health.last_snapshot_at)}.
+          O AzuraCast só guarda cerca de 60 dias de histórico: é preciso repor o cron radio-snapshot-cron
+          e fazer backfill do período em falta.
+        </p>
+      </div>
+    );
+  }
+
+  if (health.failed_runs_24h > 0) {
+    const failingNow =
+      !health.last_connections_ok_at || new Date(health.last_connections_ok_at) < new Date(health.last_snapshot_at!);
+    return (
+      <div className="flex items-start gap-2 bg-amber-50 text-amber-800 border border-amber-200 px-4 py-3 rounded-lg text-sm">
+        <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+        <p>
+          {failingNow ? <strong>O histórico de ligações não está a ser recolhido. </strong> : null}
+          A recolha do histórico falhou {plural(health.failed_runs_24h, 'vez', 'vezes')} nas últimas 24 h
+          {health.last_connections_ok_at ? ` (último sucesso: ${formatDateTime(health.last_connections_ok_at)})` : ''}.
+          As falhas curtas recuperam sozinhas na execução seguinte.
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+function DevicesCard({ data }: { data: AudienceByDevice[] }) {
+  return (
+    <SectionCard title="Telemóvel ou computador" icon={MonitorSmartphone} aside="por horas ouvidas">
+      {data.length === 0 ? (
+        <EmptyState message="Sem ligações neste período" />
+      ) : (
+        <div className="space-y-3">
+          {data.map((row) => (
+            <div key={row.device} className="space-y-1">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm">
+                <span className="font-medium text-charcoal">{DEVICE_LABELS[row.device] ?? row.device}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {plural(row.listeners, 'ouvinte', 'ouvintes')} · {nf(row.listening_hours, 1)} h · {formatPercent(row.hours_share)}
+                </span>
+              </div>
+              <div className="h-2 bg-beige-medium rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${Math.max(row.hours_share * 100, row.hours_share > 0 ? 1 : 0)}%`, backgroundColor: DEVICE_COLORS[row.device] ?? '#94a3b8' }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
+function ClientsCard({ data }: { data: AudienceByClient[] }) {
+  return (
+    <SectionCard title="Detalhe por aplicação" icon={ListTree} aside="user-agent enviado ao stream · confirma a origem">
+      {data.length === 0 ? (
+        <EmptyState message="Sem ligações neste período" />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[720px]">
+            <thead>
+              <tr className="text-xs text-muted-foreground border-b border-beige-medium">
+                <th className="text-left py-2 pr-2 font-medium">Aplicação (user-agent)</th>
+                <th className="text-left py-2 px-2 font-medium">Origem</th>
+                <th className="text-left py-2 px-2 font-medium">Dispositivo</th>
+                <th className="text-right py-2 px-2 font-medium">Ouvintes</th>
+                <th className="text-right py-2 px-2 font-medium">Sessões</th>
+                <th className="text-right py-2 px-2 font-medium" title="Ligações com menos de 1 minuto">&lt; 1 min</th>
+                <th className="text-right py-2 pl-2 font-medium">Horas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((c) => (
+                <tr key={c.user_agent} className="border-b border-beige-medium/50 last:border-0">
+                  <td className="py-2 pr-2 max-w-[280px]">
+                    <code className="text-xs break-all">{c.user_agent}</code>
+                  </td>
+                  <td className="py-2 px-2 text-charcoal whitespace-nowrap">{SOURCE_LABELS[c.source] ?? c.source}</td>
+                  <td className="py-2 px-2 text-muted-foreground whitespace-nowrap">{DEVICE_LABELS[c.device] ?? c.device}</td>
+                  <td className="py-2 px-2 text-right tabular-nums">{nf(c.listeners)}</td>
+                  <td className="py-2 px-2 text-right tabular-nums">{nf(c.sessions)}</td>
+                  <td className="py-2 px-2 text-right tabular-nums">{nf(c.short_connections)}</td>
+                  <td className="py-2 pl-2 text-right tabular-nums">{nf(c.listening_hours, 1)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
 function MethodologyNote({ data }: { data: AudienceData }) {
   const o = data.overview;
   return (
@@ -452,7 +586,13 @@ function MethodologyNote({ data }: { data: AudienceData }) {
           <strong>Ouvintes, sessões e horas</strong> vêm do histórico do AzuraCast, que regista todas as ligações ao stream.
           Um ouvinte é uma combinação de IP e aplicação com pelo menos 1 minuto no período; ligações mais curtas
           {o ? ` (${nf(o.short_connections)} neste período)` : ''} não contam como ouvintes.
-          A mesma pessoa pode contar mais do que uma vez se mudar de rede (por exemplo, dados móveis).
+          A mesma pessoa pode contar mais do que uma vez se mudar de rede (por exemplo, dados móveis) ou se
+          ouvir em duas aplicações (por exemplo, a app e o myTuner).
+        </p>
+        <p>
+          <strong>Origem</strong> vem do user-agent de cada ligação. A app Olha Que Duas identifica-se como
+          «OlhaQueDuas/versão» desde a v2.3.0; as versões anteriores no Android aparecem como «okhttp» e no iPhone
+          não se distinguem do Safari. O site e os diretórios web de rádios aparecem juntos como browser.
         </p>
         <p>
           <strong>Ouvintes simultâneos</strong> (média, pico, mapa de horas) vêm de fotografias a cada 5 minutos
@@ -502,6 +642,16 @@ function generateAudienceCSV(data: AudienceData, periodLabel: string) {
   row('=== ORIGEM ===');
   row('Origem', 'Ouvintes', 'Sessões', 'Ligações < 1 min', 'Horas ouvidas', 'Sessão média (min)', '% horas');
   data.bySource.forEach((s) => row(SOURCE_LABELS[s.source] ?? s.source, s.listeners, s.sessions, s.short_connections, s.listening_hours, s.avg_session_minutes, s.hours_share));
+  lines.push('');
+
+  row('=== DISPOSITIVO ===');
+  row('Dispositivo', 'Ouvintes', 'Sessões', 'Horas ouvidas', '% horas');
+  data.byDevice.forEach((d) => row(DEVICE_LABELS[d.device] ?? d.device, d.listeners, d.sessions, d.listening_hours, d.hours_share));
+  lines.push('');
+
+  row('=== APLICAÇÕES (USER-AGENT) ===');
+  row('User-agent', 'Origem', 'Dispositivo', 'Ouvintes', 'Sessões', 'Ligações < 1 min', 'Horas ouvidas');
+  data.byClient.forEach((c) => row(c.user_agent, SOURCE_LABELS[c.source] ?? c.source, DEVICE_LABELS[c.device] ?? c.device, c.listeners, c.sessions, c.short_connections, c.listening_hours));
   lines.push('');
 
   row('=== PROGRAMAS ===');
@@ -563,6 +713,14 @@ function generateAudiencePDF(data: AudienceData, periodLabel: string) {
     <table>
       <tr><th>Origem</th><th>Ouvintes</th><th>Sessões</th><th>Horas</th><th>% horas</th></tr>
       ${data.bySource.map((s) => `<tr><td>${escapeHtml(SOURCE_LABELS[s.source] ?? s.source)}</td><td>${nf(s.listeners)}</td><td>${nf(s.sessions)}</td><td>${nf(s.listening_hours, 1)}</td><td>${formatPercent(s.hours_share)}</td></tr>`).join('')}
+    </table>
+    ` : ''}
+
+    ${data.byDevice.length > 0 ? `
+    <h2>Telemóvel ou computador</h2>
+    <table>
+      <tr><th>Dispositivo</th><th>Ouvintes</th><th>Sessões</th><th>Horas</th><th>% horas</th></tr>
+      ${data.byDevice.map((d) => `<tr><td>${escapeHtml(DEVICE_LABELS[d.device] ?? d.device)}</td><td>${nf(d.listeners)}</td><td>${nf(d.sessions)}</td><td>${nf(d.listening_hours, 1)}</td><td>${formatPercent(d.hours_share)}</td></tr>`).join('')}
     </table>
     ` : ''}
 
@@ -658,6 +816,8 @@ export function Audience() {
 
       {error && <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg">{error}</div>}
 
+      <CollectionHealthBanner health={data.health} />
+
       {loading && !o ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
@@ -716,7 +876,10 @@ export function Audience() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <SourcesCard data={data.bySource} />
-            <CountriesCard data={data.byCountry} />
+            <div className="space-y-4">
+              <DevicesCard data={data.byDevice} />
+              <CountriesCard data={data.byCountry} />
+            </div>
           </div>
 
           <HeatmapChart data={data.heatmap} />
@@ -724,6 +887,8 @@ export function Audience() {
           <ProgramsCard data={data.programs} />
 
           <TopListenersCard data={data.topListeners} />
+
+          <ClientsCard data={data.byClient} />
 
           <MethodologyNote data={data} />
         </>

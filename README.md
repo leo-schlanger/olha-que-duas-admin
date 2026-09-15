@@ -27,6 +27,8 @@ Variaveis necessarias:
 5. Autenticacao e analytics da radio (executar por esta ordem):
    - `supabase/admin-auth.sql` - tabela `admin_users`, funcao `is_admin()` e RLS (escrita so para admins)
    - `supabase/analytics-v2.sql` - tabela `listener_connections` e RPCs da aba Audiencia
+   - `supabase/analytics-v2-sources.sql` - app identificada pelo user-agent `OlhaQueDuas/…`, divisao telemovel/computador,
+     detalhe por aplicacao e saude da recolha (aplicar ANTES do deploy do `radio-snapshot-cron`)
    - Em Auth, desative os registos publicos (`disable_signup`), crie o utilizador admin e insira o email:
      ```sql
      INSERT INTO admin_users (email) VALUES ('admin@exemplo.com');

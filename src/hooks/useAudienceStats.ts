@@ -4,7 +4,9 @@ import { supabase } from '../lib/supabase';
 // Métricas de audiência calculadas no Supabase (supabase/analytics-v2.sql).
 // Ouvinte = ligação (IP + user-agent) com pelo menos 1 minuto no período.
 
-export type ListenerSource = 'app_android' | 'browser' | 'mytuner' | 'ios' | 'outras_apps' | 'bot';
+export type ListenerSource = 'app_android' | 'app_ios' | 'browser' | 'mytuner' | 'ios' | 'outras_apps' | 'bot';
+
+export type ListenerDevice = 'telemovel' | 'computador' | 'outro';
 
 export interface AudienceOverview {
   period_start: string;
@@ -45,6 +47,32 @@ export interface AudienceBySource {
   listening_hours: number;
   avg_session_minutes: number | null;
   hours_share: number;
+}
+
+export interface AudienceByDevice {
+  device: ListenerDevice;
+  listeners: number;
+  sessions: number;
+  listening_hours: number;
+  hours_share: number;
+}
+
+export interface AudienceByClient {
+  user_agent: string;
+  source: ListenerSource;
+  device: ListenerDevice;
+  listeners: number;
+  sessions: number;
+  short_connections: number;
+  listening_hours: number;
+}
+
+// Estado do cron radio-snapshot-cron (fotografias + histórico do AzuraCast)
+export interface CollectionHealth {
+  last_snapshot_at: string | null;
+  last_connections_ok_at: string | null;
+  failed_runs_24h: number;
+  last_connection_at: string | null;
 }
 
 export interface AudienceByCountry {
@@ -88,20 +116,26 @@ export interface AudienceData {
   overview: AudienceOverview | null;
   series: AudienceSeriesPoint[];
   bySource: AudienceBySource[];
+  byDevice: AudienceByDevice[];
+  byClient: AudienceByClient[];
   byCountry: AudienceByCountry[];
   heatmap: HeatmapCell[];
   programs: ProgramPerformance[];
   topListeners: TopListener[];
+  health: CollectionHealth | null;
 }
 
 const emptyData: AudienceData = {
   overview: null,
   series: [],
   bySource: [],
+  byDevice: [],
+  byClient: [],
   byCountry: [],
   heatmap: [],
   programs: [],
   topListeners: [],
+  health: null,
 };
 
 // O PostgREST devolve NUMERIC como string: converter as colunas numéricas.
@@ -110,7 +144,7 @@ const NUMERIC_KEYS = new Set([
   'median_session_minutes', 'top3_share', 'avg_concurrent', 'peak_concurrent',
   'pct_time_with_listeners', 'snapshot_coverage', 'prev_listeners', 'prev_sessions',
   'prev_listening_hours', 'prev_avg_concurrent', 'hours_share', 'day_of_week', 'hour_of_day',
-  'avg_listeners', 'occurrences', 'peak_listeners', 'hours_per_occurrence', 'active_days',
+  'avg_listeners', 'occurrences', 'peak_listeners', 'hours_per_occurrence', 'active_days', 'failed_runs_24h',
 ]);
 
 function normalizeRow<T>(row: Record<string, unknown>): T {
@@ -122,21 +156,33 @@ function normalizeRow<T>(row: Record<string, unknown>): T {
 }
 
 async function loadAudience(daysBack: number): Promise<{ data: AudienceData; error: string | null }> {
-  const [overviewRes, seriesRes, sourceRes, countryRes, heatmapRes, programsRes, topRes] = await Promise.all([
+  const [overviewRes, seriesRes, sourceRes, deviceRes, clientRes, countryRes, heatmapRes, programsRes, topRes, healthRes] = await Promise.all([
     supabase.rpc('radio_audience_overview', { days_back: daysBack }),
     supabase.rpc('radio_audience_series', { days_back: daysBack }),
     supabase.rpc('radio_audience_by_source', { days_back: daysBack }),
+    supabase.rpc('radio_audience_by_device', { days_back: daysBack }),
+    supabase.rpc('radio_audience_by_client', { days_back: daysBack, max_rows: 15 }),
     supabase.rpc('radio_audience_by_country', { days_back: daysBack }),
     supabase.rpc('radio_listener_heatmap', { days_back: daysBack }),
     supabase.rpc('radio_program_performance', { days_back: daysBack }),
     supabase.rpc('radio_top_listeners', { days_back: daysBack, max_rows: 10 }),
+    supabase.rpc('radio_collection_health'),
   ]);
 
-  const firstError = [overviewRes, seriesRes, sourceRes, countryRes, heatmapRes, programsRes, topRes].find((r) => r.error)?.error;
+  // RPCs de analytics-v2-sources.sql: enquanto a migração não estiver aplicada
+  // (PGRST202 = função inexistente) os respetivos cartões ficam só vazios.
+  const optional = [deviceRes, clientRes, healthRes];
+  for (const res of optional) {
+    if (res.error?.code === 'PGRST202') res.error = null;
+  }
+
+  const firstError = [overviewRes, seriesRes, sourceRes, ...optional, countryRes, heatmapRes, programsRes, topRes]
+    .find((r) => r.error)?.error;
   if (firstError) console.error('Audience stats error:', firstError);
 
   const rows = (res: { data: unknown }) => (Array.isArray(res.data) ? (res.data as Record<string, unknown>[]) : []);
   const overviewRow = rows(overviewRes)[0];
+  const healthRow = rows(healthRes)[0];
 
   return {
     error: firstError ? `Erro ao carregar audiência: ${firstError.message}` : null,
@@ -144,10 +190,13 @@ async function loadAudience(daysBack: number): Promise<{ data: AudienceData; err
       overview: overviewRow ? normalizeRow<AudienceOverview>(overviewRow) : null,
       series: rows(seriesRes).map((r) => normalizeRow<AudienceSeriesPoint>(r)),
       bySource: rows(sourceRes).map((r) => normalizeRow<AudienceBySource>(r)),
+      byDevice: rows(deviceRes).map((r) => normalizeRow<AudienceByDevice>(r)),
+      byClient: rows(clientRes).map((r) => normalizeRow<AudienceByClient>(r)),
       byCountry: rows(countryRes).map((r) => normalizeRow<AudienceByCountry>(r)),
       heatmap: rows(heatmapRes).map((r) => normalizeRow<HeatmapCell>(r)),
       programs: rows(programsRes).map((r) => normalizeRow<ProgramPerformance>(r)),
       topListeners: rows(topRes).map((r) => normalizeRow<TopListener>(r)),
+      health: healthRow ? normalizeRow<CollectionHealth>(healthRow) : null,
     },
   };
 }
