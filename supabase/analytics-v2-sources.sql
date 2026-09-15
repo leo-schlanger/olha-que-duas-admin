@@ -140,22 +140,26 @@ LANGUAGE sql STABLE AS $$
     SELECT * FROM radio_period_bounds(days_back, 0)
   ),
   c AS (
-    SELECT x.* FROM b CROSS JOIN LATERAL radio_connections_in_range(b.period_start, b.period_end) x
+    SELECT x.*, COALESCE(x.user_agent, '(sem user-agent)') AS ua
+    FROM b CROSS JOIN LATERAL radio_connections_in_range(b.period_start, b.period_end) x
   ),
   per_listener AS (
-    SELECT COALESCE(c.user_agent, '(sem user-agent)') AS ua, c.listener_hash, SUM(c.seconds_in_range) AS s
-    FROM c GROUP BY 1, 2
+    SELECT c.ua, c.listener_hash, SUM(c.seconds_in_range) AS s FROM c GROUP BY 1, 2
+  ),
+  listeners_per_ua AS (
+    SELECT pl.ua, COUNT(*) FILTER (WHERE pl.s >= 60) AS n FROM per_listener pl GROUP BY pl.ua
   )
   SELECT
-    left(COALESCE(c.user_agent, '(sem user-agent)'), 160),
+    left(c.ua, 160),
     MAX(c.source),
     MAX(c.device),
-    (SELECT COUNT(*) FROM per_listener pl WHERE pl.ua = COALESCE(c.user_agent, '(sem user-agent)') AND pl.s >= 60),
+    COALESCE(MAX(l.n), 0),
     COUNT(*) FILTER (WHERE c.seconds_in_range >= 60),
     COUNT(*) FILTER (WHERE c.seconds_in_range < 60),
     ROUND(SUM(c.seconds_in_range) / 3600.0, 2)
   FROM c
-  GROUP BY COALESCE(c.user_agent, '(sem user-agent)')
+  LEFT JOIN listeners_per_ua l ON l.ua = c.ua
+  GROUP BY c.ua
   ORDER BY SUM(c.seconds_in_range) DESC
   LIMIT GREATEST(max_rows, 1)
 $$;
