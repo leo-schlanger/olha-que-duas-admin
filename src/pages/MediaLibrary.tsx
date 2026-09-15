@@ -61,11 +61,13 @@ export function MediaLibrary() {
   };
 
   const handleDelete = async (file: MediaFile) => {
-    if (confirmDelete === file.name) {
+    // A mesma pasta icons/ existe em dois buckets: a chave inclui o bucket
+    const key = `${file.bucket}/${file.name}`;
+    if (confirmDelete === key) {
       await deleteFile(file.name, file.bucket);
       setConfirmDelete(null);
     } else {
-      setConfirmDelete(file.name);
+      setConfirmDelete(key);
       setTimeout(() => setConfirmDelete(null), 3000);
     }
   };
@@ -211,13 +213,13 @@ export function MediaLibrary() {
                     size="icon"
                     variant="ghost"
                     className={`h-9 w-9 ${
-                      confirmDelete === file.name
+                      confirmDelete === `${file.bucket}/${file.name}`
                         ? 'bg-red-500 hover:bg-red-600 text-white'
                         : 'bg-white/90 hover:bg-white text-charcoal'
                     }`}
                     onClick={() => handleDelete(file)}
                     title={
-                      confirmDelete === file.name ? 'Clique novamente para confirmar' : 'Excluir'
+                      confirmDelete === `${file.bucket}/${file.name}` ? 'Clique novamente para confirmar' : 'Excluir'
                     }
                   >
                     <Trash2 className="h-4 w-4" />
@@ -234,6 +236,11 @@ export function MediaLibrary() {
                   {file.bucket === 'event-icons' && (
                     <span className="text-[10px] px-1.5 py-0.5 bg-amarelo/20 text-charcoal rounded-full">
                       evento
+                    </span>
+                  )}
+                  {file.bucket === 'schedule-icons' && (
+                    <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 text-charcoal rounded-full">
+                      bloco diário
                     </span>
                   )}
                 </div>

@@ -313,7 +313,7 @@ function ListenersByCountryCard({ data }: { data: ListenersByCountry[] }) {
 function SongHistoryCard({ history }: { history: SongHistory[] }) {
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
-    return date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Lisbon' });
   };
 
   return (

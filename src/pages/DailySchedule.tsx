@@ -21,6 +21,7 @@ import {
 } from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
 import { IconUpload } from '../components/IconUpload';
+import { normalizeSlotTime, validateSlotTime } from '../lib/slotTime';
 import {
   Sun, Sunset, Moon, CloudMoon, Plus, Trash2, Pencil, Clock, Loader2, Music,
 } from 'lucide-react';
@@ -64,6 +65,7 @@ export function DailySchedule() {
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [currentIconUrl, setCurrentIconUrl] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const openAdd = (periodKey: string) => {
     const periodSlots = getSlotsByPeriod(periodKey);
@@ -77,6 +79,7 @@ export function DailySchedule() {
     });
     setIconFile(null);
     setCurrentIconUrl(undefined);
+    setFormError(null);
     setIsDialogOpen(true);
   };
 
@@ -93,36 +96,48 @@ export function DailySchedule() {
     });
     setIconFile(null);
     setCurrentIconUrl(slot.icon_url || undefined);
+    setFormError(null);
     setIsDialogOpen(true);
   };
 
   const handleSave = async () => {
     if (!form.slot_time.trim() || !form.slot_name.trim()) return;
-    setSaving(true);
 
-    if (editingId) {
-      await updateSlot(editingId, {
-        slot_time: form.slot_time,
-        slot_name: form.slot_name,
-        genres: form.genres,
-        sort_order: form.sort_order,
-      }, iconFile);
-    } else {
-      const period = PERIODS.find((p) => p.key === form.period);
-      if (!period) return;
-      await addSlot({
-        period: period.key,
-        period_label: period.label,
-        time_range: period.range,
-        slot_time: form.slot_time,
-        slot_name: form.slot_name,
-        genres: form.genres,
-        sort_order: form.sort_order,
-      }, iconFile);
+    const period = PERIODS.find((p) => p.key === form.period);
+    if (!period) {
+      setFormError('Período inválido.');
+      return;
     }
+    const timeError = validateSlotTime(form.slot_time, period.range, period.label);
+    if (timeError) {
+      setFormError(timeError);
+      return;
+    }
+    const slotTime = normalizeSlotTime(form.slot_time)!.value;
 
+    setFormError(null);
+    setSaving(true);
+    const ok = editingId
+      ? await updateSlot(editingId, {
+          slot_time: slotTime,
+          slot_name: form.slot_name.trim(),
+          genres: form.genres.trim(),
+          sort_order: form.sort_order,
+        }, iconFile)
+      : !!(await addSlot({
+          period: period.key,
+          period_label: period.label,
+          time_range: period.range,
+          slot_time: slotTime,
+          slot_name: form.slot_name.trim(),
+          genres: form.genres.trim(),
+          sort_order: form.sort_order,
+        }, iconFile));
     setSaving(false);
-    setIsDialogOpen(false);
+
+    // Em caso de erro o diálogo fica aberto para não se perder o que foi escrito
+    if (ok) setIsDialogOpen(false);
+    else setFormError('Não foi possível guardar. Vê a mensagem de erro e tenta de novo.');
   };
 
   const handleDelete = async (id: string) => {
@@ -280,10 +295,13 @@ export function DailySchedule() {
             <div className="space-y-2">
               <Label>Horário</Label>
               <Input
-                placeholder="Ex: 07h, 10h30, 14h"
+                placeholder="Ex: 07h-10h, 10h30, 14h"
                 value={form.slot_time}
                 onChange={(e) => setForm({ ...form, slot_time: e.target.value })}
               />
+              <p className="text-xs text-muted-foreground">
+                Início e fim do bloco, por exemplo 07h-10h. O início tem de estar dentro do período.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -330,6 +348,10 @@ export function DailySchedule() {
               />
             </div>
           </div>
+
+          {formError && (
+            <div className="bg-destructive/10 text-destructive px-3 py-2 rounded-md text-sm">{formError}</div>
+          )}
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>

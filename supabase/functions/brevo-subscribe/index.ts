@@ -7,9 +7,17 @@ const corsHeaders = {
 };
 
 interface SubscribeRequest {
-  email: string;
-  nome?: string;
-  listId?: number;
+  email?: unknown;
+  nome?: unknown;
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+function badRequest(error: string): Response {
+  return new Response(JSON.stringify({ error }), {
+    status: 400,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 }
 
 serve(async (req) => {
@@ -26,19 +34,24 @@ serve(async (req) => {
       throw new Error("BREVO_API_KEY not configured");
     }
 
-    const { email, nome, listId }: SubscribeRequest = await req.json();
-
-    if (!email) {
-      return new Response(
-        JSON.stringify({ error: "Email is required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const targetListId = listId || parseInt(BREVO_LIST_ID);
+    const body = (await req.json().catch(() => null)) as SubscribeRequest | null;
+    const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+    const nome = typeof body?.nome === "string" ? body.nome.trim().slice(0, 100) : "";
+
+    if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
+      return badRequest("Email inválido");
+    }
+
+    // Endpoint público (site): a lista é sempre a da newsletter, nunca a
+    // enviada pelo cliente, para ninguém inscrever emails noutras listas.
+    const targetListId = parseInt(BREVO_LIST_ID);
 
     // Add contact to Brevo
     const response = await fetch("https://api.brevo.com/v3/contacts", {
@@ -51,7 +64,7 @@ serve(async (req) => {
       body: JSON.stringify({
         email,
         attributes: {
-          NOME: nome || "",
+          NOME: nome,
         },
         listIds: [targetListId],
         updateEnabled: true,
@@ -85,7 +98,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error:", error);
     return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
+      JSON.stringify({ error: "Não foi possível concluir a inscrição. Tenta mais tarde." }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

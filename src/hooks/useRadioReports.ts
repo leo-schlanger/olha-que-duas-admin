@@ -26,9 +26,20 @@ function getPeriodRange(period: ReportPeriod): { start: string; end: string } {
 
   let start: Date;
   switch (period) {
-    case 'today':
-      start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    case 'today': {
+      // Meia-noite em Lisboa, qualquer que seja o fuso do computador
+      const lisbon = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/Lisbon',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h23',
+      }).formatToParts(now);
+      const part = (type: string) => Number(lisbon.find((p) => p.type === type)?.value ?? 0);
+      const sinceMidnightMs = ((part('hour') * 60 + part('minute')) * 60 + part('second')) * 1000;
+      start = new Date(now.getTime() - sinceMidnightMs);
       break;
+    }
     case 'week':
       start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       break;

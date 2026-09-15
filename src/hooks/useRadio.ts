@@ -88,17 +88,33 @@ export function useRadio() {
     fetchRadioData();
   }, [fetchRadioData]);
 
-  // Initial fetch and polling setup
+  // Polling só com o separador visível: cada atualização faz 2 pedidos ao
+  // AzuraCast e valida a sessão de admin na edge function.
   useEffect(() => {
-    fetchRadioData();
+    const start = () => {
+      if (intervalRef.current) return;
+      intervalRef.current = window.setInterval(fetchRadioData, POLLING_INTERVAL);
+    };
+    const stop = () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    };
+    const onVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        fetchRadioData();
+        start();
+      }
+    };
 
-    // Set up polling
-    intervalRef.current = window.setInterval(fetchRadioData, POLLING_INTERVAL);
+    fetchRadioData();
+    if (!document.hidden) start();
+    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [fetchRadioData]);
 

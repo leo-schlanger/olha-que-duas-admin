@@ -13,7 +13,11 @@ export interface MediaFile {
 }
 
 const BUCKET = 'media-library';
-const EVENT_ICONS_BUCKET = 'event-icons';
+// Ícones dos eventos e fotos dos blocos da Programação Diária (pasta icons/)
+const ICON_BUCKETS = [
+  { bucket: 'event-icons', table: 'events', nameColumn: 'name', label: 'logo' },
+  { bucket: 'schedule-icons', table: 'daily_schedule', nameColumn: 'slot_name', label: 'bloco diário' },
+] as const;
 
 export function useMediaLibrary() {
   const [files, setFiles] = useState<MediaFile[]>([]);
@@ -25,20 +29,6 @@ export function useMediaLibrary() {
     setLoading(true);
     setError(null);
     try {
-      // Fetch event names to map icon URLs to event names
-      const { data: events } = await supabase
-        .from('events')
-        .select('name, icon_url');
-
-      const iconUrlToName = new Map<string, string>();
-      (events || []).forEach((e) => {
-        if (e.icon_url) {
-          // Extract filename from URL
-          const parts = e.icon_url.split('/');
-          const key = parts.slice(-2).join('/'); // "icons/filename.png"
-          iconUrlToName.set(key, e.name);
-        }
-      });
 
       // Fetch from media-library bucket
       const { data: mediaData } = await supabase.storage
@@ -67,35 +57,41 @@ export function useMediaLibrary() {
           };
         });
 
-      // Fetch from event-icons bucket
-      const { data: iconsData } = await supabase.storage
-        .from(EVENT_ICONS_BUCKET)
-        .list('icons', {
-          limit: 200,
-          sortBy: { column: 'created_at', order: 'desc' },
-        });
+      const iconFiles: MediaFile[] = [];
+      for (const source of ICON_BUCKETS) {
+        // Nome de quem usa cada ficheiro (evento ou bloco), a partir do URL
+        const { data: owners } = await supabase.from(source.table).select(`${source.nameColumn}, icon_url`);
+        const ownerByPath = new Map<string, string>();
+        for (const row of (owners || []) as unknown as Record<string, string | null>[]) {
+          const url = row.icon_url;
+          const name = row[source.nameColumn];
+          if (url && name) ownerByPath.set(url.split('/').slice(-2).join('/'), name);
+        }
 
-      const iconFiles: MediaFile[] = (iconsData || [])
-        .filter((f) => f.name !== '.emptyFolderPlaceholder')
-        .map((f) => {
+        const { data: listed } = await supabase.storage
+          .from(source.bucket)
+          .list('icons', {
+            limit: 200,
+            sortBy: { column: 'created_at', order: 'desc' },
+          });
+
+        for (const f of listed || []) {
+          if (f.name === '.emptyFolderPlaceholder') continue;
           const filePath = `icons/${f.name}`;
-          const { data: urlData } = supabase.storage
-            .from(EVENT_ICONS_BUCKET)
-            .getPublicUrl(filePath);
-
-          const eventName = iconUrlToName.get(filePath);
-
-          return {
+          const { data: urlData } = supabase.storage.from(source.bucket).getPublicUrl(filePath);
+          const owner = ownerByPath.get(filePath);
+          iconFiles.push({
             id: f.id,
             name: filePath,
-            displayName: eventName ? `${eventName} (logo)` : f.name,
+            displayName: owner ? `${owner} (${source.label})` : f.name,
             url: urlData.publicUrl,
             size: f.metadata?.size || 0,
             mimeType: f.metadata?.mimetype || 'image/png',
             createdAt: f.created_at,
-            bucket: EVENT_ICONS_BUCKET,
-          };
-        });
+            bucket: source.bucket,
+          });
+        }
+      }
 
       // Merge both lists sorted by date
       const allFiles = [...mediaFiles, ...iconFiles].sort(
@@ -202,7 +198,7 @@ export function useMediaLibrary() {
 
       if (deleteError) throw deleteError;
 
-      setFiles((prev) => prev.filter((f) => f.name !== fileName));
+      setFiles((prev) => prev.filter((f) => !(f.name === fileName && f.bucket === targetBucket)));
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao excluir ficheiro');
