@@ -8,12 +8,13 @@ import { Radio } from './pages/Radio';
 import { DailySchedule } from './pages/DailySchedule';
 import { Audience } from './pages/Audience';
 import { MediaLibrary } from './pages/MediaLibrary';
-import { Stories } from './pages/Stories';
+// TODO: Histórias — secção ainda em definição, temporariamente desativada no painel.
+// import { Stories } from './pages/Stories';
 import { signOut } from './lib/auth';
 import { supabase } from './lib/supabase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
-import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music, Users, ImageIcon, BookOpen } from 'lucide-react';
+import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music, Users, ImageIcon } from 'lucide-react'; // BookOpen: reativar junto com as Histórias
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import logo from './assets/logo-olha-que-duas.png';
@@ -140,6 +141,7 @@ function Dashboard() {
                 <Music className="h-4 w-4" />
                 <span className="font-medium">Prog. Diária</span>
               </TabsTrigger>
+              {/* Histórias — em definição; reativar este separador quando o fluxo estiver fechado
               <TabsTrigger
                 value="stories"
                 className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
@@ -147,6 +149,7 @@ function Dashboard() {
                 <BookOpen className="h-4 w-4" />
                 <span className="font-medium">Histórias</span>
               </TabsTrigger>
+              */}
               <TabsTrigger
                 value="newsletter"
                 className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
@@ -196,9 +199,11 @@ function Dashboard() {
               <DailySchedule />
             </TabsContent>
 
+            {/* Histórias — em definição; reativar em conjunto com o separador acima
             <TabsContent value="stories" className="mt-0">
               <Stories />
             </TabsContent>
+            */}
 
             <TabsContent value="newsletter" className="mt-0">
               <Newsletter />
