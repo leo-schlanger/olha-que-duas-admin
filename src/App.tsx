@@ -14,10 +14,13 @@ import { signOut } from './lib/auth';
 import { supabase } from './lib/supabase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
-import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music, Users, ImageIcon } from 'lucide-react'; // BookOpen: reativar junto com as Histórias
-import { useEffect, useState } from 'react';
+import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music, Users, ImageIcon, Wallet } from 'lucide-react'; // BookOpen: reativar junto com as Histórias
+import { lazy, Suspense, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import logo from './assets/logo-olha-que-duas.png';
+
+// Finanças só para quem tem admin_users.can_finance; carregada à parte (inclui o exceljs).
+const Finance = lazy(() => import('./pages/Finance').then((m) => ({ default: m.Finance })));
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
@@ -46,6 +49,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState('analytics');
+  const [canFinance, setCanFinance] = useState(false);
+
+  useEffect(() => {
+    supabase.rpc('is_finance').then(({ data }) => setCanFinance(data === true));
+  }, []);
 
   const handleLogout = async () => {
     await signOut();
@@ -164,6 +172,15 @@ function Dashboard() {
                 <ImageIcon className="h-4 w-4" />
                 <span className="font-medium">Biblioteca</span>
               </TabsTrigger>
+              {canFinance && (
+                <TabsTrigger
+                  value="finance"
+                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
+                >
+                  <Wallet className="h-4 w-4" />
+                  <span className="font-medium">Finanças</span>
+                </TabsTrigger>
+              )}
             </TabsList>
 
             {/* Quick Info */}
@@ -212,6 +229,20 @@ function Dashboard() {
             <TabsContent value="library" className="mt-0">
               <MediaLibrary />
             </TabsContent>
+
+            {canFinance && (
+              <TabsContent value="finance" className="mt-0">
+                <Suspense
+                  fallback={
+                    <div className="flex justify-center py-12">
+                      <div className="w-8 h-8 border-2 border-vermelho/30 border-t-vermelho rounded-full animate-spin" />
+                    </div>
+                  }
+                >
+                  <Finance />
+                </Suspense>
+              </TabsContent>
+            )}
           </div>
         </Tabs>
       </main>
