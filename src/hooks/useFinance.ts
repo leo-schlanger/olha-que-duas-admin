@@ -174,6 +174,22 @@ export function useFinance() {
     }
   };
 
+  /**
+   * Marca um lançamento pendente como pago hoje. Se a data prevista ainda não
+   * chegou (ex.: o pagamento da próxima semana), pede confirmação primeiro.
+   */
+  const markPaid = async (tx: FinTransaction): Promise<boolean> => {
+    const today = lisbonToday();
+    if (tx.tx_date > today) {
+      const [y, m, d] = tx.tx_date.split('-');
+      const label = tx.kind === 'income' ? 'recebido' : 'pago';
+      if (!window.confirm(`Este lançamento está previsto para ${d}/${m}/${y}, ainda não chegou essa data.\n\nConfirma que já foi ${label} hoje?`)) {
+        return false;
+      }
+    }
+    return save('fin_transactions', { id: tx.id, status: 'paid', paid_at: today });
+  };
+
   const saveReserve = async (reservePercent: number): Promise<boolean> => {
     const { error: saveError } = await supabase
       .from('fin_settings')
@@ -225,6 +241,7 @@ export function useFinance() {
     refresh: fetchAll,
     save,
     saveRecurrence,
+    markPaid,
     remove,
     saveReserve,
     uploadReceipt,

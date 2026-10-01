@@ -5,7 +5,6 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { EmptyState, KindBadge, NativeSelect, StatusBadge } from './shared';
 import { formatDate, formatEUR, inPeriod, isOverdue, type Period } from '../../lib/finance';
-import { lisbonToday } from '../../lib/scheduleDates';
 import type { FinanceApi } from '../../hooks/useFinance';
 import type { FinTransaction } from '../../types/finance';
 
@@ -124,7 +123,7 @@ export function TransactionsTab({
                             size="sm"
                             variant="ghost"
                             className="h-8 px-2 text-green-700"
-                            onClick={() => api.save('fin_transactions', { id: t.id, status: 'paid', paid_at: lisbonToday() })}
+                            onClick={() => api.markPaid(t)}
                           >
                             ✓
                           </Button>

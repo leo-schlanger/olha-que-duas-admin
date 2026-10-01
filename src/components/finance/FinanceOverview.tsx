@@ -78,8 +78,6 @@ export function FinanceOverview({
     .filter((t) => t.status === 'pending' && (isOverdue(t) || t.tx_date <= horizon))
     .sort((a, b) => a.tx_date.localeCompare(b.tx_date));
 
-  const markPaid = (t: FinTransaction) =>
-    api.save('fin_transactions', { id: t.id, status: 'paid', paid_at: today });
 
   // Gráfico mensal do ano do período selecionado.
   const year = period.value.slice(0, 4);
@@ -124,7 +122,7 @@ export function FinanceOverview({
                   <span className={`tabular-nums font-medium w-24 text-right ${t.kind === 'income' ? 'text-green-700' : 'text-red-600'}`}>
                     {t.kind === 'income' ? '+' : '−'} {formatEUR(t.amount)}
                   </span>
-                  <Button size="sm" variant="outline" onClick={() => markPaid(t)}>
+                  <Button size="sm" variant="outline" onClick={() => api.markPaid(t)}>
                     {t.kind === 'income' ? 'Recebido' : 'Pago'}
                   </Button>
                 </div>

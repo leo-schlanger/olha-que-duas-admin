@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { cn } from '../../lib/utils';
 import type { FinKind, FinTransaction } from '../../types/finance';
 import { isOverdue } from '../../lib/finance';
+import { lisbonToday } from '../../lib/scheduleDates';
 
 /** Select nativo com o mesmo visual do Input (aceita opção vazia, ao contrário do Radix). */
 export function NativeSelect({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
@@ -117,10 +118,13 @@ export function StatusBadge({ tx }: { tx: FinTransaction }) {
   if (tx.status === 'paid') {
     return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-beige text-charcoal">Pago</span>;
   }
-  return isOverdue(tx) ? (
-    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Em atraso</span>
+  if (isOverdue(tx)) {
+    return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Em atraso</span>;
+  }
+  return tx.tx_date > lisbonToday() ? (
+    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-700">Previsto</span>
   ) : (
-    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Pendente</span>
+    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Vence hoje</span>
   );
 }
 

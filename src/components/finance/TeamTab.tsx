@@ -5,7 +5,7 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
 import { EmptyState, Field, FormDialog, NativeSelect } from './shared';
-import { computeDistribution, parseAmount, formatDate, formatEUR, inPeriod, periodLabel, type Period } from '../../lib/finance';
+import { computeDistribution, parseAmount, sharesComplete, formatDate, formatEUR, inPeriod, periodLabel, type Period } from '../../lib/finance';
 import { lisbonToday } from '../../lib/scheduleDates';
 import type { FinanceApi } from '../../hooks/useFinance';
 import type { FinMember } from '../../types/finance';
@@ -78,7 +78,7 @@ export function TeamTab({ api, period }: { api: FinanceApi; period: Period }) {
           </Button>
         </CardHeader>
         <CardContent>
-          {data.members.length > 0 && dist.totalPercent !== 100 && (
+          {data.members.length > 0 && !sharesComplete(dist.totalPercent) && (
             <div className="mb-3 flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
               <AlertTriangle className="h-4 w-4" /> As percentagens dos membros ativos somam {dist.totalPercent}% — deviam somar 100%.
             </div>

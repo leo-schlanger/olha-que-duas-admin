@@ -177,6 +177,9 @@ export function computeSummary(
   };
 }
 
+/** Percentagens que somam 100% com arredondamento (ex.: 3 × 33,33%). */
+export const sharesComplete = (totalPercent: number) => Math.abs(totalPercent - 100) <= 0.1;
+
 export interface MemberShare {
   member: FinMember;
   due: number;
@@ -223,8 +226,10 @@ export function computeDistribution(
   }
 
   const periodPayouts = payouts.filter((p) => inPeriod(p.period, period));
+  // Com 3 × 33,33% (= 99,99%) divide pelo total, para não sobrar um cêntimo.
+  const base = sharesComplete(totalPercent) ? totalPercent : 100;
   const shares = active.map((member) => {
-    const due = round2((distributable * member.share_percent) / 100);
+    const due = round2((distributable * member.share_percent) / base);
     const paid = round2(
       periodPayouts.filter((p) => p.member_id === member.id).reduce((s, p) => s + p.amount, 0)
     );
@@ -427,7 +432,7 @@ export async function exportFinanceExcel(data: FinanceData, period: Period): Pro
     r.getCell(3).numFmt = EUR_FMT;
     r.font = { bold: true };
   }
-  if (dist.totalPercent !== 100) {
+  if (!sharesComplete(dist.totalPercent)) {
     ds.addRow([`Atenção: as percentagens somam ${dist.totalPercent}% (deviam somar 100%).`]).font = {
       color: { argb: 'FFDC2626' },
     };
