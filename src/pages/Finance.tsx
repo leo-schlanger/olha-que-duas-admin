@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, FileSpreadsheet, Loader2, Minus, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileSpreadsheet, FileUp, Loader2, Minus, Plus } from 'lucide-react';
 import { useFinance } from '../hooks/useFinance';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Button } from '../components/ui/button';
@@ -11,23 +11,19 @@ import { ClientsTab } from '../components/finance/ClientsTab';
 import { TeamTab } from '../components/finance/TeamTab';
 import { CategoriesTab } from '../components/finance/CategoriesTab';
 import { TransactionDialog } from '../components/finance/TransactionDialog';
-import { currentPeriod, exportFinanceExcel, periodLabel, type Period } from '../lib/finance';
+import { ImportReceiptDialog } from '../components/finance/ImportReceiptDialog';
+import { currentPeriod, periodLabel, shiftPeriod, type Period } from '../lib/finance';
+import { exportFinanceExcel } from '../lib/financeExcel';
 import type { FinKind, FinTransaction } from '../types/finance';
 
 const SUB_TAB = 'px-3 py-2 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg text-sm';
-
-function shiftPeriod(p: Period, delta: number): Period {
-  if (p.type === 'year') return { type: 'year', value: String(Number(p.value) + delta) };
-  const [y, m] = p.value.split('-').map(Number);
-  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
-  return { type: 'month', value: d.toISOString().slice(0, 7) };
-}
 
 export function Finance() {
   const api = useFinance();
   const [period, setPeriod] = useState<Period>(currentPeriod);
   const [txDialog, setTxDialog] = useState<{ tx: FinTransaction | null; kind: FinKind } | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const openNew = (kind: FinKind) => setTxDialog({ tx: null, kind });
   const openEdit = (tx: FinTransaction) => setTxDialog({ tx, kind: tx.kind });
@@ -49,6 +45,9 @@ export function Finance() {
           <p className="text-sm text-muted-foreground mt-1">Clientes, receitas, custos e distribuição pela equipa</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={() => setImporting(true)} disabled={api.loading}>
+            <FileUp className="h-4 w-4 mr-1" /> Importar comprovativo
+          </Button>
           <Button variant="outline" onClick={() => openNew('income')} className="text-green-700">
             <Plus className="h-4 w-4 mr-1" /> Receita
           </Button>
@@ -123,6 +122,8 @@ export function Finance() {
           </TabsContent>
         </Tabs>
       )}
+
+      {importing && <ImportReceiptDialog api={api} onClose={() => setImporting(false)} />}
 
       <TransactionDialog
         api={api}

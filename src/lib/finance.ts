@@ -69,6 +69,14 @@ export function periodMonths(p: Period): string[] {
   return Array.from({ length: 12 }, (_, i) => `${p.value}-${String(i + 1).padStart(2, '0')}`);
 }
 
+/** Mês/ano anterior ou seguinte. */
+export function shiftPeriod(p: Period, delta: number): Period {
+  if (p.type === 'year') return { type: 'year', value: String(Number(p.value) + delta) };
+  const [y, m] = p.value.split('-').map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
+  return { type: 'month', value: d.toISOString().slice(0, 7) };
+}
+
 export const inPeriod = (date: string, p: Period) => {
   const { from, to } = periodRange(p);
   return date >= from && date <= to;
@@ -226,10 +234,16 @@ export function computeDistribution(
   }
 
   const periodPayouts = payouts.filter((p) => inPeriod(p.period, period));
+  // Valores arredondados ao cêntimo; o resto do arredondamento (ex.: 29 € / 3)
+  // vai para o último membro, para a soma bater certo com o valor a distribuir.
+  const dues = active.map((m) => round2((distributable * m.share_percent) / (sharesComplete(totalPercent) ? totalPercent : 100)));
+  if (sharesComplete(totalPercent) && dues.length > 0) {
+    const diff = round2(round2(distributable) - dues.reduce((a, d) => a + d, 0));
+    dues[dues.length - 1] = round2(dues[dues.length - 1] + diff);
+  }
   // Com 3 × 33,33% (= 99,99%) divide pelo total, para não sobrar um cêntimo.
-  const base = sharesComplete(totalPercent) ? totalPercent : 100;
-  const shares = active.map((member) => {
-    const due = round2((distributable * member.share_percent) / base);
+  const shares = active.map((member, i) => {
+    const due = dues[i];
     const paid = round2(
       periodPayouts.filter((p) => p.member_id === member.id).reduce((s, p) => s + p.amount, 0)
     );
@@ -246,7 +260,7 @@ export function computeDistribution(
 }
 
 // -------------------------------------------------------------
-// Excel
+// Dados completos (painel e Excel — ver financeExcel.ts)
 // -------------------------------------------------------------
 export interface FinanceData {
   transactions: FinTransaction[];
@@ -256,196 +270,4 @@ export interface FinanceData {
   members: FinMember[];
   payouts: FinPayout[];
   reservePercent: number;
-}
-
-const EUR_FMT = '#,##0.00 "€"';
-const HEADER_FILL = 'FFC0392B';
-
-export async function exportFinanceExcel(data: FinanceData, period: Period): Promise<void> {
-  const { default: ExcelJS } = await import('exceljs');
-  const wb = new ExcelJS.Workbook();
-  wb.creator = 'Olha que Duas — Painel Admin';
-  wb.created = new Date();
-
-  const catName = (id: string | null) => data.categories.find((c) => c.id === id)?.name ?? '';
-  const clientName = (id: string | null) => data.clients.find((c) => c.id === id)?.name ?? '';
-  const summary = computeSummary(data.transactions, data.categories, data.clients, period);
-  const dist = computeDistribution(data.transactions, data.members, data.payouts, data.reservePercent, period);
-  const inP = data.transactions
-    .filter((t) => inPeriod(t.tx_date, period))
-    .sort((a, b) => a.tx_date.localeCompare(b.tx_date));
-
-  const styleHeader = (ws: import('exceljs').Worksheet) => {
-    const row = ws.getRow(1);
-    row.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HEADER_FILL } };
-    ws.views = [{ state: 'frozen', ySplit: 1 }];
-  };
-
-  // --- Resumo
-  const ws = wb.addWorksheet('Resumo');
-  ws.columns = [{ width: 34 }, { width: 18 }];
-  ws.addRow([`Olha que Duas — Resumo financeiro (${periodLabel(period)})`]).font = { bold: true, size: 14 };
-  ws.addRow([`Gerado em ${formatDate(lisbonToday())}`]).font = { italic: true, color: { argb: 'FF6B7280' } };
-  ws.addRow([]);
-  const kpis: [string, number][] = [
-    ['Receitas recebidas', summary.income],
-    ['Despesas pagas', summary.expense],
-    ['Resultado', summary.result],
-    [`Reserva (${data.reservePercent}%)`, dist.reserve],
-    ['A distribuir pela equipa', dist.distributable],
-    ['Receitas pendentes no período', summary.pendingIncome],
-    ['Despesas pendentes no período', summary.pendingExpense],
-    ['Receitas em atraso (total)', summary.overdueIncome],
-  ];
-  for (const [label, value] of kpis) {
-    const r = ws.addRow([label, value]);
-    r.getCell(2).numFmt = EUR_FMT;
-    if (label === 'Resultado') r.font = { bold: true };
-  }
-  const section = (title: string, rows: { name: string; total: number }[]) => {
-    ws.addRow([]);
-    ws.addRow([title]).font = { bold: true };
-    for (const c of rows) ws.addRow([c.name, c.total]).getCell(2).numFmt = EUR_FMT;
-    if (rows.length === 0) ws.addRow(['—']);
-  };
-  section('Receitas por categoria', summary.incomeByCategory);
-  section('Despesas por categoria', summary.expenseByCategory);
-  section('Receitas por cliente', summary.incomeByClient);
-
-  // --- Receitas / Despesas
-  const txSheet = (name: string, kind: 'income' | 'expense') => {
-    const s = wb.addWorksheet(name);
-    s.columns = [
-      { header: 'Data', key: 'date', width: 12 },
-      { header: 'Descrição', key: 'desc', width: 36 },
-      { header: kind === 'income' ? 'Cliente' : 'Fornecedor / cliente', key: 'client', width: 24 },
-      { header: 'Categoria', key: 'cat', width: 24 },
-      { header: 'Estado', key: 'status', width: 11 },
-      { header: 'Método', key: 'method', width: 14 },
-      { header: 'Fatura / recibo', key: 'invoice', width: 18 },
-      { header: 'Valor', key: 'amount', width: 14, style: { numFmt: EUR_FMT } },
-      { header: 'Notas', key: 'notes', width: 30 },
-    ];
-    const list = inP.filter((t) => t.kind === kind);
-    for (const t of list) {
-      s.addRow({
-        date: formatDate(t.tx_date),
-        desc: t.description,
-        client: clientName(t.client_id),
-        cat: catName(t.category_id),
-        status: t.status === 'paid' ? 'Pago' : isOverdue(t) ? 'Em atraso' : 'Pendente',
-        method: t.method ?? '',
-        invoice: t.invoice_ref ?? '',
-        amount: t.amount,
-        notes: t.notes ?? '',
-      });
-    }
-    if (list.length > 0) {
-      const last = list.length + 1;
-      const total = s.addRow({ desc: 'Total pago', amount: { formula: `SUMIF(E2:E${last},"Pago",H2:H${last})` } });
-      total.font = { bold: true };
-    }
-    styleHeader(s);
-  };
-  txSheet('Receitas', 'income');
-  txSheet('Despesas', 'expense');
-
-  // --- Clientes
-  const cs = wb.addWorksheet('Clientes');
-  cs.columns = [
-    { header: 'Nome', key: 'name', width: 28 },
-    { header: 'NIF', key: 'nif', width: 14 },
-    { header: 'Email', key: 'email', width: 28 },
-    { header: 'Telefone', key: 'phone', width: 16 },
-    { header: 'Ativo', key: 'active', width: 8 },
-    { header: 'Recebido no período', key: 'period', width: 20, style: { numFmt: EUR_FMT } },
-    { header: 'Recorrente / mês', key: 'monthly', width: 18, style: { numFmt: EUR_FMT } },
-    { header: 'Notas', key: 'notes', width: 30 },
-  ];
-  for (const c of data.clients) {
-    cs.addRow({
-      name: c.name,
-      nif: c.nif ?? '',
-      email: c.email ?? '',
-      phone: c.phone ?? '',
-      active: c.is_active ? 'Sim' : 'Não',
-      period: summary.incomeByClient.find((x) => x.id === c.id)?.total ?? 0,
-      monthly: round2(
-        data.recurrences
-          .filter((r) => r.is_active && r.kind === 'income' && r.client_id === c.id)
-          .reduce((s, r) => s + monthlyEquivalent(r), 0)
-      ),
-      notes: c.notes ?? '',
-    });
-  }
-  styleHeader(cs);
-
-  // --- Recorrentes
-  const rs = wb.addWorksheet('Recorrentes');
-  rs.columns = [
-    { header: 'Tipo', key: 'kind', width: 10 },
-    { header: 'Descrição', key: 'desc', width: 34 },
-    { header: 'Cliente', key: 'client', width: 22 },
-    { header: 'Categoria', key: 'cat', width: 24 },
-    { header: 'Frequência', key: 'freq', width: 12 },
-    { header: 'Valor', key: 'amount', width: 12, style: { numFmt: EUR_FMT } },
-    { header: 'Equivalente / mês', key: 'monthly', width: 18, style: { numFmt: EUR_FMT } },
-    { header: 'Próxima', key: 'next', width: 12 },
-    { header: 'Ativo', key: 'active', width: 8 },
-  ];
-  for (const r of data.recurrences) {
-    rs.addRow({
-      kind: r.kind === 'income' ? 'Receita' : 'Despesa',
-      desc: r.description,
-      client: clientName(r.client_id),
-      cat: catName(r.category_id),
-      freq: FREQUENCY_LABEL[r.frequency],
-      amount: r.amount,
-      monthly: round2(monthlyEquivalent(r)),
-      next: formatDate(nextOccurrence(r)),
-      active: r.is_active ? 'Sim' : 'Não',
-    });
-  }
-  styleHeader(rs);
-
-  // --- Distribuição
-  const ds = wb.addWorksheet('Distribuição');
-  ds.columns = [
-    { header: 'Membro', key: 'name', width: 26 },
-    { header: '%', key: 'pct', width: 8 },
-    { header: 'Valor a receber', key: 'due', width: 16, style: { numFmt: EUR_FMT } },
-    { header: 'Já pago', key: 'paid', width: 14, style: { numFmt: EUR_FMT } },
-    { header: 'Saldo', key: 'balance', width: 14, style: { numFmt: EUR_FMT } },
-  ];
-  for (const s of dist.shares) {
-    ds.addRow({ name: s.member.name, pct: s.member.share_percent, due: s.due, paid: s.paid, balance: s.balance });
-  }
-  styleHeader(ds);
-  ds.addRow([]);
-  for (const [label, value] of [
-    ['Resultado do período', dist.result],
-    [`Reserva (${data.reservePercent}%)`, dist.reserve],
-    ['Total a distribuir', dist.distributable],
-  ] as [string, number][]) {
-    const r = ds.addRow([label, null, value]);
-    r.getCell(3).numFmt = EUR_FMT;
-    r.font = { bold: true };
-  }
-  if (!sharesComplete(dist.totalPercent)) {
-    ds.addRow([`Atenção: as percentagens somam ${dist.totalPercent}% (deviam somar 100%).`]).font = {
-      color: { argb: 'FFDC2626' },
-    };
-  }
-
-  const buffer = await wb.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `financas-olhaqueduas-${period.value}.xlsx`;
-  a.click();
-  URL.revokeObjectURL(url);
 }
