@@ -25,3 +25,8 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Ficheiros locais (Claude Code, Supabase CLI) — não versionar
+.claude/settings.local.json
+supabase/.temp/
+deno.lock
