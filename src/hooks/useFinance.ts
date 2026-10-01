@@ -10,6 +10,7 @@ import type {
 } from '../types/finance';
 import type { FinanceData } from '../lib/finance';
 import { lisbonToday } from '../lib/scheduleDates';
+import type { FinActivity } from '../lib/financeActivity';
 
 const RECEIPTS_BUCKET = 'finance-receipts';
 
@@ -190,6 +191,34 @@ export function useFinance() {
     return save('fin_transactions', { id: tx.id, status: 'paid', paid_at: today });
   };
 
+  /** Regista vários pagamentos à equipa de uma só vez (ex.: "Pagar todos"). */
+  const insertPayouts = async (
+    rows: { member_id: string; period: string; amount: number; paid_at: string; notes: string | null }[]
+  ): Promise<boolean> => {
+    const { error: insertError } = await supabase.from('fin_payouts').insert(rows);
+    if (insertError) {
+      setError(insertError.message);
+      return false;
+    }
+    await fetchAll();
+    return true;
+  };
+
+  /** Últimas alterações (histórico), da mais recente para a mais antiga. */
+  // Memorizada: o separador Histórico usa-a num useEffect.
+  const loadActivity = useCallback(async (limit = 200): Promise<FinActivity[]> => {
+    const { data: rows, error: loadError } = await supabase
+      .from('fin_activity')
+      .select('*')
+      .order('at', { ascending: false })
+      .limit(limit);
+    if (loadError) {
+      setError(loadError.message);
+      return [];
+    }
+    return (rows ?? []) as FinActivity[];
+  }, []);
+
   const saveReserve = async (reservePercent: number): Promise<boolean> => {
     const { error: saveError } = await supabase
       .from('fin_settings')
@@ -242,6 +271,8 @@ export function useFinance() {
     save,
     saveRecurrence,
     markPaid,
+    insertPayouts,
+    loadActivity,
     remove,
     saveReserve,
     uploadReceipt,

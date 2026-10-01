@@ -10,6 +10,7 @@ import { RecurrencesTab } from '../components/finance/RecurrencesTab';
 import { ClientsTab } from '../components/finance/ClientsTab';
 import { TeamTab } from '../components/finance/TeamTab';
 import { CategoriesTab } from '../components/finance/CategoriesTab';
+import { ActivityTab } from '../components/finance/ActivityTab';
 import { TransactionDialog } from '../components/finance/TransactionDialog';
 import { ImportReceiptDialog } from '../components/finance/ImportReceiptDialog';
 import { currentPeriod, periodLabel, shiftPeriod, type Period } from '../lib/finance';
@@ -101,6 +102,7 @@ export function Finance() {
             <TabsTrigger value="clients" className={SUB_TAB}>Clientes</TabsTrigger>
             <TabsTrigger value="team" className={SUB_TAB}>Equipa</TabsTrigger>
             <TabsTrigger value="categories" className={SUB_TAB}>Categorias</TabsTrigger>
+            <TabsTrigger value="activity" className={SUB_TAB}>Histórico</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="mt-0">
             <FinanceOverview api={api} period={period} onEdit={openEdit} />
@@ -119,6 +121,9 @@ export function Finance() {
           </TabsContent>
           <TabsContent value="categories" className="mt-0">
             <CategoriesTab api={api} />
+          </TabsContent>
+          <TabsContent value="activity" className="mt-0">
+            <ActivityTab api={api} />
           </TabsContent>
         </Tabs>
       )}

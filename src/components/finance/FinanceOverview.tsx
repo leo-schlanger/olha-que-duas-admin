@@ -1,5 +1,5 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { EmptyState, StatusBadge } from './shared';
@@ -8,8 +8,10 @@ import {
   computeSummary,
   formatDate,
   formatEUR,
+  forecastMonths,
   inPeriod,
   isOverdue,
+  periodLabel,
   type CategoryTotal,
   type Period,
 } from '../../lib/finance';
@@ -70,6 +72,7 @@ export function FinanceOverview({
   const summary = computeSummary(data.transactions, data.categories, data.clients, period);
   const dist = computeDistribution(data.transactions, data.members, data.payouts, data.reservePercent, period);
   const clientName = (id: string | null) => data.clients.find((c) => c.id === id)?.name;
+  const forecast = forecastMonths(data, 3);
 
   // Pendentes: tudo o que está em atraso + o que vence nos próximos 14 dias.
   const today = lisbonToday();
@@ -96,6 +99,49 @@ export function FinanceOverview({
         <Kpi label="Resultado" value={summary.result} tone={summary.result >= 0 ? 'pos' : 'neg'} />
         <Kpi label="A distribuir" value={dist.distributable} hint={`Reserva ${data.reservePercent}%: ${formatEUR(dist.reserve)}`} />
       </div>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-vermelho" /> Previsão de caixa (próximos 3 meses)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-muted-foreground border-b border-beige-medium">
+                  <th className="py-2 pr-3 font-medium">Mês</th>
+                  <th className="py-2 pr-3 font-medium text-right">Entradas</th>
+                  <th className="py-2 pr-3 font-medium text-right">Saídas</th>
+                  <th className="py-2 pr-3 font-medium text-right">Saldo</th>
+                  <th className="py-2 font-medium text-right">Ainda por entrar / sair</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-beige-medium">
+                {forecast.map((f) => (
+                  <tr key={f.month}>
+                    <td className="py-2.5 pr-3 capitalize font-medium text-charcoal">
+                      {periodLabel({ type: 'month', value: f.month })}
+                    </td>
+                    <td className="py-2.5 pr-3 text-right tabular-nums text-green-700">{formatEUR(f.income)}</td>
+                    <td className="py-2.5 pr-3 text-right tabular-nums text-red-600">{formatEUR(f.expense)}</td>
+                    <td className={`py-2.5 pr-3 text-right tabular-nums font-semibold ${f.balance >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                      {formatEUR(f.balance)}
+                    </td>
+                    <td className="py-2.5 text-right tabular-nums text-muted-foreground">
+                      +{formatEUR(f.pendingIncome)} / −{formatEUR(f.pendingExpense)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Inclui o que já foi pago, os previstos e as próximas ocorrências das recorrências.
+          </p>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="pb-2">

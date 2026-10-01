@@ -271,3 +271,63 @@ export interface FinanceData {
   payouts: FinPayout[];
   reservePercent: number;
 }
+
+// -------------------------------------------------------------
+// Previsão de caixa
+// -------------------------------------------------------------
+export interface ForecastMonth {
+  /** "YYYY-MM" */
+  month: string;
+  income: number;
+  expense: number;
+  balance: number;
+  /** Quanto disto ainda não foi recebido/pago (previstos + projeções). */
+  pendingIncome: number;
+  pendingExpense: number;
+}
+
+/**
+ * Próximos `months` meses (a começar no atual): o que já está lançado (pago ou
+ * previsto) mais as ocorrências futuras das recorrências que ainda não foram
+ * geradas como lançamento.
+ */
+export function forecastMonths(data: FinanceData, months = 3, today = lisbonToday()): ForecastMonth[] {
+  const start = { type: 'month', value: today.slice(0, 7) } as Period;
+  return Array.from({ length: months }, (_, i) => {
+    const p = shiftPeriod(start, i);
+    const { from, to } = periodRange(p);
+    let income = 0;
+    let expense = 0;
+    let pendingIncome = 0;
+    let pendingExpense = 0;
+    const add = (kind: string, amount: number, pending: boolean) => {
+      if (kind === 'income') {
+        income += amount;
+        if (pending) pendingIncome += amount;
+      } else {
+        expense += amount;
+        if (pending) pendingExpense += amount;
+      }
+    };
+
+    for (const t of data.transactions) {
+      if (t.tx_date >= from && t.tx_date <= to) add(t.kind, t.amount, t.status === 'pending');
+    }
+    for (const r of data.recurrences.filter((x) => x.is_active)) {
+      // Ocorrências ainda não geradas: n >= generated_count.
+      for (let n = r.generated_count; n < r.generated_count + 60; n++) {
+        const d = occurrenceDate(r.start_date, r.frequency, n);
+        if (d > to || (r.end_date && d > r.end_date)) break;
+        if (d >= from) add(r.kind, r.amount, true);
+      }
+    }
+    return {
+      month: p.value,
+      income: round2(income),
+      expense: round2(expense),
+      balance: round2(income - expense),
+      pendingIncome: round2(pendingIncome),
+      pendingExpense: round2(pendingExpense),
+    };
+  });
+}

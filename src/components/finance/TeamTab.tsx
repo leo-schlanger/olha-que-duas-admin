@@ -31,6 +31,27 @@ export function TeamTab({ api, period }: { api: FinanceApi; period: Period }) {
     }
   };
 
+  // "Pagar todos": regista de uma vez o saldo em dívida de cada membro neste mês.
+  const owed = dist.shares.filter((s) => s.balance > 0);
+  const [paying, setPaying] = useState(false);
+  const payAll = async () => {
+    const lines = owed.map((s) => `• ${s.member.name}: ${formatEUR(s.balance)}`).join('\n');
+    if (!window.confirm(`Registar hoje o pagamento referente a ${periodLabel(period)}?\n\n${lines}\n\nConfirme que as transferências foram (ou vão ser) feitas.`)) {
+      return;
+    }
+    setPaying(true);
+    await api.insertPayouts(
+      owed.map((s) => ({
+        member_id: s.member.id,
+        period: `${period.value}-01`,
+        amount: s.balance,
+        paid_at: lisbonToday(),
+        notes: 'Pagamento do mês (Pagar todos)',
+      }))
+    );
+    setPaying(false);
+  };
+
   const reserveValue = parseAmount(reserve);
   const reserveValid = Number.isFinite(reserveValue) && reserveValue >= 0 && reserveValue <= 100;
 
@@ -140,8 +161,13 @@ export function TeamTab({ api, period }: { api: FinanceApi; period: Period }) {
       </Card>
 
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 flex-row items-center justify-between space-y-0 gap-3 flex-wrap">
           <CardTitle className="text-base">Pagamentos à equipa ({periodLabel(period)})</CardTitle>
+          {period.type === 'month' && owed.length > 0 && (
+            <Button size="sm" className="bg-vermelho hover:bg-vermelho-dark text-white" onClick={payAll} disabled={paying}>
+              <Wallet className="h-4 w-4 mr-1" /> Pagar todos ({formatEUR(owed.reduce((a, s) => a + s.balance, 0))})
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {payouts.length === 0 ? (
