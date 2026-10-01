@@ -2,18 +2,20 @@
 -- Finanças: clientes, receitas/despesas, recorrências, equipa e
 -- distribuição do resultado.
 --
--- Acesso: só administradores com admin_users.can_finance = true
--- (função is_finance()). Os restantes admins não veem nada.
+-- Acesso: administradores com admin_users.can_finance = true (função
+-- is_finance()). Por defeito todos os admins, incluindo os novos, têm acesso;
+-- para retirar a alguém: can_finance = false.
 --
 -- Recorrências: fin_generate_recurring() cria os lançamentos previstos
 -- (status 'pending') até N dias à frente. Corre todos os dias via pg_cron
 -- dentro do Supabase e também quando o painel abre — não depende do Vercel.
 --
--- Dar acesso a alguém:
---   UPDATE admin_users SET can_finance = true WHERE lower(email) = lower('x@y.com');
+-- Retirar acesso a alguém:
+--   UPDATE admin_users SET can_finance = false WHERE lower(email) = lower('x@y.com');
 -- =============================================================
 
-ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS can_finance BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS can_finance BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE admin_users ALTER COLUMN can_finance SET DEFAULT TRUE;
 
 CREATE OR REPLACE FUNCTION is_finance()
 RETURNS BOOLEAN
