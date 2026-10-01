@@ -183,7 +183,7 @@ function RecurrenceDialog({
           </NativeSelect>
         </Field>
         <Field label="Descrição" htmlFor="rec-desc" required className="sm:col-span-2">
-          <Input id="rec-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Ex.: Patrocínio semanal Paula" />
+          <Input id="rec-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Ex.: Patrocínio semanal" />
         </Field>
         <Field label="Valor (€)" htmlFor="rec-amount" required>
           <Input id="rec-amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="75,00" />
