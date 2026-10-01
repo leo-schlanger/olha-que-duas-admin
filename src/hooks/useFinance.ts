@@ -40,8 +40,17 @@ const EMPTY: FinanceData = {
   reservePercent: 0,
 };
 
+export interface ReportSettings {
+  enabled: boolean;
+  /** Vazio = emails dos membros ativos da equipa. */
+  recipients: string[];
+  lastPeriod: string | null;
+  lastSentAt: string | null;
+}
+
 export function useFinance() {
   const [data, setData] = useState<FinanceData>(EMPTY);
+  const [report, setReport] = useState<ReportSettings>({ enabled: true, recipients: [], lastPeriod: null, lastSentAt: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,7 +68,7 @@ export function useFinance() {
         supabase.from('fin_recurrences').select('*').order('created_at'),
         supabase.from('fin_members').select('*').order('created_at'),
         supabase.from('fin_payouts').select('*').order('paid_at', { ascending: false }),
-        supabase.from('fin_settings').select('reserve_percent').eq('id', 1).maybeSingle(),
+        supabase.from('fin_settings').select('*').eq('id', 1).maybeSingle(),
       ]);
       const failed = [tx, cat, cli, rec, mem, pay, set].find((r) => r.error);
       if (failed?.error) throw failed.error;
@@ -72,6 +81,12 @@ export function useFinance() {
         members: num(mem.data as FinMember[], ['share_percent']),
         payouts: num(pay.data as FinPayout[], ['amount']),
         reservePercent: Number(set.data?.reserve_percent ?? 0),
+      });
+      setReport({
+        enabled: set.data?.report_enabled ?? true,
+        recipients: set.data?.report_recipients ?? [],
+        lastPeriod: set.data?.report_last_period ?? null,
+        lastSentAt: set.data?.report_last_sent_at ?? null,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar as finanças');
@@ -219,6 +234,36 @@ export function useFinance() {
     return (rows ?? []) as FinActivity[];
   }, []);
 
+  const saveReportSettings = async (enabled: boolean, recipients: string[]): Promise<boolean> => {
+    const { error: saveError } = await supabase
+      .from('fin_settings')
+      .update({ report_enabled: enabled, report_recipients: recipients.length ? recipients : null, updated_at: new Date().toISOString() })
+      .eq('id', 1);
+    if (saveError) {
+      setError(saveError.message);
+      return false;
+    }
+    setReport((r) => ({ ...r, enabled, recipients }));
+    return true;
+  };
+
+  /** Envia já o relatório do mês indicado ("YYYY-MM") aos destinatários definidos. */
+  const sendReportNow = async (month: string): Promise<string | null> => {
+    const { data: res, error: fnError } = await supabase.functions.invoke('finance-monthly-report', {
+      body: { period: month },
+    });
+    if (fnError || !res?.ok) {
+      let message = res?.error as string | undefined;
+      if (!message && fnError && 'context' in fnError) {
+        message = await (fnError.context as Response).json().then((b) => b.error).catch(() => undefined);
+      }
+      setError(`Relatório não enviado: ${message ?? fnError?.message ?? 'erro desconhecido'}`);
+      return null;
+    }
+    await fetchAll();
+    return (res.recipients as string[]).join(', ');
+  };
+
   const saveReserve = async (reservePercent: number): Promise<boolean> => {
     const { error: saveError } = await supabase
       .from('fin_settings')
@@ -264,6 +309,9 @@ export function useFinance() {
 
   return {
     data,
+    report,
+    saveReportSettings,
+    sendReportNow,
     loading,
     error,
     clearError: () => setError(null),

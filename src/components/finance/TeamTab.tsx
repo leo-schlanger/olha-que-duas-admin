@@ -5,6 +5,7 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
 import { EmptyState, Field, FormDialog, NativeSelect } from './shared';
+import { ReportCard } from './ReportCard';
 import { computeDistribution, parseAmount, sharesComplete, formatDate, formatEUR, inPeriod, periodLabel, type Period } from '../../lib/finance';
 import { lisbonToday } from '../../lib/scheduleDates';
 import type { FinanceApi } from '../../hooks/useFinance';
@@ -196,6 +197,8 @@ export function TeamTab({ api, period }: { api: FinanceApi; period: Period }) {
           )}
         </CardContent>
       </Card>
+
+      <ReportCard api={api} period={period} />
 
       {memberDialog && <MemberDialog api={api} member={memberDialog.member} onClose={() => setMemberDialog(null)} />}
       {payoutFor && (

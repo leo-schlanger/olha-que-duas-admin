@@ -50,10 +50,14 @@ const FIELD_LABEL: Record<string, string> = {
   kind: 'Tipo',
   color: 'Cor',
   period: 'Referente a',
+  report_enabled: 'Relatório mensal automático',
+  report_recipients: 'Destinatários do relatório',
 };
 
 // Campos técnicos que não interessam a quem lê o histórico.
-const HIDDEN = new Set(['id', 'created_at', 'updated_at', 'generated_count', 'recurrence_id']);
+const HIDDEN = new Set([
+  'id', 'created_at', 'updated_at', 'generated_count', 'recurrence_id', 'report_last_period', 'report_last_sent_at',
+]);
 
 export function describeActivity(a: FinActivity, data: FinanceData): ActivityLine {
   const row = (a.new_data ?? a.old_data ?? {}) as Row;
@@ -90,7 +94,10 @@ export function describeActivity(a: FinActivity, data: FinanceData): ActivityLin
       case 'frequency':
         return FREQUENCY_LABEL[v as FinFrequency] ?? String(v);
       case 'is_active':
+      case 'report_enabled':
         return v ? 'Sim' : 'Não';
+      case 'report_recipients':
+        return Array.isArray(v) && v.length ? v.join(', ') : 'membros da equipa';
       case 'receipt_path':
         return 'anexado';
       default:

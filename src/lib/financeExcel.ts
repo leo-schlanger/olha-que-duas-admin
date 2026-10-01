@@ -241,7 +241,8 @@ const statusLabel = (t: FinTransaction) =>
 const statusColor = (t: FinTransaction) =>
   t.status === 'paid' ? GREEN : isOverdue(t) ? RED : undefined;
 
-export async function exportFinanceExcel(data: FinanceData, period: Period): Promise<void> {
+/** Constrói o relatório e devolve o ficheiro .xlsx (usado no browser e no envio mensal). */
+export async function buildFinanceWorkbook(data: FinanceData, period: Period): Promise<ArrayBuffer> {
   const { default: ExcelJS } = await import('exceljs');
   const wb: Workbook = new ExcelJS.Workbook();
   wb.creator = 'Olha que Duas — Painel Admin';
@@ -589,12 +590,19 @@ export async function exportFinanceExcel(data: FinanceData, period: Period): Pro
   // Abre no Resumo
   wb.views = [{ x: 0, y: 0, width: 20000, height: 12000, firstSheet: 0, activeTab: 0, visibility: 'visible' }];
 
-  const buffer = await wb.xlsx.writeBuffer();
+  return (await wb.xlsx.writeBuffer()) as ArrayBuffer;
+}
+
+export const reportFileName = (period: Period) => `Olha que Duas - Relatorio financeiro ${period.value}.xlsx`;
+
+/** Gera o relatório e descarrega-o no browser. */
+export async function exportFinanceExcel(data: FinanceData, period: Period): Promise<void> {
+  const buffer = await buildFinanceWorkbook(data, period);
   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `Olha que Duas - Relatorio financeiro ${period.value}.xlsx`;
+  a.download = reportFileName(period);
   a.click();
   URL.revokeObjectURL(url);
 }
