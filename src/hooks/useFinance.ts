@@ -8,7 +8,7 @@ import type {
   FinRecurrence,
   FinTransaction,
 } from '../types/finance';
-import type { FinanceData } from '../lib/finance';
+import { equalShare, type FinanceData } from '../lib/finance';
 import { lisbonToday } from '../lib/scheduleDates';
 import type { FinActivity } from '../lib/financeActivity';
 
@@ -46,6 +46,19 @@ export interface ReportSettings {
   recipients: string[];
   lastPeriod: string | null;
   lastSentAt: string | null;
+}
+
+export interface NewMovementInput {
+  clientId: string | null;
+  /** Cria este cliente e usa-o em tudo o que for registado. */
+  newClientName: string | null;
+  /** Movimento pontual (sem client_id; vem de clientId/newClientName). */
+  transaction: Omit<FinTransaction, 'id' | 'client_id' | 'recurrence_id'> | null;
+  recurrence: Omit<FinRecurrence, 'id' | 'generated_count' | 'client_id'> | null;
+  /** A primeira ocorrência da repetição já foi paga/recebida. */
+  firstPaid: boolean;
+  /** Pagamento inicial (entrada / sinal) de um acordo com cliente. */
+  deposit: { amount: number; date: string; paid: boolean; description: string } | null;
 }
 
 export function useFinance() {
@@ -191,6 +204,82 @@ export function useFinance() {
   };
 
   /**
+   * Registo "tudo de uma vez" do formulário Entrou/Saiu dinheiro: cria o
+   * cliente novo (se indicado), o movimento pontual ou a repetição, a entrada
+   * inicial (sinal) e, se já foi pago, o primeiro pagamento da repetição.
+   */
+  const createMovement = async (input: NewMovementInput): Promise<boolean> => {
+    try {
+      let clientId = input.clientId;
+      if (input.newClientName) {
+        const { data: created, error: cliError } = await supabase
+          .from('fin_clients')
+          .insert({ name: input.newClientName })
+          .select('id')
+          .single();
+        if (cliError) throw cliError;
+        clientId = created.id as string;
+      }
+
+      if (input.transaction) {
+        const { error: txError } = await supabase
+          .from('fin_transactions')
+          .insert({ ...input.transaction, client_id: clientId });
+        if (txError) throw txError;
+      }
+
+      if (input.recurrence) {
+        const { data: rec, error: recError } = await supabase
+          .from('fin_recurrences')
+          .insert({ ...input.recurrence, client_id: clientId, generated_count: 0 })
+          .select('id')
+          .single();
+        if (recError) throw recError;
+        // O gerador ignora esta data (UNIQUE recurrence_id + tx_date) e segue para a seguinte.
+        if (input.firstPaid) {
+          const r = input.recurrence;
+          const { error: firstError } = await supabase.from('fin_transactions').insert({
+            kind: r.kind,
+            tx_date: r.start_date,
+            amount: r.amount,
+            description: r.description,
+            status: 'paid',
+            paid_at: r.start_date,
+            method: r.method,
+            client_id: clientId,
+            category_id: r.category_id,
+            recurrence_id: rec.id,
+          });
+          if (firstError) throw firstError;
+        }
+      }
+
+      if (input.deposit) {
+        const d = input.deposit;
+        const { error: depError } = await supabase.from('fin_transactions').insert({
+          kind: 'income',
+          tx_date: d.date,
+          amount: d.amount,
+          description: d.description,
+          status: d.paid ? 'paid' : 'pending',
+          paid_at: d.paid ? d.date : null,
+          method: input.recurrence?.method ?? null,
+          client_id: clientId,
+          category_id: input.recurrence?.category_id ?? null,
+        });
+        if (depError) throw depError;
+      }
+
+      await fetchAll();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao guardar');
+      await fetchAll();
+      return false;
+    }
+  };
+
+  /**
    * Marca um lançamento pendente como pago hoje. Se a data prevista ainda não
    * chegou (ex.: o pagamento da próxima semana), pede confirmação primeiro.
    */
@@ -214,6 +303,22 @@ export function useFinance() {
     if (insertError) {
       setError(insertError.message);
       return false;
+    }
+    await fetchAll();
+    return true;
+  };
+
+  /** Divide em partes iguais pelos membros ativos (ex.: 3 → 33,33% cada). */
+  const setEqualShares = async (): Promise<boolean> => {
+    const active = data.members.filter((m) => m.is_active);
+    const pct = equalShare(active.length);
+    for (const m of active) {
+      const { error: updError } = await supabase.from('fin_members').update({ share_percent: pct }).eq('id', m.id);
+      if (updError) {
+        setError(updError.message);
+        await fetchAll();
+        return false;
+      }
     }
     await fetchAll();
     return true;
@@ -318,8 +423,10 @@ export function useFinance() {
     refresh: fetchAll,
     save,
     saveRecurrence,
+    createMovement,
     markPaid,
     insertPayouts,
+    setEqualShares,
     loadActivity,
     remove,
     saveReserve,

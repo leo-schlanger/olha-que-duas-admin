@@ -1,27 +1,27 @@
 import { useState } from 'react';
 import { Pencil, Plus, Repeat, Trash2 } from 'lucide-react';
-import { Card, CardContent } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
-import { EmptyState, Field, FormDialog, KindBadge, NativeSelect } from './shared';
+import { Choice, EmptyState, Field, FormDialog, NativeSelect } from './shared';
 import {
-  FREQUENCY_LABEL,
   PAYMENT_METHODS,
   formatDate,
   formatEUR,
+  isOverdue,
   monthlyEquivalent,
-  nextOccurrence,
+  nextDue,
   parseAmount,
+  recurrenceSentence,
+  repeatLabel,
 } from '../../lib/finance';
-import { lisbonToday } from '../../lib/scheduleDates';
 import type { FinanceApi } from '../../hooks/useFinance';
 import type { FinFrequency, FinKind, FinRecurrence } from '../../types/finance';
 
-export function RecurrencesTab({ api }: { api: FinanceApi }) {
+export function RecurrencesTab({ api, onNew }: { api: FinanceApi; onNew: (kind: FinKind, repeat: boolean) => void }) {
   const { data } = api;
   const [editing, setEditing] = useState<FinRecurrence | null>(null);
-  const [open, setOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const active = data.recurrences.filter((r) => r.is_active);
@@ -39,71 +39,116 @@ export function RecurrencesTab({ api }: { api: FinanceApi }) {
     }
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          Previsão mensal: <span className="text-green-700 font-medium">{formatEUR(monthlyIn)}</span> de receitas ·{' '}
-          <span className="text-red-600 font-medium">{formatEUR(monthlyOut)}</span> de custos fixos. Os lançamentos
-          previstos são criados automaticamente 7 dias antes.
-        </p>
-        <Button
-          className="bg-vermelho hover:bg-vermelho-dark text-white"
-          onClick={() => {
-            setEditing(null);
-            setOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4 mr-1" /> Nova recorrência
-        </Button>
-      </div>
+  /** Como está o acordo: quanto já entrou/saiu, o que está em atraso. */
+  const stats = (r: FinRecurrence) => {
+    const txs = data.transactions.filter((t) => t.recurrence_id === r.id);
+    const paid = txs.filter((t) => t.status === 'paid');
+    const late = txs.filter((t) => isOverdue(t));
+    return {
+      paidTotal: paid.reduce((s, t) => s + t.amount, 0),
+      paidCount: paid.length,
+      lateTotal: late.reduce((s, t) => s + t.amount, 0),
+      lateCount: late.length,
+    };
+  };
 
+  const list = (kind: FinKind, title: string, empty: string) => {
+    const rows = data.recurrences.filter((r) => r.kind === kind);
+    const income = kind === 'income';
+    return (
       <Card>
-        <CardContent className="p-4">
-          {data.recurrences.length === 0 ? (
-            <EmptyState>
-              Registe aqui clientes que pagam com regularidade e custos fixos (servidores, ferramentas, marketing).
-            </EmptyState>
+        <CardHeader className="pb-2 flex-row items-center justify-between space-y-0 gap-3 flex-wrap">
+          <CardTitle className="text-base">{title}</CardTitle>
+          <Button size="sm" variant="outline" className={income ? 'text-green-700' : 'text-red-600'} onClick={() => onNew(kind, true)}>
+            <Plus className="h-4 w-4 mr-1" /> {income ? 'Novo acordo com cliente' : 'Novo custo fixo'}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {rows.length === 0 ? (
+            <EmptyState>{empty}</EmptyState>
           ) : (
             <div className="divide-y divide-beige-medium">
-              {data.recurrences.map((r) => (
-                <div key={r.id} className={`flex flex-wrap items-center gap-3 py-3 ${r.is_active ? '' : 'opacity-50'}`}>
-                  <Repeat className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <KindBadge kind={r.kind} />
-                  <div className="flex-1 min-w-[180px]">
-                    <p className="font-medium text-charcoal text-sm">{r.description}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {[
-                        FREQUENCY_LABEL[r.frequency],
-                        clientName(r.client_id),
-                        r.is_active ? `próxima ${formatDate(nextOccurrence(r))}` : 'pausada',
-                        r.end_date && `até ${formatDate(r.end_date)}`,
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </p>
+              {rows.map((r) => {
+                const s = stats(r);
+                return (
+                  <div key={r.id} className={`flex flex-wrap items-start gap-3 py-3 ${r.is_active ? '' : 'opacity-50'}`}>
+                    <Repeat className={`h-4 w-4 mt-1 shrink-0 ${income ? 'text-green-700' : 'text-red-600'}`} />
+                    <div className="flex-1 min-w-[220px] space-y-0.5">
+                      <p className="font-medium text-charcoal">
+                        {r.description}
+                        {clientName(r.client_id) && !r.description.includes(clientName(r.client_id)!) && <span className="font-normal text-muted-foreground"> · {clientName(r.client_id)}</span>}
+                      </p>
+                      <p className="text-sm text-charcoal">{recurrenceSentence(r)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {r.is_active ? `Próxima: ${formatDate(nextDue(r, data.transactions))}` : 'Pausado'}
+                        {` · ${income ? 'Já recebido' : 'Já pago'}: ${formatEUR(s.paidTotal)} (${s.paidCount}×)`}
+                        {r.frequency !== 'monthly' && ` · ≈ ${formatEUR(monthlyEquivalent(r))}/mês`}
+                      </p>
+                      {s.lateCount > 0 && (
+                        <p className="text-xs font-medium text-red-600">
+                          {s.lateCount} em atraso ({formatEUR(s.lateTotal)})
+                        </p>
+                      )}
+                    </div>
+                    <span className={`tabular-nums font-semibold ${income ? 'text-green-700' : 'text-red-600'}`}>{formatEUR(r.amount)}</span>
+                    <div className="flex">
+                      <Button size="icon" variant="ghost" className="h-8 w-8" title="Alterar" onClick={() => setEditing(r)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className={`h-8 w-8 ${confirmDelete === r.id ? 'text-white bg-red-600 hover:bg-red-700' : 'text-red-600'}`}
+                        title={confirmDelete === r.id ? 'Clique de novo para apagar (o que já foi pago fica no histórico)' : 'Apagar'}
+                        onClick={() => handleDelete(r.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <span className="tabular-nums font-medium">{formatEUR(r.amount)}</span>
-                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => { setEditing(r); setOpen(true); }}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className={`h-8 w-8 ${confirmDelete === r.id ? 'text-white bg-red-600 hover:bg-red-700' : 'text-red-600'}`}
-                    title={confirmDelete === r.id ? 'Clique de novo para apagar (os lançamentos já criados ficam)' : 'Apagar'}
-                    onClick={() => handleDelete(r.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
       </Card>
+    );
+  };
 
-      {open && <RecurrenceDialog api={api} recurrence={editing} onClose={() => setOpen(false)} />}
+  return (
+    <div className="space-y-4">
+      <div className="grid sm:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Entra todos os meses (≈)</p>
+            <p className="text-2xl font-bold tabular-nums text-green-700">{formatEUR(monthlyIn)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Sai todos os meses (≈)</p>
+            <p className="text-2xl font-bold tabular-nums text-red-600">{formatEUR(monthlyOut)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Sobra por mês (≈)</p>
+            <p className={`text-2xl font-bold tabular-nums ${monthlyIn - monthlyOut >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+              {formatEUR(monthlyIn - monthlyOut)}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Aqui ficam os valores que se repetem. Cada pagamento aparece como <strong>Previsto</strong> uma semana antes, no
+        Resumo; quando acontecer, basta carregar em <strong>Recebido</strong> ou <strong>Pago</strong>. Semanal conta
+        como 52 semanas ÷ 12 meses.
+      </p>
+
+      {list('income', 'Acordos com clientes (entradas que se repetem)', 'Ainda não há acordos. Ex.: cliente que paga 150 € todas as quintas-feiras.')}
+      {list('expense', 'Custos fixos (saídas que se repetem)', 'Ainda não há custos fixos. Ex.: servidor, ferramentas, assinaturas.')}
+
+      {editing && <RecurrenceDialog api={api} recurrence={editing} onClose={() => setEditing(null)} />}
     </div>
   );
 }
@@ -114,15 +159,15 @@ function RecurrenceDialog({
   onClose,
 }: {
   api: FinanceApi;
-  recurrence: FinRecurrence | null;
+  recurrence: FinRecurrence;
   onClose: () => void;
 }) {
   const { data } = api;
-  const [kind, setKind] = useState<FinKind>(recurrence?.kind ?? 'income');
+  const kind: FinKind = recurrence.kind;
   const [description, setDescription] = useState(recurrence?.description ?? '');
   const [amount, setAmount] = useState(recurrence ? String(recurrence.amount).replace('.', ',') : '');
   const [frequency, setFrequency] = useState<FinFrequency>(recurrence?.frequency ?? 'weekly');
-  const [startDate, setStartDate] = useState(recurrence?.start_date ?? lisbonToday());
+  const [startDate, setStartDate] = useState(recurrence.start_date);
   const [endDate, setEndDate] = useState(recurrence?.end_date ?? '');
   const [clientId, setClientId] = useState(recurrence?.client_id ?? '');
   const [categoryId, setCategoryId] = useState(recurrence?.category_id ?? '');
@@ -158,60 +203,57 @@ function RecurrenceDialog({
     else setError('Não foi possível guardar');
   };
 
+  const income = kind === 'income';
   return (
     <FormDialog
       open
       onOpenChange={(o) => !o && onClose()}
-      title={recurrence ? 'Editar recorrência' : 'Nova recorrência'}
+      title={income ? 'Alterar acordo com cliente' : 'Alterar custo fixo'}
       saving={saving}
       error={error}
       onSubmit={submit}
       wide
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Tipo">
-          <NativeSelect value={kind} onChange={(e) => { setKind(e.target.value as FinKind); setCategoryId(''); }}>
-            <option value="income">Receita (cliente)</option>
-            <option value="expense">Despesa (custo fixo)</option>
-          </NativeSelect>
+        <Field label="O que é?" htmlFor="rec-desc" required className="sm:col-span-2">
+          <Input id="rec-desc" value={description} onChange={(e) => setDescription(e.target.value)} />
         </Field>
-        <Field label="Frequência">
-          <NativeSelect value={frequency} onChange={(e) => setFrequency(e.target.value as FinFrequency)}>
-            {Object.entries(FREQUENCY_LABEL).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
-          </NativeSelect>
+        <Field label="Valor (€)" htmlFor="rec-amount" required hint="Muda os previstos ainda não pagos; o que já foi pago fica igual.">
+          <Input id="rec-amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
         </Field>
-        <Field label="Descrição" htmlFor="rec-desc" required className="sm:col-span-2">
-          <Input id="rec-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Ex.: Patrocínio semanal" />
-        </Field>
-        <Field label="Valor (€)" htmlFor="rec-amount" required>
-          <Input id="rec-amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="75,00" />
-        </Field>
-        <Field label="Método">
-          <NativeSelect value={method} onChange={(e) => setMethod(e.target.value)}>
-            <option value="">—</option>
-            {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
-          </NativeSelect>
-        </Field>
-        <Field
-          label="Primeira data"
-          htmlFor="rec-start"
-          required
-          hint={scheduleChanged ? 'Mudar a data ou a frequência recria os previstos pendentes.' : 'As seguintes repetem a partir desta.'}
-        >
-          <Input id="rec-start" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
-        </Field>
-        <Field label="Termina em (opcional)" htmlFor="rec-end">
-          <Input id="rec-end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-        </Field>
-        <Field label="Cliente">
+        <Field label={income ? 'Cliente' : 'Cliente associado (opcional)'}>
           <NativeSelect value={clientId} onChange={(e) => setClientId(e.target.value)}>
             <option value="">—</option>
             {data.clients.filter((c) => c.is_active || c.id === clientId).map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </NativeSelect>
+        </Field>
+        <Field label="Com que frequência?" className="sm:col-span-2">
+          <Choice
+            value={frequency}
+            onChange={setFrequency}
+            options={[
+              { value: 'weekly', label: 'Toda semana' },
+              { value: 'monthly', label: 'Todo mês' },
+              { value: 'yearly', label: 'Todo ano' },
+            ]}
+          />
+        </Field>
+        <Field
+          label="A partir de"
+          htmlFor="rec-start"
+          required
+          hint={
+            scheduleChanged
+              ? `Passa a repetir ${repeatLabel(frequency, startDate)}. Os previstos por pagar são refeitos; os pagos ficam.`
+              : `Repete ${repeatLabel(frequency, startDate)}.`
+          }
+        >
+          <Input id="rec-start" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+        </Field>
+        <Field label="Última vez (opcional)" htmlFor="rec-end" hint="Deixe vazio se não tem fim.">
+          <Input id="rec-end" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
         </Field>
         <Field label="Categoria">
           <NativeSelect value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
@@ -221,9 +263,15 @@ function RecurrenceDialog({
             ))}
           </NativeSelect>
         </Field>
+        <Field label="Como é pago?">
+          <NativeSelect value={method} onChange={(e) => setMethod(e.target.value)}>
+            <option value="">—</option>
+            {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+          </NativeSelect>
+        </Field>
         <div className="flex items-center gap-3 sm:col-span-2">
           <Switch checked={isActive} onCheckedChange={setIsActive} id="rec-active" />
-          <label htmlFor="rec-active" className="text-sm text-charcoal">Ativa (desligue para pausar sem apagar)</label>
+          <label htmlFor="rec-active" className="text-sm text-charcoal">Ativo (desligue para pausar sem apagar)</label>
         </div>
       </div>
     </FormDialog>

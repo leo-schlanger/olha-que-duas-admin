@@ -13,6 +13,7 @@ import { CategoriesTab } from '../components/finance/CategoriesTab';
 import { ActivityTab } from '../components/finance/ActivityTab';
 import { TransactionDialog } from '../components/finance/TransactionDialog';
 import { ImportReceiptDialog } from '../components/finance/ImportReceiptDialog';
+import { NewMovementDialog } from '../components/finance/NewMovementDialog';
 import { currentPeriod, periodLabel, shiftPeriod, type Period } from '../lib/finance';
 import { exportFinanceExcel } from '../lib/financeExcel';
 import type { FinKind, FinTransaction } from '../types/finance';
@@ -22,12 +23,13 @@ const SUB_TAB = 'px-3 py-2 data-[state=active]:bg-vermelho data-[state=active]:t
 export function Finance() {
   const api = useFinance();
   const [period, setPeriod] = useState<Period>(currentPeriod);
-  const [txDialog, setTxDialog] = useState<{ tx: FinTransaction | null; kind: FinKind } | null>(null);
+  const [editing, setEditing] = useState<FinTransaction | null>(null);
+  const [newMovement, setNewMovement] = useState<{ kind: FinKind; repeat: boolean } | null>(null);
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
 
-  const openNew = (kind: FinKind) => setTxDialog({ tx: null, kind });
-  const openEdit = (tx: FinTransaction) => setTxDialog({ tx, kind: tx.kind });
+  const openNew = (kind: FinKind, repeat = false) => setNewMovement({ kind, repeat });
+  const openEdit = (tx: FinTransaction) => setEditing(tx);
 
   const handleExport = async () => {
     setExporting(true);
@@ -43,17 +45,17 @@ export function Finance() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-display font-bold text-charcoal">Finanças</h2>
-          <p className="text-sm text-muted-foreground mt-1">Clientes, receitas, custos e distribuição pela equipa</p>
+          <p className="text-sm text-muted-foreground mt-1">O que entrou, o que saiu, o que falta receber e quanto cabe a cada um</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={() => setImporting(true)} disabled={api.loading}>
             <FileUp className="h-4 w-4 mr-1" /> Importar comprovativo
           </Button>
-          <Button variant="outline" onClick={() => openNew('income')} className="text-green-700">
-            <Plus className="h-4 w-4 mr-1" /> Receita
+          <Button onClick={() => openNew('income')} className="bg-green-700 hover:bg-green-800 text-white">
+            <Plus className="h-4 w-4 mr-1" /> Entrou dinheiro
           </Button>
-          <Button variant="outline" onClick={() => openNew('expense')} className="text-red-600">
-            <Minus className="h-4 w-4 mr-1" /> Despesa
+          <Button onClick={() => openNew('expense')} className="bg-red-600 hover:bg-red-700 text-white">
+            <Minus className="h-4 w-4 mr-1" /> Saiu dinheiro
           </Button>
           <Button onClick={handleExport} disabled={exporting || api.loading} className="bg-vermelho hover:bg-vermelho-dark text-white">
             {exporting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 mr-1" />}
@@ -97,8 +99,8 @@ export function Finance() {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="bg-cream border border-beige-medium p-1 h-auto flex-wrap">
             <TabsTrigger value="overview" className={SUB_TAB}>Resumo</TabsTrigger>
-            <TabsTrigger value="transactions" className={SUB_TAB}>Lançamentos</TabsTrigger>
-            <TabsTrigger value="recurrences" className={SUB_TAB}>Recorrentes</TabsTrigger>
+            <TabsTrigger value="transactions" className={SUB_TAB}>Movimentos</TabsTrigger>
+            <TabsTrigger value="recurrences" className={SUB_TAB}>Fixos e acordos</TabsTrigger>
             <TabsTrigger value="clients" className={SUB_TAB}>Clientes</TabsTrigger>
             <TabsTrigger value="team" className={SUB_TAB}>Equipa</TabsTrigger>
             <TabsTrigger value="categories" className={SUB_TAB}>Categorias</TabsTrigger>
@@ -111,7 +113,7 @@ export function Finance() {
             <TransactionsTab api={api} period={period} onEdit={openEdit} />
           </TabsContent>
           <TabsContent value="recurrences" className="mt-0">
-            <RecurrencesTab api={api} />
+            <RecurrencesTab api={api} onNew={openNew} />
           </TabsContent>
           <TabsContent value="clients" className="mt-0">
             <ClientsTab api={api} />
@@ -130,12 +132,21 @@ export function Finance() {
 
       {importing && <ImportReceiptDialog api={api} onClose={() => setImporting(false)} />}
 
+      {newMovement && (
+        <NewMovementDialog
+          api={api}
+          defaultKind={newMovement.kind}
+          defaultRepeat={newMovement.repeat ? (newMovement.kind === 'income' ? 'weekly' : 'monthly') : 'once'}
+          onClose={() => setNewMovement(null)}
+        />
+      )}
+
       <TransactionDialog
         api={api}
-        open={!!txDialog}
-        onOpenChange={(o) => !o && setTxDialog(null)}
-        transaction={txDialog?.tx}
-        defaultKind={txDialog?.kind}
+        open={!!editing}
+        onOpenChange={(o) => !o && setEditing(null)}
+        transaction={editing}
+        defaultKind={editing?.kind}
       />
     </div>
   );

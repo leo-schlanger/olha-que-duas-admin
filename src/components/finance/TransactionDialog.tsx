@@ -88,7 +88,7 @@ function TransactionForm({ api, open, onOpenChange, transaction, defaultKind = '
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={transaction ? 'Editar lançamento' : kind === 'income' ? 'Nova receita' : 'Nova despesa'}
+      title={transaction ? 'Alterar movimento' : kind === 'income' ? 'Entrou dinheiro' : 'Saiu dinheiro'}
       saving={saving}
       error={error}
       onSubmit={submit}
@@ -110,7 +110,7 @@ function TransactionForm({ api, open, onOpenChange, transaction, defaultKind = '
         <Field label="Estado">
           <NativeSelect value={status} onChange={(e) => setStatus(e.target.value as FinStatus)}>
             <option value="paid">{kind === 'income' ? 'Recebido' : 'Pago'}</option>
-            <option value="pending">Pendente</option>
+            <option value="pending">Ainda não</option>
           </NativeSelect>
         </Field>
         <Field label="Descrição" htmlFor="fin-desc" required className="sm:col-span-2">

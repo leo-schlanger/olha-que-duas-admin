@@ -106,6 +106,44 @@ export function occurrenceDate(start: string, frequency: FinFrequency, n: number
 export const nextOccurrence = (r: FinRecurrence) =>
   occurrenceDate(r.start_date, r.frequency, r.generated_count);
 
+/** Próximo pagamento ainda por confirmar: o previsto mais antigo ou, se não houver, a próxima ocorrência. */
+export function nextDue(r: FinRecurrence, txs: FinTransaction[]): string {
+  const pending = txs
+    .filter((t) => t.recurrence_id === r.id && t.status === 'pending')
+    .map((t) => t.tx_date)
+    .sort();
+  return pending[0] ?? nextOccurrence(r);
+}
+
+export const WEEKDAY_PLURAL = ['domingos', 'segundas-feiras', 'terças-feiras', 'quartas-feiras', 'quintas-feiras',
+  'sextas-feiras', 'sábados'];
+
+/** Dia da semana (0 = domingo) de "YYYY-MM-DD", sem depender do fuso. */
+const weekdayOfDate = (date: string) => {
+  const [y, m, d] = date.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+};
+
+/**
+ * Quando se repete, em linguagem corrente: "todas as quintas-feiras",
+ * "todos os meses, ao dia 26", "todos os anos, a 12/03".
+ */
+export function repeatLabel(frequency: FinFrequency, startDate: string): string {
+  const [, m, d] = startDate.split('-');
+  if (frequency === 'weekly') {
+    const wd = weekdayOfDate(startDate);
+    return `${wd === 0 || wd === 6 ? 'todos os' : 'todas as'} ${WEEKDAY_PLURAL[wd]}`;
+  }
+  if (frequency === 'monthly') return `todos os meses, ao dia ${Number(d)}`;
+  return `todos os anos, a ${d}/${m}`;
+}
+
+/** Frase completa: "150,00 € todas as quintas-feiras, desde 08/10/2026". */
+export function recurrenceSentence(r: Pick<FinRecurrence, 'amount' | 'frequency' | 'start_date' | 'end_date'>): string {
+  const until = r.end_date ? ` até ${formatDate(r.end_date)}` : '';
+  return `${formatEUR(r.amount)} ${repeatLabel(r.frequency, r.start_date)}, desde ${formatDate(r.start_date)}${until}`;
+}
+
 /** Valor médio por mês de uma recorrência. */
 export function monthlyEquivalent(r: FinRecurrence): number {
   if (r.frequency === 'weekly') return (r.amount * 52) / 12;
@@ -187,6 +225,9 @@ export function computeSummary(
 
 /** Percentagens que somam 100% com arredondamento (ex.: 3 × 33,33%). */
 export const sharesComplete = (totalPercent: number) => Math.abs(totalPercent - 100) <= 0.1;
+
+/** Partes iguais para `n` pessoas (ex.: 3 → 33,33%); a soma fica dentro da tolerância de sharesComplete. */
+export const equalShare = (n: number) => (n > 0 ? Math.floor((10000 / n)) / 100 : 0);
 
 export interface MemberShare {
   member: FinMember;

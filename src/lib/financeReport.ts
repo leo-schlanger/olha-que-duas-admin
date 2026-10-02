@@ -81,15 +81,15 @@ export function buildReportEmail(data: FinanceData, period: Period, panelUrl = '
 <tr><td style="padding:20px 24px">
 <p style="margin:0 0 12px;color:#3f3a33">Olá! Segue o resumo financeiro de <strong>${label}</strong>. O relatório completo (Excel) vai em anexo.</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e3dacd;border-collapse:collapse;font-size:14px">
-${kpi('Receitas recebidas', s.income, '#15803d')}
-${kpi('Despesas pagas', s.expense, '#b91c1c')}
-${kpi('Resultado', s.result, s.result >= 0 ? '#15803d' : '#b91c1c', true)}
-${kpi(`Reserva (${data.reservePercent}%)`, d.reserve)}
-${kpi('A distribuir pela equipa', d.distributable, '#3f3a33', true)}
+${kpi('Entrou', s.income, '#15803d')}
+${kpi('Saiu', s.expense, '#b91c1c')}
+${kpi(s.result >= 0 ? 'Sobrou' : 'Faltou', s.result, s.result >= 0 ? '#15803d' : '#b91c1c', true)}
+${data.reservePercent ? kpi(`Guardado para impostos/caixa (${data.reservePercent}%)`, d.reserve) : ''}
+${kpi('Para dividir pela equipa', d.distributable, '#3f3a33', true)}
 </table>
-${d.shares.length ? `<p style="margin:20px 0 6px;color:#c0392b;font-weight:700;text-transform:uppercase;font-size:13px">Distribuição</p>
+${d.shares.length ? `<p style="margin:20px 0 6px;color:#c0392b;font-weight:700;text-transform:uppercase;font-size:13px">Quanto cabe a cada um</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e3dacd;border-collapse:collapse;font-size:14px">
-<tr><th style="${th}">Membro</th><th style="${th};text-align:right">%</th><th style="${th};text-align:right">A receber</th><th style="${th};text-align:right">Por pagar</th></tr>
+<tr><th style="${th}">Membro</th><th style="${th};text-align:right">Parte</th><th style="${th};text-align:right">Cabe-lhe</th><th style="${th};text-align:right">Falta pagar</th></tr>
 ${members}</table>` : ''}
 ${s.pendingIncome || s.pendingExpense ? `<p style="margin:16px 0 0;color:#7a7268;font-size:13px">Ainda por receber neste período: ${formatEUR(s.pendingIncome)} · por pagar: ${formatEUR(s.pendingExpense)}.</p>` : ''}
 ${overdueHtml}
@@ -101,13 +101,13 @@ ${overdueHtml}
   const text = [
     `Olha que Duas — Relatório financeiro de ${label} (${formatDate(from)} a ${formatDate(to)})`,
     '',
-    `Receitas recebidas: ${formatEUR(s.income)}`,
-    `Despesas pagas: ${formatEUR(s.expense)}`,
-    `Resultado: ${formatEUR(s.result)}`,
-    `Reserva (${data.reservePercent}%): ${formatEUR(d.reserve)}`,
-    `A distribuir pela equipa: ${formatEUR(d.distributable)}`,
+    `Entrou: ${formatEUR(s.income)}`,
+    `Saiu: ${formatEUR(s.expense)}`,
+    `${s.result >= 0 ? 'Sobrou' : 'Faltou'}: ${formatEUR(s.result)}`,
+    ...(data.reservePercent ? [`Guardado (${data.reservePercent}%): ${formatEUR(d.reserve)}`] : []),
+    `Para dividir pela equipa: ${formatEUR(d.distributable)}`,
     '',
-    ...d.shares.map((m) => `- ${m.member.name} (${m.member.share_percent}%): ${formatEUR(m.due)} — por pagar ${formatEUR(m.balance)}`),
+    ...d.shares.map((m) => `- ${m.member.name} (${m.member.share_percent}%): ${formatEUR(m.due)} — falta pagar ${formatEUR(m.balance)}`),
     ...(overdue.length ? ['', 'Em atraso:', ...overdue.map((t) => `- ${t.description}: ${formatEUR(t.amount)} (${formatDate(t.tx_date)})`)] : []),
     '',
     `Relatório completo em anexo. Painel: ${panelUrl}`,

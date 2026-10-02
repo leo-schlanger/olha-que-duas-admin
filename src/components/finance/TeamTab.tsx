@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { AlertTriangle, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
+import { AlertTriangle, Pencil, Plus, Scale, Trash2, Wallet } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
 import { EmptyState, Field, FormDialog, NativeSelect } from './shared';
 import { ReportCard } from './ReportCard';
-import { computeDistribution, parseAmount, sharesComplete, formatDate, formatEUR, inPeriod, periodLabel, type Period } from '../../lib/finance';
+import { computeDistribution, equalShare, parseAmount, sharesComplete, formatDate, formatEUR, inPeriod, periodLabel, type Period } from '../../lib/finance';
 import { lisbonToday } from '../../lib/scheduleDates';
 import type { FinanceApi } from '../../hooks/useFinance';
 import type { FinMember } from '../../types/finance';
@@ -19,6 +19,8 @@ export function TeamTab({ api, period }: { api: FinanceApi; period: Period }) {
   const [reserve, setReserve] = useState(String(data.reservePercent));
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
+  const activeCount = data.members.filter((m) => m.is_active).length;
+  const equalNow = data.members.filter((m) => m.is_active).every((m) => m.share_percent === equalShare(activeCount));
   const memberName = (id: string) => data.members.find((m) => m.id === id)?.name ?? '—';
   const payouts = data.payouts.filter((p) => inPeriod(p.period, period));
 
@@ -61,13 +63,13 @@ export function TeamTab({ api, period }: { api: FinanceApi; period: Period }) {
       <div className="grid md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground">Resultado ({periodLabel(period)})</p>
+            <p className="text-sm text-muted-foreground">Sobrou em {periodLabel(period)}</p>
             <p className={`text-2xl font-bold tabular-nums ${dist.result >= 0 ? 'text-green-700' : 'text-red-600'}`}>{formatEUR(dist.result)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5 space-y-2">
-            <p className="text-sm text-muted-foreground">Reserva para caixa / impostos</p>
+            <p className="text-sm text-muted-foreground">Guardar antes de dividir (impostos / caixa)</p>
             <div className="flex items-center gap-2">
               <Input className="w-24" inputMode="decimal" value={reserve} onChange={(e) => setReserve(e.target.value)} />
               <span className="text-sm">%</span>
@@ -80,24 +82,39 @@ export function TeamTab({ api, period }: { api: FinanceApi; period: Period }) {
                 Guardar
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">Fica de fora: {formatEUR(dist.reserve)}</p>
+            <p className="text-xs text-muted-foreground">Fica guardado: {formatEUR(dist.reserve)}. Use 0% para dividir tudo.</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground">A distribuir</p>
+            <p className="text-sm text-muted-foreground">Para dividir pela equipa</p>
             <p className="text-2xl font-bold tabular-nums text-charcoal">{formatEUR(dist.distributable)}</p>
-            <p className="text-xs text-muted-foreground mt-1">Só meses com resultado positivo</p>
+            <p className="text-xs text-muted-foreground mt-1">Mês com prejuízo não gera divisão</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base">Equipa e percentagens</CardTitle>
-          <Button size="sm" className="bg-vermelho hover:bg-vermelho-dark text-white" onClick={() => setMemberDialog({ member: null })}>
-            <Plus className="h-4 w-4 mr-1" /> Membro
-          </Button>
+          <CardTitle className="text-base">Quem participa e com que parte</CardTitle>
+          <div className="flex gap-2">
+            {activeCount > 1 && !equalNow && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (window.confirm(`Dividir em partes iguais: ${equalShare(activeCount)}% para cada um dos ${activeCount} membros ativos?`)) {
+                    api.setEqualShares();
+                  }
+                }}
+              >
+                <Scale className="h-4 w-4 mr-1" /> Dividir em partes iguais
+              </Button>
+            )}
+            <Button size="sm" className="bg-vermelho hover:bg-vermelho-dark text-white" onClick={() => setMemberDialog({ member: null })}>
+              <Plus className="h-4 w-4 mr-1" /> Membro
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {data.members.length > 0 && !sharesComplete(dist.totalPercent) && (
@@ -113,10 +130,10 @@ export function TeamTab({ api, period }: { api: FinanceApi; period: Period }) {
                 <thead>
                   <tr className="text-left text-muted-foreground border-b border-beige-medium">
                     <th className="py-2 pr-3 font-medium">Membro</th>
-                    <th className="py-2 pr-3 font-medium text-right">%</th>
-                    <th className="py-2 pr-3 font-medium text-right">A receber</th>
+                    <th className="py-2 pr-3 font-medium text-right">Parte</th>
+                    <th className="py-2 pr-3 font-medium text-right">Cabe-lhe</th>
                     <th className="py-2 pr-3 font-medium text-right">Já pago</th>
-                    <th className="py-2 pr-3 font-medium text-right">Saldo</th>
+                    <th className="py-2 pr-3 font-medium text-right">Falta pagar</th>
                     <th className="py-2 w-40" />
                   </tr>
                 </thead>
@@ -126,7 +143,7 @@ export function TeamTab({ api, period }: { api: FinanceApi; period: Period }) {
                     return (
                       <tr key={m.id} className={m.is_active ? '' : 'opacity-50'}>
                         <td className="py-2.5 pr-3 font-medium text-charcoal">{m.name}</td>
-                        <td className="py-2.5 pr-3 text-right tabular-nums">{m.share_percent}%</td>
+                        <td className="py-2.5 pr-3 text-right tabular-nums">{String(m.share_percent).replace('.', ',')}%</td>
                         <td className="py-2.5 pr-3 text-right tabular-nums">{share ? formatEUR(share.due) : '—'}</td>
                         <td className="py-2.5 pr-3 text-right tabular-nums">{share ? formatEUR(share.paid) : '—'}</td>
                         <td className={`py-2.5 pr-3 text-right tabular-nums font-medium ${share && share.balance > 0 ? 'text-vermelho' : ''}`}>

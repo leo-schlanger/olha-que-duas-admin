@@ -128,6 +128,47 @@ export function StatusBadge({ tx }: { tx: FinTransaction }) {
   );
 }
 
+/** Botões de escolha única, grandes e legíveis (em vez de um select). */
+export function Choice<T extends string>({
+  value,
+  onChange,
+  options,
+  className,
+}: {
+  value: T;
+  onChange: (value: T) => void;
+  options: { value: T; label: string; tone?: 'pos' | 'neg' }[];
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn('grid gap-2', className)}
+      // Uma coluna por opção, salvo se o className já definir as colunas.
+      style={className?.includes('grid-cols') ? undefined : { gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+    >
+      {options.map((o) => {
+        const active = o.value === value;
+        const activeColor =
+          o.tone === 'pos' ? 'bg-green-700 border-green-700' : o.tone === 'neg' ? 'bg-red-600 border-red-600' : 'bg-vermelho border-vermelho';
+        return (
+          <button
+            key={o.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(o.value)}
+            className={cn(
+              'min-h-10 rounded-lg border px-2 py-2 text-sm font-medium transition-colors',
+              active ? `${activeColor} text-white` : 'border-beige-medium bg-white text-charcoal hover:bg-beige-light'
+            )}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function EmptyState({ children }: { children: ReactNode }) {
   return <p className="py-10 text-center text-sm text-muted-foreground">{children}</p>;
 }

@@ -80,6 +80,8 @@ export function FinanceOverview({
   const pending = data.transactions
     .filter((t) => t.status === 'pending' && (isOverdue(t) || t.tx_date <= horizon))
     .sort((a, b) => a.tx_date.localeCompare(b.tx_date));
+  const overdue = data.transactions.filter((t) => t.kind === 'income' && isOverdue(t));
+  const overdueTotal = overdue.reduce((a, t) => a + t.amount, 0);
 
 
   // Gráfico mensal do ano do período selecionado.
@@ -88,65 +90,44 @@ export function FinanceOverview({
     const p: Period = { type: 'month', value: `${year}-${String(i + 1).padStart(2, '0')}` };
     const paid = data.transactions.filter((t) => t.status === 'paid' && inPeriod(t.tx_date, p));
     const sum = (k: string) => paid.filter((t) => t.kind === k).reduce((s, t) => s + t.amount, 0);
-    return { label, Receitas: sum('income'), Despesas: sum('expense') };
+    return { label, Entrou: sum('income'), Saiu: sum('expense') };
   });
 
   return (
     <div className="space-y-6">
+      <Card className="border-vermelho/30 bg-white">
+        <CardContent className="p-5 text-charcoal leading-relaxed">
+          <p className="text-lg">
+            Em <strong className="capitalize">{periodLabel(period)}</strong> entraram{' '}
+            <strong className="text-green-700">{formatEUR(summary.income)}</strong> e saíram{' '}
+            <strong className="text-red-600">{formatEUR(summary.expense)}</strong>.{' '}
+            {summary.result >= 0 ? 'Sobraram' : 'Faltaram'}{' '}
+            <strong className={summary.result >= 0 ? 'text-green-700' : 'text-red-600'}>{formatEUR(Math.abs(summary.result))}</strong>.
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {summary.pendingIncome > 0 && <>Ainda falta receber {formatEUR(summary.pendingIncome)} neste período. </>}
+            {overdue.length > 0 ? (
+              <span className="text-red-600 font-medium">
+                {overdue.length} pagamento(s) em atraso, no total de {formatEUR(overdueTotal)}.
+              </span>
+            ) : (
+              'Nenhum pagamento em atraso.'
+            )}
+          </p>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Kpi label="Recebido" value={summary.income} tone="pos" hint={summary.pendingIncome ? `+ ${formatEUR(summary.pendingIncome)} pendente` : undefined} />
-        <Kpi label="Despesas pagas" value={summary.expense} tone="neg" hint={summary.pendingExpense ? `+ ${formatEUR(summary.pendingExpense)} pendente` : undefined} />
-        <Kpi label="Resultado" value={summary.result} tone={summary.result >= 0 ? 'pos' : 'neg'} />
-        <Kpi label="A distribuir" value={dist.distributable} hint={`Reserva ${data.reservePercent}%: ${formatEUR(dist.reserve)}`} />
+        <Kpi label="Entrou" value={summary.income} tone="pos" hint={summary.pendingIncome ? `+ ${formatEUR(summary.pendingIncome)} por receber` : 'Dinheiro já recebido'} />
+        <Kpi label="Saiu" value={summary.expense} tone="neg" hint={summary.pendingExpense ? `+ ${formatEUR(summary.pendingExpense)} por pagar` : 'Despesas já pagas'} />
+        <Kpi label={summary.result >= 0 ? 'Sobrou' : 'Faltou'} value={summary.result} tone={summary.result >= 0 ? 'pos' : 'neg'} hint="Entrou − saiu" />
+        <Kpi label="Para dividir pela equipa" value={dist.distributable} hint={data.reservePercent ? `Depois de guardar ${data.reservePercent}% (${formatEUR(dist.reserve)})` : 'Ver separador Equipa'} />
       </div>
 
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-vermelho" /> Previsão de caixa (próximos 3 meses)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-muted-foreground border-b border-beige-medium">
-                  <th className="py-2 pr-3 font-medium">Mês</th>
-                  <th className="py-2 pr-3 font-medium text-right">Entradas</th>
-                  <th className="py-2 pr-3 font-medium text-right">Saídas</th>
-                  <th className="py-2 pr-3 font-medium text-right">Saldo</th>
-                  <th className="py-2 font-medium text-right">Ainda por entrar / sair</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-beige-medium">
-                {forecast.map((f) => (
-                  <tr key={f.month}>
-                    <td className="py-2.5 pr-3 capitalize font-medium text-charcoal">
-                      {periodLabel({ type: 'month', value: f.month })}
-                    </td>
-                    <td className="py-2.5 pr-3 text-right tabular-nums text-green-700">{formatEUR(f.income)}</td>
-                    <td className="py-2.5 pr-3 text-right tabular-nums text-red-600">{formatEUR(f.expense)}</td>
-                    <td className={`py-2.5 pr-3 text-right tabular-nums font-semibold ${f.balance >= 0 ? 'text-green-700' : 'text-red-600'}`}>
-                      {formatEUR(f.balance)}
-                    </td>
-                    <td className="py-2.5 text-right tabular-nums text-muted-foreground">
-                      +{formatEUR(f.pendingIncome)} / −{formatEUR(f.pendingExpense)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Inclui o que já foi pago, os previstos e as próximas ocorrências das recorrências.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Clock className="h-4 w-4 text-vermelho" /> A receber e a pagar (atrasados + próximos 14 dias)
+            <Clock className="h-4 w-4 text-vermelho" /> Precisa de atenção: a receber e a pagar (atrasados e próximos 14 dias)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -180,7 +161,50 @@ export function FinanceOverview({
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Receitas e despesas pagas em {year}</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-vermelho" /> Próximos 3 meses (previsão)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-muted-foreground border-b border-beige-medium">
+                  <th className="py-2 pr-3 font-medium">Mês</th>
+                  <th className="py-2 pr-3 font-medium text-right">Vai entrar</th>
+                  <th className="py-2 pr-3 font-medium text-right">Vai sair</th>
+                  <th className="py-2 pr-3 font-medium text-right">Sobra</th>
+                  <th className="py-2 font-medium text-right">Ainda por confirmar</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-beige-medium">
+                {forecast.map((f) => (
+                  <tr key={f.month}>
+                    <td className="py-2.5 pr-3 capitalize font-medium text-charcoal">
+                      {periodLabel({ type: 'month', value: f.month })}
+                    </td>
+                    <td className="py-2.5 pr-3 text-right tabular-nums text-green-700">{formatEUR(f.income)}</td>
+                    <td className="py-2.5 pr-3 text-right tabular-nums text-red-600">{formatEUR(f.expense)}</td>
+                    <td className={`py-2.5 pr-3 text-right tabular-nums font-semibold ${f.balance >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                      {formatEUR(f.balance)}
+                    </td>
+                    <td className="py-2.5 text-right tabular-nums text-muted-foreground">
+                      +{formatEUR(f.pendingIncome)} / −{formatEUR(f.pendingExpense)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Conta o que já foi pago, o que está previsto e os próximos pagamentos dos fixos e acordos.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Entradas e saídas pagas, mês a mês, em {year}</CardTitle>
         </CardHeader>
         <CardContent className="h-72">
           <ResponsiveContainer width="100%" height="100%">
@@ -190,18 +214,18 @@ export function FinanceOverview({
               <YAxis tickLine={false} axisLine={false} fontSize={12} width={60} tickFormatter={(v) => `${v} €`} />
               <Tooltip formatter={(v) => formatEUR(Number(v))} />
               <Legend />
-              <Bar dataKey="Receitas" fill="#16a34a" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Despesas" fill="#dc2626" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Entrou" fill="#16a34a" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Saiu" fill="#dc2626" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
       <div className="grid md:grid-cols-3 gap-4">
-        <CategoryBars title="Receitas por categoria" rows={summary.incomeByCategory} />
-        <CategoryBars title="Despesas por categoria" rows={summary.expenseByCategory} />
+        <CategoryBars title="De onde veio o dinheiro (categoria)" rows={summary.incomeByCategory} />
+        <CategoryBars title="Para onde foi o dinheiro" rows={summary.expenseByCategory} />
         <CategoryBars
-          title="Receitas por cliente"
+          title="Quem pagou (cliente)"
           rows={summary.incomeByClient.map((c) => ({ ...c, color: '#c0392b' }))}
         />
       </div>
