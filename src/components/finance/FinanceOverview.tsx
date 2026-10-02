@@ -173,8 +173,7 @@ export function FinanceOverview({
                   <th className="py-2 pr-3 font-medium">Mês</th>
                   <th className="py-2 pr-3 font-medium text-right">Vai entrar</th>
                   <th className="py-2 pr-3 font-medium text-right">Vai sair</th>
-                  <th className="py-2 pr-3 font-medium text-right">Sobra</th>
-                  <th className="py-2 font-medium text-right">Ainda por confirmar</th>
+                  <th className="py-2 font-medium text-right">Sobra</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-beige-medium">
@@ -185,11 +184,8 @@ export function FinanceOverview({
                     </td>
                     <td className="py-2.5 pr-3 text-right tabular-nums text-green-700">{formatEUR(f.income)}</td>
                     <td className="py-2.5 pr-3 text-right tabular-nums text-red-600">{formatEUR(f.expense)}</td>
-                    <td className={`py-2.5 pr-3 text-right tabular-nums font-semibold ${f.balance >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                    <td className={`py-2.5 text-right tabular-nums font-semibold ${f.balance >= 0 ? 'text-green-700' : 'text-red-600'}`}>
                       {formatEUR(f.balance)}
-                    </td>
-                    <td className="py-2.5 text-right tabular-nums text-muted-foreground">
-                      +{formatEUR(f.pendingIncome)} / −{formatEUR(f.pendingExpense)}
                     </td>
                   </tr>
                 ))}
@@ -197,7 +193,7 @@ export function FinanceOverview({
             </table>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            Conta o que já foi pago, o que está previsto e os próximos pagamentos dos fixos e acordos.
+            Soma o que já foi pago neste mês com o que ainda está previsto (fixos, acordos e movimentos marcados para datas futuras).
           </p>
         </CardContent>
       </Card>

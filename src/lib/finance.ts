@@ -144,11 +144,19 @@ export function recurrenceSentence(r: Pick<FinRecurrence, 'amount' | 'frequency'
   return `${formatEUR(r.amount)} ${repeatLabel(r.frequency, r.start_date)}, desde ${formatDate(r.start_date)}${until}`;
 }
 
-/** Valor médio por mês de uma recorrência. */
-export function monthlyEquivalent(r: FinRecurrence): number {
-  if (r.frequency === 'weekly') return (r.amount * 52) / 12;
-  if (r.frequency === 'yearly') return r.amount / 12;
-  return r.amount;
+/**
+ * Quanto uma repetição vale num mês ("YYYY-MM"), contando as datas reais do
+ * calendário (ex.: 150 € às quintas = 4 ou 5 vezes, conforme o mês).
+ */
+export function amountInMonth(r: FinRecurrence, month: string): number {
+  const { from, to } = periodRange({ type: 'month', value: month });
+  let total = 0;
+  for (let n = 0; n < 5000; n++) {
+    const d = occurrenceDate(r.start_date, r.frequency, n);
+    if (d > to || (r.end_date && d > r.end_date)) break;
+    if (d >= from) total += r.amount;
+  }
+  return round2(total);
 }
 
 // -------------------------------------------------------------

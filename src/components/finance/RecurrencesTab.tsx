@@ -4,13 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
+import { lisbonToday } from '../../lib/scheduleDates';
 import { Choice, EmptyState, Field, FormDialog, NativeSelect } from './shared';
 import {
   PAYMENT_METHODS,
   formatDate,
   formatEUR,
   isOverdue,
-  monthlyEquivalent,
+  amountInMonth,
+  periodLabel,
   nextDue,
   parseAmount,
   recurrenceSentence,
@@ -25,8 +27,11 @@ export function RecurrencesTab({ api, onNew }: { api: FinanceApi; onNew: (kind: 
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const active = data.recurrences.filter((r) => r.is_active);
-  const monthlyIn = active.filter((r) => r.kind === 'income').reduce((s, r) => s + monthlyEquivalent(r), 0);
-  const monthlyOut = active.filter((r) => r.kind === 'expense').reduce((s, r) => s + monthlyEquivalent(r), 0);
+  // Valores reais deste mês (datas do calendário), iguais aos da previsão no Resumo.
+  const month = lisbonToday().slice(0, 7);
+  const monthName = periodLabel({ type: 'month', value: month });
+  const monthlyIn = active.filter((r) => r.kind === 'income').reduce((s, r) => s + amountInMonth(r, month), 0);
+  const monthlyOut = active.filter((r) => r.kind === 'expense').reduce((s, r) => s + amountInMonth(r, month), 0);
   const clientName = (id: string | null) => data.clients.find((c) => c.id === id)?.name;
 
   const handleDelete = async (id: string) => {
@@ -82,7 +87,6 @@ export function RecurrencesTab({ api, onNew }: { api: FinanceApi; onNew: (kind: 
                       <p className="text-xs text-muted-foreground">
                         {r.is_active ? `Próxima: ${formatDate(nextDue(r, data.transactions))}` : 'Pausado'}
                         {` · ${income ? 'Já recebido' : 'Já pago'}: ${formatEUR(s.paidTotal)} (${s.paidCount}×)`}
-                        {r.frequency !== 'monthly' && ` · ≈ ${formatEUR(monthlyEquivalent(r))}/mês`}
                       </p>
                       {s.lateCount > 0 && (
                         <p className="text-xs font-medium text-red-600">
@@ -120,19 +124,19 @@ export function RecurrencesTab({ api, onNew }: { api: FinanceApi; onNew: (kind: 
       <div className="grid sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground">Entra todos os meses (≈)</p>
+            <p className="text-sm text-muted-foreground">Vai entrar em {monthName}</p>
             <p className="text-2xl font-bold tabular-nums text-green-700">{formatEUR(monthlyIn)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground">Sai todos os meses (≈)</p>
+            <p className="text-sm text-muted-foreground">Vai sair em {monthName}</p>
             <p className="text-2xl font-bold tabular-nums text-red-600">{formatEUR(monthlyOut)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground">Sobra por mês (≈)</p>
+            <p className="text-sm text-muted-foreground">Sobra em {monthName}</p>
             <p className={`text-2xl font-bold tabular-nums ${monthlyIn - monthlyOut >= 0 ? 'text-green-700' : 'text-red-600'}`}>
               {formatEUR(monthlyIn - monthlyOut)}
             </p>
@@ -141,8 +145,8 @@ export function RecurrencesTab({ api, onNew }: { api: FinanceApi; onNew: (kind: 
       </div>
       <p className="text-sm text-muted-foreground">
         Aqui ficam os valores que se repetem. Cada pagamento aparece como <strong>Previsto</strong> uma semana antes, no
-        Resumo; quando acontecer, basta carregar em <strong>Recebido</strong> ou <strong>Pago</strong>. Semanal conta
-        como 52 semanas ÷ 12 meses.
+        Resumo; quando acontecer, basta carregar em <strong>Recebido</strong> ou <strong>Pago</strong>. Os totais acima
+        somam só os fixos e acordos deste mês.
       </p>
 
       {list('income', 'Acordos com clientes (entradas que se repetem)', 'Ainda não há acordos. Ex.: cliente que paga 150 € todas as quintas-feiras.')}

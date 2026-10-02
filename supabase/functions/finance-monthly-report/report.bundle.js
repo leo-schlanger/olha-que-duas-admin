@@ -9,6 +9,11 @@ function lisbonToday(now = /* @__PURE__ */ new Date()) {
     day: "2-digit"
   }).format(now);
 }
+function addDays(date, days) {
+  const [y, m, d] = date.split("-").map(Number);
+  const utc = new Date(Date.UTC(y, m - 1, d + days));
+  return utc.toISOString().slice(0, 10);
+}
 
 // src/lib/finance.ts
 var eur = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" });
@@ -99,11 +104,6 @@ function repeatLabel(frequency, startDate) {
   if (frequency === "monthly") return `todos os meses, ao dia ${Number(d)}`;
   return `todos os anos, a ${d}/${m}`;
 }
-function monthlyEquivalent(r) {
-  if (r.frequency === "weekly") return r.amount * 52 / 12;
-  if (r.frequency === "yearly") return r.amount / 12;
-  return r.amount;
-}
 function groupByCategory(txs, categories) {
   const map = /* @__PURE__ */ new Map();
   for (const t of txs) map.set(t.category_id, (map.get(t.category_id) ?? 0) + t.amount);
@@ -190,9 +190,9 @@ var LINE = "FFE3DACD";
 var GREEN = "FF15803D";
 var RED = "FFB91C1C";
 var FONT = "Calibri";
-var EUR = '#,##0.00 "\u20AC";[Red]-#,##0.00 "\u20AC";"\u2014"';
+var EUR = '#,##0.00 "\u20AC";[Red]-#,##0.00 "\u20AC";0.00 "\u20AC"';
 var EUR_SIGNED = '+#,##0.00 "\u20AC";[Red]-#,##0.00 "\u20AC";"\u2014"';
-var PCT = '0.0%;[Red]-0.0%;"\u2014"';
+var PCT = "0.00%;[Red]-0.00%;0.00%";
 var DATE = "dd/mm/yyyy";
 var fill = (argb) => ({ type: "pattern", pattern: "solid", fgColor: { argb } });
 var thin = { style: "thin", color: { argb: LINE } };
@@ -348,406 +348,216 @@ async function buildFinanceWorkbook(data, period) {
   wb.creator = "Olha que Duas \u2014 Painel Admin";
   wb.created = /* @__PURE__ */ new Date();
   const label = cap(periodLabel(period));
-  const prev = shiftPeriod(period, -1);
-  const prevLabel = cap(periodLabel(prev));
   const { from, to } = periodRange(period);
   const today = lisbonToday();
-  const subtitle = `Per\xEDodo: ${label} (${formatDate(from)} a ${formatDate(to)})  \xB7  Gerado em ${formatDate(today)}`;
-  const catName = (id) => data.categories.find((c) => c.id === id)?.name ?? "Sem categoria";
+  const subtitle = `${label} (${formatDate(from)} a ${formatDate(to)})  \xB7  Gerado em ${formatDate(today)}`;
+  const catName = (id) => data.categories.find((c) => c.id === id)?.name ?? "";
   const clientName = (id) => data.clients.find((c) => c.id === id)?.name ?? "";
+  const whatOf = (description, clientId) => {
+    const c = clientName(clientId);
+    return c && !description.includes(c) ? `${description} \u2014 ${c}` : description;
+  };
   const summary = computeSummary(data.transactions, data.categories, data.clients, period);
-  const prevSummary = computeSummary(data.transactions, data.categories, data.clients, prev);
   const dist = computeDistribution(data.transactions, data.members, data.payouts, data.reservePercent, period);
-  const prevDist = computeDistribution(data.transactions, data.members, data.payouts, data.reservePercent, prev);
-  const inP = data.transactions.filter((t) => inPeriod(t.tx_date, period)).sort((a, b) => a.tx_date.localeCompare(b.tx_date));
+  const paidInPeriod = data.transactions.filter((t) => t.status === "paid" && inPeriod(t.tx_date, period)).sort((a, b) => a.tx_date.localeCompare(b.tx_date) || (a.kind === "income" ? -1 : 1));
   const ws = wb.addWorksheet("Resumo", { properties: { tabColor: { argb: BRAND } } });
-  setupSheet(ws, [38, 17, 17, 15, 52], false, `Relat\xF3rio financeiro \u2014 ${label}`);
+  setupSheet(ws, [40, 18, 18, 18, 30], false, `Relat\xF3rio financeiro \u2014 ${label}`);
   let r = titleBlock(ws, 5, "Olha que Duas \u2014 Relat\xF3rio Financeiro", subtitle);
-  const overdueAll = data.transactions.filter((t) => t.kind === "income" && isOverdue(t));
-  const overdueSum = overdueAll.reduce((a, t) => a + t.amount, 0);
-  const sentences = [
-    `Em ${periodLabel(period)} entraram ${eurText(summary.income)} e sa\xEDram ${eurText(summary.expense)}. ${summary.result >= 0 ? "Sobraram" : "Faltaram"} ${eurText(Math.abs(summary.result))}.`,
-    dist.distributable > 0 && dist.shares.length ? `Para dividir pela equipa: ${eurText(dist.distributable)}` + (data.reservePercent ? ` (depois de guardar ${data.reservePercent}% para impostos/caixa).` : ".") : "Neste per\xEDodo n\xE3o h\xE1 valor para dividir pela equipa.",
-    (summary.pendingIncome > 0 ? `Ainda falta receber ${eurText(summary.pendingIncome)} deste per\xEDodo. ` : "") + (overdueAll.length ? `Aten\xE7\xE3o: ${overdueAll.length} pagamento(s) de clientes em atraso (${eurText(overdueSum)}).` : "N\xE3o h\xE1 pagamentos de clientes em atraso.")
-  ];
-  r = sectionTitle(ws, r, 5, "Em poucas palavras");
-  sentences.forEach((text, idx) => {
+  const line = (text, opts = {}) => {
     ws.mergeCells(`A${r}:E${r}`);
     const c = ws.getCell(`A${r}`);
     c.value = text;
-    c.font = { name: FONT, size: 12, bold: idx === 0, color: { argb: idx === 2 && overdueAll.length ? RED : INK } };
+    c.font = { name: FONT, size: opts.size ?? 11, bold: opts.bold, color: { argb: opts.color ?? INK } };
     c.alignment = { wrapText: true, vertical: "middle", indent: 1 };
-    c.fill = fill(SOFT);
-    ws.getRow(r).height = 30;
+    if (opts.bg) c.fill = fill(opts.bg);
+    ws.getRow(r).height = opts.height ?? 22;
     r += 1;
-  });
+  };
+  const overdueAll = data.transactions.filter((t) => t.kind === "income" && isOverdue(t));
+  const overdueSum = overdueAll.reduce((a, t) => a + t.amount, 0);
+  r = sectionTitle(ws, r, 5, "Em poucas palavras");
+  line(
+    `Em ${period.type === "month" ? periodLabel(period).replace(" ", " de ") : `${period.value}`} entraram ${eurText(summary.income)} e sa\xEDram ${eurText(summary.expense)}. ` + (summary.result >= 0 ? `Sobraram ${eurText(summary.result)}.` : `Faltaram ${eurText(-summary.result)} (preju\xEDzo).`),
+    { size: 12, bold: true, bg: SOFT, height: 28 }
+  );
+  line(
+    dist.distributable > 0 && dist.shares.length ? `Para dividir pela equipa: ${eurText(dist.distributable)}.` : "Neste per\xEDodo n\xE3o h\xE1 nada para dividir pela equipa.",
+    { size: 12, bg: SOFT, height: 26 }
+  );
+  line(
+    overdueAll.length ? `Aten\xE7\xE3o: ${overdueAll.length} pagamento(s) de clientes em atraso, no total de ${eurText(overdueSum)}.` : "Nenhum pagamento de cliente em atraso.",
+    { size: 12, bg: SOFT, color: overdueAll.length ? RED : INK, height: 26 }
+  );
   r += 1;
   r = sectionTitle(
     ws,
     r,
     5,
-    "Os n\xFAmeros",
-    'S\xF3 conta o que j\xE1 foi pago ou recebido. "Diferen\xE7a" compara com o per\xEDodo anterior.'
+    "A conta do per\xEDodo, passo a passo",
+    "S\xF3 entra na conta o que j\xE1 foi pago ou recebido. O que ainda est\xE1 previsto aparece mais abaixo."
   );
-  const kpiHeader = ws.getRow(r);
-  ["", label, prevLabel, "Diferen\xE7a", "O que \xE9"].forEach((h, i) => {
-    const c = kpiHeader.getCell(i + 1);
-    c.value = h;
-    styleHeaderCell(c);
-    c.alignment = { ...alignFor(i >= 1 && i <= 3 ? "eur" : "text"), wrapText: true };
-  });
-  kpiHeader.height = 22;
-  r += 1;
-  const kpis = [
-    ["Entrou", summary.income, prevSummary.income, "Dinheiro recebido de clientes e outras fontes."],
-    ["Saiu", summary.expense, prevSummary.expense, "Despesas pagas (servidores, ferramentas, etc.)."],
-    [summary.result >= 0 ? "Sobrou" : "Faltou", summary.result, prevSummary.result, "Entrou menos saiu.", true],
-    ...data.reservePercent ? [[`Guardado (${data.reservePercent}%)`, dist.reserve, prevDist.reserve, "Fica na conta para impostos e imprevistos."]] : [],
-    ["Para dividir pela equipa", dist.distributable, prevDist.distributable, "Dividido pelas partes de cada membro (ver abaixo).", true]
-  ];
-  kpis.forEach(([name, cur, before, explain, strong], idx) => {
-    const row = ws.getRow(r);
-    row.getCell(1).value = name;
-    row.getCell(2).value = cur;
-    row.getCell(3).value = before;
-    row.getCell(4).value = { formula: `B${r}-C${r}` };
-    row.getCell(5).value = explain;
-    for (let i = 1; i <= 5; i++) {
-      const c = row.getCell(i);
-      c.border = boxBorder;
-      c.font = { name: FONT, size: i === 5 ? 9 : 11, bold: !!strong && i <= 2 || i === 1, color: { argb: i === 5 ? MUTED : INK } };
-      c.alignment = alignFor(i >= 2 && i <= 4 ? "eur" : "text", i === 5);
-      if (idx % 2 === 1) c.fill = fill(ZEBRA);
-    }
-    row.getCell(2).numFmt = EUR;
-    row.getCell(3).numFmt = EUR;
-    row.getCell(4).numFmt = EUR_SIGNED;
-    if (strong) row.getCell(2).font = { name: FONT, size: 12, bold: true, color: { argb: cur >= 0 ? GREEN : RED } };
-    row.height = 24;
-    r += 1;
-  });
-  r += 1;
-  r = sectionTitle(ws, r, 5, "O que ainda falta");
-  const pendingRows = [
-    ["Por receber (deste per\xEDodo)", summary.pendingIncome, "Previsto para este per\xEDodo e ainda n\xE3o recebido."],
-    ["Por pagar (deste per\xEDodo)", summary.pendingExpense, "Previsto para este per\xEDodo e ainda n\xE3o pago."],
-    ["Em atraso (qualquer data)", summary.overdueIncome, 'Clientes que j\xE1 deviam ter pago. Lista na folha "Por receber e pagar".']
-  ];
-  pendingRows.forEach(([name, value, explain], idx) => {
+  const step = (name, value, note, opts = {}) => {
     const row = ws.getRow(r);
     row.getCell(1).value = name;
     row.getCell(2).value = value;
     ws.mergeCells(`C${r}:E${r}`);
-    row.getCell(3).value = explain;
-    for (const i of [1, 2, 3, 4, 5]) {
+    row.getCell(3).value = note;
+    for (let i = 1; i <= 5; i++) {
       const c = row.getCell(i);
       c.border = boxBorder;
-      c.font = { name: FONT, size: i >= 3 ? 9 : 11, color: { argb: i >= 3 ? MUTED : INK } };
-      c.alignment = alignFor(i === 2 ? "eur" : "text", i >= 3);
-      if (idx % 2 === 1) c.fill = fill(ZEBRA);
+      if (opts.strong) c.fill = fill(SOFT);
     }
+    row.getCell(1).font = { name: FONT, size: 11, bold: opts.strong, color: { argb: INK } };
+    row.getCell(1).alignment = alignFor("text");
+    row.getCell(2).font = { name: FONT, size: opts.strong ? 12 : 11, bold: opts.strong, color: { argb: opts.color ?? INK } };
     row.getCell(2).numFmt = EUR;
-    if (idx === 2 && value > 0) row.getCell(2).font = { name: FONT, size: 11, bold: true, color: { argb: RED } };
-    row.height = 24;
-    r += 1;
+    row.getCell(2).alignment = alignFor("eur");
+    row.getCell(3).font = { name: FONT, size: 9, color: { argb: MUTED } };
+    row.getCell(3).alignment = alignFor("text", true);
+    row.height = 22;
+    return r++;
+  };
+  const rIn = step("Entrou", summary.income, "Tudo o que foi recebido (ver folha Extrato).", { color: GREEN });
+  const rOut = step("\u2212  Saiu", summary.expense, "Tudo o que foi pago (ver folha Extrato).", { color: RED });
+  step(summary.result >= 0 ? "=  Sobrou" : "=  Faltou", { formula: `B${rIn}-B${rOut}` }, "Entrou menos saiu.", {
+    strong: true,
+    color: summary.result >= 0 ? GREEN : RED
   });
+  if (data.reservePercent > 0) {
+    step(`\u2212  Guardado para impostos (${data.reservePercent}%)`, dist.reserve, "Fica na conta antes de dividir.");
+  }
+  const rDiv = step(
+    "=  Para dividir pela equipa",
+    dist.distributable,
+    period.type === "year" ? "Soma da divis\xE3o de cada m\xEAs; os meses com preju\xEDzo n\xE3o descontam os outros." : summary.result > 0 ? "Este valor \xE9 dividido pelas partes de cada membro." : "M\xEAs com preju\xEDzo: n\xE3o h\xE1 divis\xE3o.",
+    { strong: true }
+  );
   r += 1;
+  const n = dist.shares.length;
+  const complete = sharesComplete(dist.totalPercent);
+  const allEqual = n > 0 && dist.shares.every((x) => x.member.share_percent === dist.shares[0].member.share_percent);
   r = sectionTitle(
     ws,
     r,
     5,
     "Quanto cabe a cada um",
-    '"Falta pagar" \xE9 o que ainda n\xE3o foi transferido a cada membro referente a este per\xEDodo.'
+    allEqual && n > 1 ? `Partes iguais: ${eurText(dist.distributable)} \xF7 ${n} pessoas = ${eurText(dist.distributable / n)} cada` + (dist.shares.some((x) => x.due !== dist.shares[0].due) ? ". Como a divis\xE3o n\xE3o d\xE1 certa ao c\xEAntimo, o \xFAltimo fica com o c\xEAntimo de diferen\xE7a para o total bater certo." : ".") : 'Cada um recebe a sua parte do valor para dividir. "Falta pagar" \xE9 o que ainda n\xE3o foi transferido.'
   );
+  const tableStart = r;
   r = table(ws, r, [
     { header: "Membro", width: 0, value: (x) => x.member.name },
-    { header: "Parte", width: 0, type: "pct", value: (x) => x.member.share_percent / 100 },
+    // Parte normalizada: 3 × 33,33% aparece como 33,33% e o total dá 100%.
+    {
+      header: "Parte",
+      width: 0,
+      type: "pct",
+      total: true,
+      value: (x) => complete ? x.member.share_percent / dist.totalPercent : x.member.share_percent / 100
+    },
     { header: "Cabe-lhe", width: 0, type: "eur", total: true, value: (x) => x.due },
-    { header: "J\xE1 pago", width: 0, type: "eur", total: true, value: (x) => x.paid },
+    { header: "J\xE1 recebeu", width: 0, type: "eur", total: true, value: (x) => x.paid },
     {
       header: "Falta pagar",
       width: 0,
       type: "eur",
       total: true,
       value: (x) => x.balance,
-      color: (x) => x.balance > 0 ? RED : void 0
+      color: (x) => x.balance > 0 ? RED : GREEN
     }
   ], dist.shares, { emptyText: "Sem membros registados no separador Equipa." });
-  const activeRec = data.recurrences.filter((x) => x.is_active);
-  r = sectionTitle(ws, r, 5, "Acordos e custos fixos em curso");
+  if (n > 0) {
+    ws.getCell(`C${tableStart + n + 1}`).note = `Deve ser igual a "Para dividir" (c\xE9lula B${rDiv}).`;
+  }
+  const horizon = addDays(today, 30);
+  const upcoming = data.transactions.filter((t) => t.status === "pending" && t.tx_date <= horizon).map((t) => ({ date: t.tx_date, what: whatOf(t.description, t.client_id), amount: t.amount, kind: t.kind, late: isOverdue(t) }));
+  for (const rc of data.recurrences.filter((x) => x.is_active)) {
+    for (let i = rc.generated_count; i < rc.generated_count + 60; i++) {
+      const d = occurrenceDate(rc.start_date, rc.frequency, i);
+      if (d > horizon || rc.end_date && d > rc.end_date) break;
+      upcoming.push({ date: d, what: whatOf(rc.description, rc.client_id), amount: rc.amount, kind: rc.kind, late: false });
+    }
+  }
+  upcoming.sort((a, b) => a.date.localeCompare(b.date));
+  r = sectionTitle(
+    ws,
+    r,
+    5,
+    `O que vem a seguir (at\xE9 ${formatDate(horizon)})`,
+    "Ainda n\xE3o entra na conta acima. Quando acontecer, confirma-se no painel e passa para o Extrato."
+  );
   r = table(ws, r, [
-    { header: "O qu\xEA", width: 0, value: (x) => {
-      const c = clientName(x.client_id);
-      return c && !x.description.includes(c) ? `${x.description} \u2014 ${c}` : x.description;
-    } },
-    { header: "Tipo", width: 0, value: (x) => x.kind === "income" ? "Entra" : "Sai", color: (x) => x.kind === "income" ? GREEN : RED },
-    { header: "Valor", width: 0, type: "eur", value: (x) => x.amount },
+    { header: "O qu\xEA", width: 0, value: (x) => x.what },
+    { header: "Data", width: 0, type: "date", value: (x) => xlDate(x.date) },
+    { header: "Vai entrar", width: 0, type: "eur", total: true, value: (x) => x.kind === "income" ? x.amount : null, color: () => GREEN },
+    { header: "Vai sair", width: 0, type: "eur", total: true, value: (x) => x.kind === "expense" ? x.amount : null, color: () => RED },
+    { header: "Situa\xE7\xE3o", width: 0, value: (x) => x.late ? "Em atraso" : "Previsto", color: (x) => x.late ? RED : MUTED }
+  ], upcoming, { emptyText: "Nada previsto para os pr\xF3ximos 30 dias." });
+  const activeRec = data.recurrences.filter((x) => x.is_active);
+  r = sectionTitle(ws, r, 5, "Acordos e custos fixos em vigor");
+  r = table(ws, r, [
+    { header: "O qu\xEA", width: 0, value: (x) => whatOf(x.description, x.client_id) },
+    { header: "Valor", width: 0, type: "eur", value: (x) => x.amount, color: (x) => x.kind === "income" ? GREEN : RED },
+    { header: "Entra / sai", width: 0, value: (x) => x.kind === "income" ? "Entra" : "Sai", color: (x) => x.kind === "income" ? GREEN : RED },
     { header: "Pr\xF3xima", width: 0, type: "date", value: (x) => xlDate(nextDue(x, data.transactions)) },
     { header: "Quando", width: 0, value: (x) => cap(repeatLabel(x.frequency, x.start_date)) }
-  ], activeRec, { emptyText: "Sem acordos nem custos fixos ativos." });
-  const share = (total, part) => total ? part / total : 0;
-  r = sectionTitle(ws, r, 5, "De onde veio o dinheiro (por cliente)");
-  r = table(ws, r, [
-    { header: "Cliente", width: 0, value: (c) => c.name },
-    { header: "Valor", width: 0, type: "eur", total: true, value: (c) => c.total },
-    { header: "% do total", width: 0, type: "pct", value: (c) => share(summary.income, c.total) }
-  ], summary.incomeByClient, { emptyText: "Sem receitas recebidas neste per\xEDodo." });
-  r = sectionTitle(ws, r, 5, "Para onde foi o dinheiro (por categoria)");
-  r = table(ws, r, [
-    { header: "Categoria", width: 0, value: (c) => c.name },
-    { header: "Valor", width: 0, type: "eur", total: true, value: (c) => c.total },
-    { header: "% do total", width: 0, type: "pct", value: (c) => share(summary.expense, c.total) }
-  ], summary.expenseByCategory, { emptyText: "Sem despesas pagas neste per\xEDodo." });
-  r = sectionTitle(ws, r, 5, "Como ler este relat\xF3rio");
-  const notes = [
-    "Valores em euros. Cada movimento conta no per\xEDodo da sua data.",
-    'A folha "Movimentos" \xE9 como um extrato: uma linha por movimento, com o que entrou e o que saiu.',
-    "Os filtros no cabe\xE7alho das tabelas permitem ver s\xF3 um cliente ou s\xF3 o que est\xE1 por pagar; os totais acompanham.",
-    "Comprovativos e faturas est\xE3o no painel admin (Finan\xE7as), em cada movimento."
-  ];
-  notes.forEach((n) => {
-    ws.mergeCells(`A${r}:E${r}`);
-    const c = ws.getCell(`A${r}`);
-    c.value = `\u2022  ${n}`;
-    c.font = { name: FONT, size: 9, color: { argb: MUTED } };
-    c.alignment = { wrapText: true, vertical: "top" };
-    ws.getRow(r).height = 18;
-    r += 1;
-  });
+  ], activeRec, { emptyText: "Sem acordos nem custos fixos." });
+  line("Valores em euros. Comprovativos e faturas est\xE3o no painel admin (Finan\xE7as), em cada movimento.", { size: 9, color: MUTED, height: 18 });
   {
-    const s = wb.addWorksheet("Movimentos", { properties: { tabColor: { argb: GREEN } } });
+    const s = wb.addWorksheet("Extrato", { properties: { tabColor: { argb: GREEN } } });
     const cols = [
       { header: "Data", width: 12, type: "date", value: (t) => xlDate(t.tx_date) },
-      { header: "O qu\xEA", width: 34, value: (t) => t.description },
-      { header: "Cliente", width: 22, value: (t) => clientName(t.client_id) },
-      { header: "Categoria", width: 22, value: (t) => t.category_id ? catName(t.category_id) : "" },
-      {
-        header: "Entrou",
-        width: 14,
-        type: "eur",
-        total: true,
-        value: (t) => t.kind === "income" ? t.amount : null,
-        color: () => GREEN
-      },
-      {
-        header: "Saiu",
-        width: 14,
-        type: "eur",
-        total: true,
-        value: (t) => t.kind === "expense" ? t.amount : null,
-        color: () => RED
-      },
-      { header: "Estado", width: 13, value: statusLabel, color: statusColor },
-      { header: "Como", width: 14, value: (t) => t.method ?? "" },
-      { header: "Fatura / recibo", width: 16, value: (t) => t.invoice_ref ?? "" },
-      { header: "Notas", width: 34, value: (t) => t.notes ?? "" }
+      { header: "O qu\xEA", width: 38, value: (t) => whatOf(t.description, t.client_id) },
+      { header: "Entrou", width: 14, type: "eur", total: true, value: (t) => t.kind === "income" ? t.amount : null, color: () => GREEN },
+      { header: "Saiu", width: 14, type: "eur", total: true, value: (t) => t.kind === "expense" ? t.amount : null, color: () => RED },
+      { header: "Saldo do m\xEAs", width: 14, type: "eur", value: () => null },
+      { header: "Categoria", width: 24, value: (t) => catName(t.category_id) },
+      { header: "Como", width: 13, value: (t) => t.method ?? "" },
+      { header: "Fatura / recibo", width: 16, value: (t) => t.invoice_ref ?? "" }
     ];
-    setupSheet(s, cols.map((c) => c.width), true, `Movimentos \u2014 ${label}`);
+    setupSheet(s, cols.map((c) => c.width), true, `Extrato \u2014 ${label}`);
     let row = titleBlock(
       s,
       cols.length,
-      `Movimentos \u2014 ${label}`,
-      `${subtitle}  \xB7  Como um extrato: inclui o que j\xE1 foi pago e o que est\xE1 previsto (ver coluna Estado).`
+      `Extrato \u2014 ${label}`,
+      `${subtitle}  \xB7  S\xF3 o que j\xE1 foi pago ou recebido. "Saldo do m\xEAs" soma linha a linha, como no banco.`
     );
-    const firstData = row + 1;
-    row = table(s, row, cols, inP, {
-      totalLabel: "Total (linhas vis\xEDveis)",
-      filter: true,
-      emptyText: "Sem movimentos neste per\xEDodo."
-    });
-    if (inP.length) {
-      const lastData = firstData + inP.length - 1;
-      const paidOnly = (col) => `SUMIFS(${col}${firstData}:${col}${lastData},G${firstData}:G${lastData},"Pago")`;
-      const lines = [
-        ["J\xE1 pago \u2014 entrou", paidOnly("E"), GREEN],
-        ["J\xE1 pago \u2014 saiu", paidOnly("F"), RED],
-        ["J\xE1 pago \u2014 sobrou", `${paidOnly("E")}-${paidOnly("F")}`]
-      ];
-      for (const [lbl, formula, color] of lines) {
-        const rr = s.getRow(row);
-        s.mergeCells(`B${row}:D${row}`);
-        rr.getCell(2).value = lbl;
-        rr.getCell(2).alignment = { horizontal: "right", indent: 1 };
-        rr.getCell(2).font = { name: FONT, size: 10, bold: true, color: { argb: INK } };
-        rr.getCell(5).value = { formula };
-        rr.getCell(5).numFmt = EUR;
-        rr.getCell(5).alignment = alignFor("eur");
-        rr.getCell(5).font = { name: FONT, size: 11, bold: true, color: { argb: color ?? INK } };
-        row += 1;
+    const header = row;
+    row = table(s, row, cols, paidInPeriod, { totalLabel: "Total do per\xEDodo", emptyText: "Nada pago nem recebido neste per\xEDodo." });
+    if (paidInPeriod.length) {
+      const first = header + 1;
+      const last = header + paidInPeriod.length;
+      for (let i = first; i <= last; i++) {
+        const c = s.getCell(`E${i}`);
+        c.value = { formula: i === first ? `N(C${i})-N(D${i})` : `E${i - 1}+N(C${i})-N(D${i})` };
+        c.font = { name: FONT, size: 10, bold: true, color: { argb: INK } };
       }
+      const total = s.getCell(`E${last + 1}`);
+      total.value = { formula: `E${last}` };
+      total.numFmt = EUR;
+      total.font = { name: FONT, size: 11, bold: true, color: { argb: summary.result >= 0 ? GREEN : RED } };
     }
+    s.views = [{ state: "frozen", ySplit: header, showGridLines: false }];
   }
   {
     const s = wb.addWorksheet("Por receber e pagar", { properties: { tabColor: { argb: "FFD97706" } } });
     const pending = data.transactions.filter((t) => t.status === "pending").sort((a, b) => a.tx_date.localeCompare(b.tx_date));
     const daysLate = (t) => Math.max(0, Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${t.tx_date}T00:00:00Z`)) / 864e5));
     const cols = [
-      { header: "Data prevista", width: 13, type: "date", value: (t) => xlDate(t.tx_date) },
-      {
-        header: "Tipo",
-        width: 11,
-        value: (t) => t.kind === "income" ? "A receber" : "A pagar",
-        color: (t) => t.kind === "income" ? GREEN : RED
-      },
-      { header: "Descri\xE7\xE3o", width: 34, value: (t) => t.description },
-      { header: "Cliente", width: 22, value: (t) => clientName(t.client_id) },
-      { header: "Estado", width: 12, value: statusLabel, color: statusColor },
-      { header: "Dias em atraso", width: 13, type: "int", value: (t) => isOverdue(t) ? daysLate(t) : null },
-      { header: "Valor", width: 14, type: "eur", value: (t) => t.amount }
+      { header: "Data", width: 12, type: "date", value: (t) => xlDate(t.tx_date) },
+      { header: "O qu\xEA", width: 40, value: (t) => whatOf(t.description, t.client_id) },
+      { header: "A receber", width: 14, type: "eur", total: true, value: (t) => t.kind === "income" ? t.amount : null, color: () => GREEN },
+      { header: "A pagar", width: 14, type: "eur", total: true, value: (t) => t.kind === "expense" ? t.amount : null, color: () => RED },
+      { header: "Situa\xE7\xE3o", width: 14, value: statusLabel, color: statusColor },
+      { header: "Dias em atraso", width: 14, type: "int", value: (t) => isOverdue(t) ? daysLate(t) : null }
     ];
     setupSheet(s, cols.map((c) => c.width), true, "Por receber e pagar");
-    let row = titleBlock(
+    const row = titleBlock(
       s,
       cols.length,
       "Por receber e pagar",
-      `Situa\xE7\xE3o em ${formatDate(today)} (todos os previstos ainda n\xE3o pagos, de qualquer per\xEDodo).`
+      `Situa\xE7\xE3o em ${formatDate(today)}: tudo o que ainda n\xE3o foi pago ou recebido, de qualquer m\xEAs.`
     );
-    row = table(s, row, cols, pending, { filter: true, emptyText: "Nada pendente. Tudo em dia." });
-    const totalIn = pending.filter((t) => t.kind === "income").reduce((a, t) => a + t.amount, 0);
-    const totalOut = pending.filter((t) => t.kind === "expense").reduce((a, t) => a + t.amount, 0);
-    for (const [lbl, v, color] of [
-      ["Total a receber", totalIn, GREEN],
-      ["Total a pagar", totalOut, RED]
-    ]) {
-      const rr = s.getRow(row);
-      rr.getCell(6).value = lbl;
-      rr.getCell(6).alignment = { horizontal: "right" };
-      rr.getCell(6).font = { name: FONT, size: 10, bold: true, color: { argb: INK } };
-      rr.getCell(7).value = v;
-      rr.getCell(7).numFmt = EUR;
-      rr.getCell(7).font = { name: FONT, size: 11, bold: true, color: { argb: color } };
-      row += 1;
-    }
-  }
-  {
-    const s = wb.addWorksheet("Equipa");
-    setupSheet(s, [30, 14, 16, 16, 16, 34], false, `Equipa \u2014 ${label}`);
-    let row = titleBlock(s, 6, `Divis\xE3o pela equipa \u2014 ${label}`, subtitle);
-    row = sectionTitle(s, row, 6, "Como se chega ao valor");
-    const calc = [
-      ["Sobrou no per\xEDodo", dist.result, "Entrou \u2212 saiu (s\xF3 o que j\xE1 foi pago)"],
-      [`Guardado (${data.reservePercent}%)`, -dist.reserve, "Fica na conta para impostos e imprevistos"],
-      ["Para dividir", dist.distributable, "Dividido pelas partes abaixo; m\xEAs com preju\xEDzo n\xE3o gera divis\xE3o"]
-    ];
-    calc.forEach(([lbl, v, note], idx) => {
-      const rr = s.getRow(row);
-      rr.getCell(1).value = lbl;
-      rr.getCell(2).value = v;
-      s.mergeCells(`C${row}:F${row}`);
-      rr.getCell(3).value = note;
-      for (let i = 1; i <= 6; i++) {
-        const c = rr.getCell(i);
-        c.border = boxBorder;
-        c.font = { name: FONT, size: i >= 3 ? 9 : 11, bold: idx === 2 && i <= 2, color: { argb: i >= 3 ? MUTED : INK } };
-        c.alignment = alignFor(i === 2 ? "eur" : "text");
-        if (idx === 2) c.fill = fill(SOFT);
-      }
-      rr.getCell(2).numFmt = EUR;
-      rr.height = 22;
-      row += 1;
-    });
-    row += 1;
-    row = sectionTitle(s, row, 6, "Quanto cabe a cada um");
-    row = table(s, row, [
-      { header: "Membro", width: 0, value: (x) => x.member.name },
-      { header: "Parte", width: 0, type: "pct", value: (x) => x.member.share_percent / 100 },
-      { header: "Cabe-lhe", width: 0, type: "eur", total: true, value: (x) => x.due },
-      { header: "J\xE1 pago", width: 0, type: "eur", total: true, value: (x) => x.paid },
-      {
-        header: "Falta pagar",
-        width: 0,
-        type: "eur",
-        total: true,
-        value: (x) => x.balance,
-        color: (x) => x.balance > 0 ? RED : void 0
-      },
-      { header: "Email", width: 0, value: (x) => x.member.email ?? "" }
-    ], dist.shares, { emptyText: "Sem membros registados." });
-    const payouts = data.payouts.filter((p) => inPeriod(p.period, period)).sort((a, b) => a.paid_at.localeCompare(b.paid_at));
-    row = sectionTitle(s, row, 6, "Transfer\xEAncias feitas \xE0 equipa");
-    table(s, row, [
-      { header: "Membro", width: 0, value: (p) => data.members.find((m) => m.id === p.member_id)?.name ?? "" },
-      { header: "Pago em", width: 0, type: "date", value: (p) => xlDate(p.paid_at) },
-      { header: "Referente a", width: 0, value: (p) => periodLabel({ type: "month", value: p.period.slice(0, 7) }) },
-      { header: "Valor", width: 0, type: "eur", total: true, value: (p) => p.amount },
-      { header: "Notas", width: 0, value: (p) => p.notes ?? "" }
-    ], payouts, { emptyText: "Ainda n\xE3o foram registados pagamentos \xE0 equipa neste per\xEDodo." });
-  }
-  {
-    const s = wb.addWorksheet("Clientes");
-    const cols = [
-      { header: "Cliente", width: 26, value: (c) => c.name },
-      { header: "NIF", width: 13, value: (c) => c.nif ?? "" },
-      { header: "Email", width: 28, value: (c) => c.email ?? "" },
-      { header: "Telefone", width: 15, value: (c) => c.phone ?? "" },
-      { header: "Ativo", width: 8, value: (c) => c.is_active ? "Sim" : "N\xE3o" },
-      {
-        header: `Recebido (${label})`,
-        width: 25,
-        type: "eur",
-        total: true,
-        value: (c) => summary.incomeByClient.find((x) => x.id === c.id)?.total ?? 0
-      },
-      {
-        header: "Recorrente / m\xEAs",
-        width: 17,
-        type: "eur",
-        total: true,
-        value: (c) => Math.round(data.recurrences.filter((rc) => rc.is_active && rc.kind === "income" && rc.client_id === c.id).reduce((a, rc) => a + monthlyEquivalent(rc), 0) * 100) / 100
-      },
-      { header: "Notas", width: 36, value: (c) => c.notes ?? "" }
-    ];
-    setupSheet(s, cols.map((c) => c.width), true, "Clientes");
-    const row = titleBlock(s, cols.length, "Clientes", subtitle);
-    table(s, row, cols, data.clients, { filter: true, emptyText: "Sem clientes registados." });
-  }
-  {
-    const s = wb.addWorksheet("Fixos e acordos");
-    const paidOf = (x) => data.transactions.filter((t) => t.recurrence_id === x.id && t.status === "paid").reduce((a, t) => a + t.amount, 0);
-    const cols = [
-      {
-        header: "Tipo",
-        width: 9,
-        value: (x) => x.kind === "income" ? "Entra" : "Sai",
-        color: (x) => x.kind === "income" ? GREEN : RED
-      },
-      { header: "O qu\xEA", width: 32, value: (x) => x.description },
-      { header: "Cliente", width: 20, value: (x) => clientName(x.client_id) },
-      { header: "Valor", width: 13, type: "eur", value: (x) => x.amount },
-      { header: "Quando", width: 30, value: (x) => cap(repeatLabel(x.frequency, x.start_date)) },
-      { header: "Desde", width: 12, type: "date", value: (x) => xlDate(x.start_date) },
-      { header: "Pr\xF3xima", width: 12, type: "date", value: (x) => x.is_active ? xlDate(nextDue(x, data.transactions)) : null },
-      { header: "\u2248 por m\xEAs", width: 13, type: "eur", value: (x) => Math.round(monthlyEquivalent(x) * 100) / 100 },
-      { header: "J\xE1 pago at\xE9 hoje", width: 15, type: "eur", value: (x) => Math.round(paidOf(x) * 100) / 100 },
-      { header: "Estado", width: 10, value: (x) => x.is_active ? "Ativo" : "Pausado" }
-    ];
-    setupSheet(s, cols.map((c) => c.width), true, "Fixos e acordos");
-    let row = titleBlock(
-      s,
-      cols.length,
-      "Fixos e acordos (valores que se repetem)",
-      '"\u2248 por m\xEAs": semanal \xD7 52 \xF7 12; anual \xF7 12. Cada pagamento aparece como Previsto uma semana antes.'
-    );
-    row = table(s, row, cols, data.recurrences, { filter: true, emptyText: "Sem fixos nem acordos registados." });
-    const active = data.recurrences.filter((x) => x.is_active);
-    const mIn = active.filter((x) => x.kind === "income").reduce((a, x) => a + monthlyEquivalent(x), 0);
-    const mOut = active.filter((x) => x.kind === "expense").reduce((a, x) => a + monthlyEquivalent(x), 0);
-    for (const [lbl, v] of [
-      ["Entra por m\xEAs (\u2248)", mIn],
-      ["Sai por m\xEAs (\u2248)", -mOut],
-      ["Sobra por m\xEAs (\u2248)", mIn - mOut]
-    ]) {
-      const rr = s.getRow(row);
-      s.mergeCells(`E${row}:G${row}`);
-      rr.getCell(5).value = lbl;
-      rr.getCell(5).alignment = { horizontal: "right", indent: 1 };
-      rr.getCell(5).font = { name: FONT, size: 10, bold: true, color: { argb: INK } };
-      rr.getCell(8).value = Math.round(v * 100) / 100;
-      rr.getCell(8).numFmt = EUR_SIGNED;
-      rr.getCell(8).alignment = alignFor("eur");
-      rr.getCell(8).font = { name: FONT, size: 11, bold: true, color: { argb: v >= 0 ? GREEN : RED } };
-      row += 1;
-    }
+    table(s, row, cols, pending, { totalLabel: "Total", emptyText: "Nada pendente. Tudo em dia." });
   }
   wb.views = [{ x: 0, y: 0, width: 2e4, height: 12e3, firstSheet: 0, activeTab: 0, visibility: "visible" }];
   return await wb.xlsx.writeBuffer();
@@ -783,7 +593,7 @@ function buildReportEmail(data, period, panelUrl = "https://admin.olhaqueduas.co
   const subject = `Olha que Duas \u2014 Relat\xF3rio financeiro de ${label}`;
   const kpi = (name, value, color = "#3f3a33", strong = false) => `<tr><td style="padding:8px 12px;border-bottom:1px solid #e3dacd;color:#3f3a33">${name}</td><td style="padding:8px 12px;border-bottom:1px solid #e3dacd;text-align:right;color:${color};${strong ? "font-weight:700;font-size:16px" : ""}">${formatEUR(value)}</td></tr>`;
   const members = d.shares.map(
-    (m) => `<tr><td style="padding:6px 12px;border-bottom:1px solid #e3dacd">${esc(m.member.name)}</td><td style="padding:6px 12px;border-bottom:1px solid #e3dacd;text-align:right">${m.member.share_percent}%</td><td style="padding:6px 12px;border-bottom:1px solid #e3dacd;text-align:right;font-weight:600">${formatEUR(m.due)}</td><td style="padding:6px 12px;border-bottom:1px solid #e3dacd;text-align:right;color:${m.balance > 0 ? "#b91c1c" : "#15803d"}">${formatEUR(m.balance)}</td></tr>`
+    (m) => `<tr><td style="padding:6px 12px;border-bottom:1px solid #e3dacd">${esc(m.member.name)}</td><td style="padding:6px 12px;border-bottom:1px solid #e3dacd;text-align:right">${String(m.member.share_percent).replace(".", ",")}%</td><td style="padding:6px 12px;border-bottom:1px solid #e3dacd;text-align:right;font-weight:600">${formatEUR(m.due)}</td><td style="padding:6px 12px;border-bottom:1px solid #e3dacd;text-align:right;color:${m.balance > 0 ? "#b91c1c" : "#15803d"}">${formatEUR(m.balance)}</td></tr>`
   ).join("");
   const overdueHtml = overdue.length ? `<p style="margin:16px 0 4px;color:#b91c1c;font-weight:700">\u26A0 Pagamentos de clientes em atraso</p><ul style="margin:0;padding-left:18px;color:#3f3a33">` + overdue.map((t) => `<li>${esc(t.description)} \u2014 ${formatEUR(t.amount)} (previsto ${formatDate(t.tx_date)})</li>`).join("") + "</ul>" : "";
   const th = "padding:8px 12px;background:#c0392b;color:#fff;text-align:left;font-weight:600";
@@ -820,7 +630,7 @@ ${overdueHtml}
     ...data.reservePercent ? [`Guardado (${data.reservePercent}%): ${formatEUR(d.reserve)}`] : [],
     `Para dividir pela equipa: ${formatEUR(d.distributable)}`,
     "",
-    ...d.shares.map((m) => `- ${m.member.name} (${m.member.share_percent}%): ${formatEUR(m.due)} \u2014 falta pagar ${formatEUR(m.balance)}`),
+    ...d.shares.map((m) => `- ${m.member.name} (${String(m.member.share_percent).replace(".", ",")}%): ${formatEUR(m.due)} \u2014 falta pagar ${formatEUR(m.balance)}`),
     ...overdue.length ? ["", "Em atraso:", ...overdue.map((t) => `- ${t.description}: ${formatEUR(t.amount)} (${formatDate(t.tx_date)})`)] : [],
     "",
     `Relat\xF3rio completo em anexo. Painel: ${panelUrl}`

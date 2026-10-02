@@ -6,7 +6,8 @@ import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
 import { EmptyState, Field, FormDialog } from './shared';
-import { formatEUR, isOverdue, monthlyEquivalent } from '../../lib/finance';
+import { amountInMonth, formatEUR, isOverdue } from '../../lib/finance';
+import { lisbonToday } from '../../lib/scheduleDates';
 import type { FinanceApi } from '../../hooks/useFinance';
 import type { FinClient } from '../../types/finance';
 
@@ -23,7 +24,7 @@ export function ClientsTab({ api }: { api: FinanceApi }) {
       count: paid.length,
       monthly: data.recurrences
         .filter((r) => r.is_active && r.kind === 'income' && r.client_id === id)
-        .reduce((s, r) => s + monthlyEquivalent(r), 0),
+        .reduce((s, r) => s + amountInMonth(r, lisbonToday().slice(0, 7)), 0),
       overdue: data.transactions.filter((t) => t.client_id === id && isOverdue(t)).length,
     };
   };
@@ -85,7 +86,7 @@ export function ClientsTab({ api }: { api: FinanceApi }) {
                       <p className="font-medium tabular-nums">{formatEUR(s.total)} <span className="text-xs text-muted-foreground">({s.count})</span></p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Recorrente / mês</p>
+                      <p className="text-xs text-muted-foreground">Previsto este mês</p>
                       <p className="font-medium tabular-nums">{formatEUR(s.monthly)}</p>
                     </div>
                   </div>

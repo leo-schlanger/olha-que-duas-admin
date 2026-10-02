@@ -60,7 +60,7 @@ export function buildReportEmail(data: FinanceData, period: Period, panelUrl = '
     .map(
       (m) =>
         `<tr><td style="padding:6px 12px;border-bottom:1px solid #e3dacd">${esc(m.member.name)}</td>` +
-        `<td style="padding:6px 12px;border-bottom:1px solid #e3dacd;text-align:right">${m.member.share_percent}%</td>` +
+        `<td style="padding:6px 12px;border-bottom:1px solid #e3dacd;text-align:right">${String(m.member.share_percent).replace(".", ",")}%</td>` +
         `<td style="padding:6px 12px;border-bottom:1px solid #e3dacd;text-align:right;font-weight:600">${formatEUR(m.due)}</td>` +
         `<td style="padding:6px 12px;border-bottom:1px solid #e3dacd;text-align:right;color:${m.balance > 0 ? '#b91c1c' : '#15803d'}">${formatEUR(m.balance)}</td></tr>`
     )
@@ -107,7 +107,7 @@ ${overdueHtml}
     ...(data.reservePercent ? [`Guardado (${data.reservePercent}%): ${formatEUR(d.reserve)}`] : []),
     `Para dividir pela equipa: ${formatEUR(d.distributable)}`,
     '',
-    ...d.shares.map((m) => `- ${m.member.name} (${m.member.share_percent}%): ${formatEUR(m.due)} — falta pagar ${formatEUR(m.balance)}`),
+    ...d.shares.map((m) => `- ${m.member.name} (${String(m.member.share_percent).replace(".", ",")}%): ${formatEUR(m.due)} — falta pagar ${formatEUR(m.balance)}`),
     ...(overdue.length ? ['', 'Em atraso:', ...overdue.map((t) => `- ${t.description}: ${formatEUR(t.amount)} (${formatDate(t.tx_date)})`)] : []),
     '',
     `Relatório completo em anexo. Painel: ${panelUrl}`,

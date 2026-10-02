@@ -265,7 +265,7 @@ export function NewMovementDialog({
 
       {income && recurring && (
         <div className="rounded-lg border border-beige-medium bg-white/60 p-3 space-y-3">
-          <Field label="Houve um pagamento de entrada (sinal)?" hint="Ex.: pagou 75 € de entrada e depois 150 € por semana.">
+          <Field label="Houve um pagamento de entrada (sinal)?" hint="Valor pago uma só vez no início. Ex.: 75 € de entrada e depois 150 € por mês.">
             <Choice
               value={hasDeposit}
               onChange={setHasDeposit}
