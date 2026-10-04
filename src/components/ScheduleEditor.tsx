@@ -181,15 +181,16 @@ export function ScheduleEditor({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[560px] bg-cream border-beige-medium">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 overflow-hidden bg-cream p-0 sm:max-w-[560px] border-beige-medium">
+        <DialogHeader className="shrink-0 px-6 pt-6 pr-12">
           <DialogTitle className="font-display text-2xl text-charcoal flex items-center gap-2">
             <Calendar className="h-6 w-6 text-amarelo" />
             Adicionar à Programação
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-5 mt-2">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-4">
           {/* Event Selection */}
           <div className="space-y-2">
             <Label className="text-charcoal font-medium">
@@ -290,7 +291,7 @@ export function ScheduleEditor({
               </Button>
             </div>
 
-            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+            <div className="space-y-3">
               {slots.map((slot, index) => (
                 <div
                   key={index}
@@ -494,51 +495,54 @@ export function ScheduleEditor({
             )}
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="w-2 h-2 bg-red-500 rounded-full" />
-              <p className="text-sm text-red-600">{error}</p>
-            </div>
-          )}
-
-          <DialogFooter className="gap-2 sm:gap-0 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleOpenChange(false)}
-              disabled={loading}
-              className="border-beige-medium hover:bg-beige-light"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading || activeEvents.length === 0 || slots.length === 0}
-              className="bg-vermelho hover:bg-vermelho-dark text-white"
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Adicionando...
-                </span>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar {slots.length} horário{slots.length !== 1 ? 's' : ''}
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-
-        {activeEvents.length === 0 && (
-          <div className="text-center py-4 text-muted-foreground bg-beige-light rounded-lg mt-2">
-            <p className="text-sm">
-              Nenhum evento ativo. Crie ou ative eventos primeiro.
-            </p>
           </div>
-        )}
+
+          <div className="shrink-0 space-y-3 border-t border-beige-medium bg-cream px-6 py-4">
+            {error && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="w-2 h-2 bg-red-500 rounded-full" />
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleOpenChange(false)}
+                disabled={loading}
+                className="border-beige-medium hover:bg-beige-light"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || activeEvents.length === 0 || slots.length === 0}
+                className="bg-vermelho hover:bg-vermelho-dark text-white"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Adicionando...
+                  </span>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar {slots.length} horário{slots.length !== 1 ? 's' : ''}
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+
+            {activeEvents.length === 0 && (
+              <div className="text-center py-2 text-muted-foreground">
+                <p className="text-sm">
+                  Nenhum evento ativo. Crie ou ative eventos primeiro.
+                </p>
+              </div>
+            )}
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
