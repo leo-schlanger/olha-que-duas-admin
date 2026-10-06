@@ -14,7 +14,8 @@ import { signOut } from './lib/auth';
 import { supabase } from './lib/supabase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
-import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music, Users, ImageIcon, Wallet } from 'lucide-react'; // BookOpen: reativar junto com as Histórias
+import { Vinagre } from './pages/Vinagre';
+import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music, Users, ImageIcon, Wallet, Newspaper } from 'lucide-react'; // BookOpen: reativar junto com as Histórias
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import logo from './assets/logo-olha-que-duas.png';
@@ -105,8 +106,9 @@ function Dashboard() {
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Tab Navigation */}
-          <div className="flex items-center justify-between">
-            <TabsList className="bg-cream border border-beige-medium p-1 h-auto">
+          <div className="flex items-center justify-between gap-4 min-w-0">
+            <div className="min-w-0 flex-1 overflow-x-auto">
+            <TabsList className="bg-cream border border-beige-medium p-1 h-auto w-max">
               <TabsTrigger
                 value="analytics"
                 className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
@@ -159,6 +161,13 @@ function Dashboard() {
               </TabsTrigger>
               */}
               <TabsTrigger
+                value="exclusivo"
+                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
+              >
+                <Newspaper className="h-4 w-4" />
+                <span className="font-medium">Exclusivo Olha que Duas</span>
+              </TabsTrigger>
+              <TabsTrigger
                 value="newsletter"
                 className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
               >
@@ -182,6 +191,7 @@ function Dashboard() {
                 </TabsTrigger>
               )}
             </TabsList>
+            </div>
 
             {/* Quick Info */}
             <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground">
@@ -221,6 +231,10 @@ function Dashboard() {
               <Stories />
             </TabsContent>
             */}
+
+            <TabsContent value="exclusivo" className="mt-0">
+              <Vinagre />
+            </TabsContent>
 
             <TabsContent value="newsletter" className="mt-0">
               <Newsletter />

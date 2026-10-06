@@ -29,6 +29,7 @@ interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  minHeightClass?: string;
 }
 
 interface ToolbarButtonProps {
@@ -225,7 +226,7 @@ function MenuBar({ editor }: MenuBarProps) {
   );
 }
 
-export function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
+export function RichTextEditor({ content, onChange, placeholder, minHeightClass = 'min-h-[120px]' }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -253,7 +254,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none min-h-[120px] p-4 focus:outline-none',
+        class: `prose prose-sm max-w-none ${minHeightClass} p-4 focus:outline-none`,
       },
     },
   });
