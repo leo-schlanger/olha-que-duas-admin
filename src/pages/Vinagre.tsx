@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -8,9 +8,17 @@ import { Textarea } from '../components/ui/textarea';
 import { RichTextEditor } from '../components/newsletter/RichTextEditor';
 import { useVinagrePosts } from '../hooks/useVinagrePosts';
 import { supabase } from '../lib/supabase';
-import { fromLocalInput, slugify, toLocalInput } from '../lib/vinagre';
+import { fromLocalInput, publicMediaUrl, renderShareImage, slugify, toLocalInput } from '../lib/vinagre';
 import type { VinagrePost } from '../types/vinagre';
-import { ArrowLeft, ExternalLink, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  ExternalLink,
+  ImagePlus,
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-react';
 
 const SITE = 'https://www.olhaqueduas.com/exclusivo';
 
@@ -20,6 +28,7 @@ interface FormState {
   excerpt: string;
   content: string;
   coverUrl: string;
+  ogImageUrl: string;
   published: boolean;
   publishedAt: string;
   slugTouched: boolean;
@@ -34,6 +43,7 @@ function emptyForm(): FormState {
     excerpt: '',
     content: '<p></p>',
     coverUrl: '',
+    ogImageUrl: '',
     published: false,
     publishedAt: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`,
     slugTouched: false,
@@ -47,6 +57,7 @@ function fromPost(post: VinagrePost): FormState {
     excerpt: post.excerpt,
     content: post.content || '<p></p>',
     coverUrl: post.cover_url,
+    ogImageUrl: post.og_image_url,
     published: post.is_published,
     publishedAt: toLocalInput(post.published_at),
     slugTouched: true,
@@ -54,7 +65,48 @@ function fromPost(post: VinagrePost): FormState {
 }
 
 function plainText(html: string): string {
-  return html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').trim();
+  return html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function wordCount(html: string): number {
+  const text = plainText(html);
+  if (!text) return 0;
+  return text.split(' ').length;
+}
+
+function isImageFile(file: File): boolean {
+  if (file.type.startsWith('image/')) return true;
+  return /\.(jpe?g|png|webp|gif)$/i.test(file.name);
+}
+
+function formatWhen(iso: string): string {
+  return new Date(iso).toLocaleString('pt-PT', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function CoverThumb({ url }: { url: string }) {
+  const [broken, setBroken] = useState(false);
+  const src = publicMediaUrl(url);
+  if (!src || broken) {
+    return (
+      <div className="flex aspect-video w-full shrink-0 items-center justify-center bg-beige-medium px-3 text-center text-xs text-muted-foreground sm:aspect-auto sm:h-32 sm:w-56">
+        Sem foto
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt=""
+      className="aspect-video w-full shrink-0 object-cover sm:aspect-auto sm:h-32 sm:w-56"
+      onError={() => setBroken(true)}
+    />
+  );
 }
 
 export function Vinagre() {
@@ -115,39 +167,21 @@ export function Vinagre() {
           {posts.map((post) => (
             <Card key={post.id} className="overflow-hidden">
               <div className="flex flex-col sm:flex-row">
-                {post.cover_url ? (
-                  <img
-                    src={post.cover_url}
-                    alt=""
-                    className="h-36 w-full object-cover sm:h-auto sm:w-48"
-                  />
-                ) : (
-                  <div className="h-36 w-full bg-beige-medium sm:h-auto sm:w-48" />
-                )}
+                <CoverThumb url={post.cover_url} />
                 <CardContent className="flex flex-1 flex-col gap-3 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                        {post.is_published ? 'Publicada' : 'Rascunho'}
-                        {post.published_at
-                          ? ` · ${new Date(post.published_at).toLocaleString('pt-PT', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}`
-                          : ''}
+                  <div>
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                      {post.is_published ? 'Publicada' : 'Rascunho'}
+                      {post.published_at ? ` · ${formatWhen(post.published_at)}` : ''}
+                    </p>
+                    <h3 className="font-display text-lg font-bold text-charcoal">
+                      {post.title}
+                    </h3>
+                    {post.excerpt && (
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                        {post.excerpt}
                       </p>
-                      <h3 className="font-display text-lg font-bold text-charcoal">
-                        {post.title}
-                      </h3>
-                      {post.excerpt && (
-                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                          {post.excerpt}
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </div>
                   <div className="mt-auto flex flex-wrap gap-2">
                     <Button variant="outline" size="sm" onClick={() => setEditing(post)}>
@@ -199,6 +233,7 @@ function Editor({
     excerpt: string;
     content: string;
     cover_url: string;
+    og_image_url: string;
     is_published: boolean;
     published_at: string | null;
   }) => Promise<string | null>;
@@ -208,6 +243,9 @@ function Editor({
   const [preview, setPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [coverBroken, setCoverBroken] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     return () => {
@@ -215,12 +253,39 @@ function Editor({
     };
   }, [preview]);
 
+  useEffect(() => {
+    setCoverBroken(false);
+  }, [preview, form.coverUrl]);
+
   const setTitle = (title: string) => {
     setForm((current) => ({
       ...current,
       title,
       slug: current.slugTouched ? current.slug : slugify(title),
     }));
+  };
+
+  const takeFile = (next: File | null) => {
+    if (next && !isImageFile(next)) {
+      setFormError('Escolhe uma imagem (JPG, PNG, WebP ou GIF).');
+      return;
+    }
+    setFormError(null);
+    setFile(next);
+    setPreview((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return next ? URL.createObjectURL(next) : null;
+    });
+  };
+
+  const clearCover = () => {
+    if (file) {
+      takeFile(null);
+      if (fileRef.current) fileRef.current.value = '';
+      return;
+    }
+    if (form.coverUrl && !window.confirm('Remover a foto desta notícia?')) return;
+    setForm((current) => ({ ...current, coverUrl: '', ogImageUrl: '' }));
   };
 
   const submit = async () => {
@@ -242,11 +307,13 @@ function Editor({
     setSaving(true);
     setFormError(null);
     let coverUrl = form.coverUrl;
+    let ogImageUrl = form.ogImageUrl;
 
     if (file) {
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
       const safeExt = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext) ? ext : 'jpg';
-      const path = `vinagre-${Date.now()}.${safeExt}`;
+      const stamp = Date.now();
+      const path = `vinagre-${stamp}.${safeExt}`;
       const { error: uploadError } = await supabase.storage
         .from('media-library')
         .upload(path, file, { contentType: file.type || 'image/jpeg' });
@@ -256,7 +323,26 @@ function Editor({
         return;
       }
       coverUrl = supabase.storage.from('media-library').getPublicUrl(path).data.publicUrl;
+      try {
+        const share = await renderShareImage(file);
+        const ogPath = `vinagre-og-${stamp}.jpg`;
+        const { error: ogError } = await supabase.storage
+          .from('media-library')
+          .upload(ogPath, share, { contentType: 'image/jpeg' });
+        if (ogError) {
+          setFormError(ogError.message);
+          setSaving(false);
+          return;
+        }
+        ogImageUrl = supabase.storage.from('media-library').getPublicUrl(ogPath).data.publicUrl;
+      } catch (error) {
+        setFormError(error instanceof Error ? error.message : 'Não foi possível preparar a imagem de partilha.');
+        setSaving(false);
+        return;
+      }
     }
+
+    if (!coverUrl) ogImageUrl = '';
 
     const publishedAt = fromLocalInput(form.publishedAt);
     const message = await onSave({
@@ -264,7 +350,8 @@ function Editor({
       slug,
       excerpt: form.excerpt.trim(),
       content: form.content,
-      cover_url: coverUrl,
+      cover_url: publicMediaUrl(coverUrl),
+      og_image_url: ogImageUrl ? publicMediaUrl(ogImageUrl) : '',
       is_published: form.published,
       published_at: form.published ? publishedAt ?? new Date().toISOString() : publishedAt,
     });
@@ -272,14 +359,23 @@ function Editor({
     if (message) setFormError(message);
   };
 
+  const slug = slugify(form.slug || form.title);
+  const words = wordCount(form.content);
+  const minutes = words === 0 ? 0 : Math.max(1, Math.round(words / 200));
+  const shownCover = preview || publicMediaUrl(form.coverUrl);
+
   return (
-    <div className="space-y-4 max-w-3xl">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <Button variant="ghost" onClick={onBack}>
+    <div className="space-y-4">
+      <div className="sticky top-14 z-30 flex flex-wrap items-center gap-3 rounded-lg border border-beige-medium bg-cream/95 px-3 py-2 shadow-sm backdrop-blur lg:top-0">
+        <Button type="button" variant="ghost" onClick={onBack}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
+          Notícias
         </Button>
-        <Button onClick={() => void submit()} disabled={saving}>
+        <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
+          {form.title.trim() || 'Nova notícia'}
+          {words > 0 ? ` · ${words} palavras · ${minutes} min` : ''}
+        </p>
+        <Button type="button" onClick={() => void submit()} disabled={saving}>
           {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
           Guardar
         </Button>
@@ -291,107 +387,187 @@ function Editor({
         </div>
       )}
 
-      <Card>
-        <CardContent className="space-y-5 p-5">
-          <div className="space-y-2">
-            <Label htmlFor="vinagre-title">Título</Label>
-            <Input
-              id="vinagre-title"
-              value={form.title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Título da notícia"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="vinagre-slug">Endereço</Label>
-            <Input
-              id="vinagre-slug"
-              value={form.slug}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  slug: event.target.value,
-                  slugTouched: true,
-                }))
-              }
-            />
-            <p className="text-xs text-muted-foreground">{SITE}/{slugify(form.slug || form.title) || '…'}</p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="vinagre-excerpt">Resumo</Label>
-            <Textarea
-              id="vinagre-excerpt"
-              value={form.excerpt}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, excerpt: event.target.value }))
-              }
-              rows={3}
-              maxLength={400}
-              placeholder="A frase que aparece no cartão e na partilha"
-            />
-          </div>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="order-2 space-y-5 lg:order-1">
+          <Card>
+            <CardContent className="space-y-4 p-5">
+              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7a5b16]">
+                Exclusivo Olha que Duas
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="vinagre-title" className="sr-only">Título</Label>
+                <Textarea
+                  id="vinagre-title"
+                  value={form.title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  rows={2}
+                  placeholder="Título da notícia"
+                  className="min-h-[4.5rem] resize-none border-0 bg-transparent px-0 font-display text-2xl font-bold leading-tight shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 md:text-3xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="vinagre-excerpt">Resumo</Label>
+                  <span className="text-xs text-muted-foreground">{form.excerpt.length}/400</span>
+                </div>
+                <Textarea
+                  id="vinagre-excerpt"
+                  value={form.excerpt}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, excerpt: event.target.value }))
+                  }
+                  rows={3}
+                  maxLength={400}
+                  placeholder="A frase que aparece no cartão e na partilha"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="space-y-2">
             <Label>Texto</Label>
             <RichTextEditor
               content={form.content}
               onChange={(content) => setForm((current) => ({ ...current, content }))}
-              placeholder="Escreve a notícia. Usa títulos e citações para partir o texto."
-              minHeightClass="min-h-[320px]"
+              placeholder="Escreve a notícia. Título médio separa as partes. Citação destaca a frase."
+              minHeightClass="min-h-[22rem] md:min-h-[34rem]"
+              contentClassName="vinagre-compose"
             />
+            <p className="text-xs text-muted-foreground">
+              Título médio parte o texto. Citação põe a frase em destaque, como no site.
+            </p>
           </div>
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="vinagre-cover">Foto</Label>
-            {(preview || form.coverUrl) && (
-              <img
-                src={preview || form.coverUrl}
-                alt=""
-                className="max-h-64 w-full rounded-lg object-cover"
+        <aside className="order-1 space-y-4 lg:sticky lg:top-20 lg:order-2">
+          <Card>
+            <CardContent className="space-y-3 p-4">
+              <Label htmlFor="vinagre-cover">Foto</Label>
+              <div
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setDragging(true);
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setDragging(false);
+                  takeFile(event.dataTransfer.files?.[0] ?? null);
+                }}
+                className={dragging ? 'rounded-lg ring-2 ring-vermelho' : ''}
+              >
+                {shownCover && !coverBroken ? (
+                  <img
+                    src={shownCover}
+                    alt="Capa da notícia"
+                    className="aspect-[16/9] w-full rounded-lg bg-black object-contain"
+                    onError={() => setCoverBroken(true)}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-beige-medium bg-beige-light px-4 text-center text-sm text-muted-foreground"
+                  >
+                    <ImagePlus className="h-5 w-5" />
+                    {coverBroken ? 'Esta foto não abre. Escolhe o ficheiro outra vez.' : 'Escolher ou largar a foto'}
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {file
+                  ? 'Foto nova. Carrega em Guardar para a publicar.'
+                  : form.coverUrl
+                    ? 'Foto guardada. No WhatsApp e no Facebook sai em formato largo, com a capa inteira.'
+                    : 'Sem foto, o cartão no site e a partilha ficam sem imagem.'}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+                  {shownCover ? 'Trocar foto' : 'Escolher foto'}
+                </Button>
+                {shownCover && (
+                  <Button type="button" variant="ghost" size="sm" onClick={clearCover}>
+                    {file ? 'Cancelar foto nova' : 'Remover foto'}
+                  </Button>
+                )}
+              </div>
+              <input
+                ref={fileRef}
+                id="vinagre-cover"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="sr-only"
+                onChange={(event) => {
+                  takeFile(event.target.files?.[0] ?? null);
+                  event.target.value = '';
+                }}
               />
-            )}
-            <Input
-              id="vinagre-cover"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={(event) => {
-                const next = event.target.files?.[0] ?? null;
-                setFile(next);
-                setPreview((current) => {
-                  if (current) URL.revokeObjectURL(current);
-                  return next ? URL.createObjectURL(next) : null;
-                });
-              }}
-            />
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="flex flex-wrap items-end gap-6">
-            <div className="flex items-center gap-3">
-              <Switch
-                id="vinagre-published"
-                checked={form.published}
-                onCheckedChange={(published) =>
-                  setForm((current) => ({ ...current, published }))
-                }
-              />
-              <Label htmlFor="vinagre-published">Publicar no site</Label>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="vinagre-date">Data</Label>
+          <Card>
+            <CardContent className="space-y-4 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="vinagre-published">Publicar no site</Label>
+                <Switch
+                  id="vinagre-published"
+                  checked={form.published}
+                  onCheckedChange={(published) =>
+                    setForm((current) => ({ ...current, published }))
+                  }
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {form.published
+                  ? 'Visível no separador Exclusivo Olha que Duas.'
+                  : 'Desligado, a notícia fica em rascunho.'}
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="vinagre-date">Data</Label>
+                <Input
+                  id="vinagre-date"
+                  type="datetime-local"
+                  value={form.publishedAt}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, publishedAt: event.target.value }))
+                  }
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="space-y-2 p-4">
+              <Label htmlFor="vinagre-slug">Endereço</Label>
               <Input
-                id="vinagre-date"
-                type="datetime-local"
-                value={form.publishedAt}
+                id="vinagre-slug"
+                value={form.slug}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, publishedAt: event.target.value }))
+                  setForm((current) => ({
+                    ...current,
+                    slug: event.target.value,
+                    slugTouched: true,
+                  }))
                 }
               />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              <p className="break-all text-xs text-muted-foreground">
+                {SITE}/{slug || '…'}
+              </p>
+              {form.published && slug && (
+                <a
+                  href={`${SITE}/${slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-xs text-vermelho underline"
+                >
+                  <ExternalLink className="mr-1 h-3 w-3" />
+                  Abrir no site
+                </a>
+              )}
+            </CardContent>
+          </Card>
+        </aside>
+      </div>
     </div>
   );
 }

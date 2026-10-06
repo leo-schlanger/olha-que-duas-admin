@@ -15,7 +15,7 @@ import { supabase } from './lib/supabase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
 import { Vinagre } from './pages/Vinagre';
-import { LogOut, Calendar, Radio as RadioIcon, Settings, Mail, BarChart3, Headphones, Music, Users, ImageIcon, Wallet, Newspaper } from 'lucide-react'; // BookOpen: reativar junto com as Histórias
+import { LogOut, Calendar, Radio as RadioIcon, Menu, X, Mail, BarChart3, Headphones, Music, Users, ImageIcon, Wallet, Newspaper, type LucideIcon } from 'lucide-react'; // BookOpen: reativar junto com as Histórias
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import logo from './assets/logo-olha-que-duas.png';
@@ -48,9 +48,43 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+interface PanelItem {
+  value: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+const PANEL_GROUPS: { label: string; items: PanelItem[] }[] = [
+  {
+    label: 'Estação',
+    items: [
+      { value: 'analytics', label: 'Analytics', icon: BarChart3 },
+      { value: 'radio', label: 'Rádio', icon: Headphones },
+      { value: 'audience', label: 'Audiência', icon: Users },
+    ],
+  },
+  {
+    label: 'Programação',
+    items: [
+      { value: 'events', label: 'Eventos', icon: RadioIcon },
+      { value: 'schedule', label: 'Programação', icon: Calendar },
+      { value: 'daily-schedule', label: 'Prog. diária', icon: Music },
+    ],
+  },
+  {
+    label: 'Conteúdo',
+    items: [
+      { value: 'exclusivo', label: 'Exclusivo Olha que Duas', icon: Newspaper },
+      { value: 'newsletter', label: 'Newsletter', icon: Mail },
+      { value: 'library', label: 'Biblioteca', icon: ImageIcon },
+    ],
+  },
+];
+
 function Dashboard() {
   const [activeTab, setActiveTab] = useState('analytics');
   const [canFinance, setCanFinance] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     supabase.rpc('is_finance').then(({ data }) => setCanFinance(data === true));
@@ -61,146 +95,108 @@ function Dashboard() {
     window.location.href = '/login';
   };
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [menuOpen]);
+
+  const groups = canFinance
+    ? [...PANEL_GROUPS, { label: 'Gestão', items: [{ value: 'finance', label: 'Finanças', icon: Wallet }] }]
+    : PANEL_GROUPS;
+
   return (
-    <div className="min-h-screen bg-beige-light">
-      {/* Header */}
-      <header className="bg-cream border-b border-beige-medium sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo & Title */}
-            <div className="flex items-center gap-3">
-              <img
-                src={logo}
-                alt="Olha que Duas"
-                className="w-10 h-10 object-contain"
-              />
-              <div className="hidden sm:block">
-                <h1 className="font-display text-lg font-bold text-charcoal leading-tight">
-                  Olha que Duas
-                </h1>
-                <p className="text-xs text-muted-foreground -mt-0.5">Painel Admin</p>
-              </div>
-            </div>
-
-            {/* Status Badge */}
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft" />
-              <span className="text-xs font-medium text-green-700">Sistema Online</span>
-            </div>
-
-            {/* Logout Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-muted-foreground hover:text-vermelho hover:bg-vermelho/5"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Sair</span>
-            </Button>
-          </div>
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => {
+        setActiveTab(value);
+        setMenuOpen(false);
+      }}
+      className="min-h-screen bg-beige-light lg:flex"
+    >
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-beige-medium bg-cream px-4 lg:hidden">
+        <button
+          type="button"
+          aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-charcoal"
+        >
+          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+        <div className="flex items-center gap-2">
+          <img src={logo} alt="" className="h-8 w-8 object-contain" />
+          <span className="font-display text-sm font-bold text-charcoal">Olha que Duas</span>
         </div>
+        <Button type="button" variant="ghost" size="icon" onClick={handleLogout} aria-label="Sair">
+          <LogOut className="h-4 w-4" />
+        </Button>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* Tab Navigation */}
-          <div className="flex items-center justify-between gap-4 min-w-0">
-            <div className="min-w-0 flex-1 overflow-x-auto">
-            <TabsList className="bg-cream border border-beige-medium p-1 h-auto w-max">
-              <TabsTrigger
-                value="analytics"
-                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-              >
-                <BarChart3 className="h-4 w-4" />
-                <span className="font-medium">Analytics</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="radio"
-                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-              >
-                <Headphones className="h-4 w-4" />
-                <span className="font-medium">Radio</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="audience"
-                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-              >
-                <Users className="h-4 w-4" />
-                <span className="font-medium">Audiência</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="events"
-                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-              >
-                <RadioIcon className="h-4 w-4" />
-                <span className="font-medium">Eventos</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="schedule"
-                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-              >
-                <Calendar className="h-4 w-4" />
-                <span className="font-medium">Programação</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="daily-schedule"
-                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-              >
-                <Music className="h-4 w-4" />
-                <span className="font-medium">Prog. Diária</span>
-              </TabsTrigger>
-              {/* Histórias — em definição; reativar este separador quando o fluxo estiver fechado
-              <TabsTrigger
-                value="stories"
-                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-              >
-                <BookOpen className="h-4 w-4" />
-                <span className="font-medium">Histórias</span>
-              </TabsTrigger>
-              */}
-              <TabsTrigger
-                value="exclusivo"
-                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-              >
-                <Newspaper className="h-4 w-4" />
-                <span className="font-medium">Exclusivo Olha que Duas</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="newsletter"
-                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-              >
-                <Mail className="h-4 w-4" />
-                <span className="font-medium">Newsletter</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="library"
-                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-              >
-                <ImageIcon className="h-4 w-4" />
-                <span className="font-medium">Biblioteca</span>
-              </TabsTrigger>
-              {canFinance && (
-                <TabsTrigger
-                  value="finance"
-                  className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-vermelho data-[state=active]:text-white rounded-lg transition-all"
-                >
-                  <Wallet className="h-4 w-4" />
-                  <span className="font-medium">Finanças</span>
-                </TabsTrigger>
-              )}
-            </TabsList>
-            </div>
+      {menuOpen && (
+        <button
+          type="button"
+          aria-label="Fechar menu"
+          className="fixed inset-x-0 bottom-0 top-14 z-40 bg-charcoal/40 lg:hidden"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
 
-            {/* Quick Info */}
-            <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground">
-              <Settings className="h-4 w-4" />
-              <span>Alterações são aplicadas em tempo real</span>
-            </div>
+      <aside
+        className={`fixed bottom-0 left-0 top-14 z-50 flex w-64 flex-col border-r border-beige-medium bg-cream transition-transform lg:sticky lg:top-0 lg:z-30 lg:h-screen lg:translate-x-0 ${
+          menuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex items-center gap-3 border-b border-beige-medium px-4 py-4">
+          <img src={logo} alt="" className="h-10 w-10 object-contain" />
+          <div>
+            <p className="font-display text-base font-bold leading-tight text-charcoal">Olha que Duas</p>
+            <p className="text-xs text-muted-foreground">Painel</p>
           </div>
+        </div>
 
-          {/* Tab Content */}
+        <TabsList className="flex h-auto w-full flex-1 flex-col items-stretch justify-start gap-4 overflow-y-auto rounded-none bg-transparent p-3">
+          {groups.map((group) => (
+            <div key={group.label} className="space-y-1">
+              <p className="px-3 pb-1 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                {group.label}
+              </p>
+              {group.items.map((item) => (
+                <TabsTrigger
+                  key={item.value}
+                  value={item.value}
+                  className="h-auto w-full justify-start gap-3 whitespace-normal rounded-lg px-3 py-2.5 text-left text-sm font-medium text-charcoal hover:bg-beige data-[state=active]:bg-vermelho data-[state=active]:text-white data-[state=active]:shadow-none"
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <span>{item.label}</span>
+                </TabsTrigger>
+              ))}
+            </div>
+          ))}
+        </TabsList>
+
+        <div className="border-t border-beige-medium p-3">
+          <p className="mb-2 hidden items-center gap-2 px-3 text-xs text-muted-foreground lg:flex">
+            <span className="h-2 w-2 rounded-full bg-green-500" />
+            No ar · alterações entram logo
+          </p>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleLogout}
+            className="hidden w-full justify-start text-muted-foreground hover:bg-vermelho/5 hover:text-vermelho lg:inline-flex"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sair
+          </Button>
+        </div>
+      </aside>
+
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+        <main className="flex-1 px-4 py-6 lg:px-8">
           <div className="animate-fade-in">
             <TabsContent value="analytics" className="mt-0">
               <Analytics />
@@ -258,20 +254,18 @@ function Dashboard() {
               </TabsContent>
             )}
           </div>
-        </Tabs>
-      </main>
+        </main>
 
-      {/* Footer */}
-      <footer className="mt-auto py-4 border-t border-beige-medium bg-cream">
-        <div className="container mx-auto px-4">
+        <footer className="border-t border-beige-medium bg-cream px-4 py-4">
           <p className="text-center text-sm text-muted-foreground">
             © {new Date().getFullYear()} Olha que Duas • Todos os direitos reservados
           </p>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
+    </Tabs>
   );
 }
+
 
 function App() {
   return (

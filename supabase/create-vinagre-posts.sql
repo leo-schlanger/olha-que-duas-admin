@@ -11,11 +11,14 @@ CREATE TABLE IF NOT EXISTS vinagre_posts (
   excerpt VARCHAR(400) NOT NULL DEFAULT '',
   content TEXT NOT NULL DEFAULT '',
   cover_url TEXT NOT NULL DEFAULT '',
+  og_image_url TEXT NOT NULL DEFAULT '',
   is_published BOOLEAN NOT NULL DEFAULT false,
   published_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE vinagre_posts ADD COLUMN IF NOT EXISTS og_image_url TEXT NOT NULL DEFAULT '';
 
 CREATE INDEX IF NOT EXISTS idx_vinagre_posts_published
   ON vinagre_posts (is_published, published_at DESC);
@@ -56,7 +59,7 @@ GRANT SELECT ON vinagre_posts TO anon, authenticated;
 GRANT INSERT, UPDATE, DELETE ON vinagre_posts TO authenticated;
 GRANT ALL ON vinagre_posts TO service_role;
 
-INSERT INTO vinagre_posts (slug, title, excerpt, content, cover_url, is_published, published_at)
+INSERT INTO vinagre_posts (slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at)
 VALUES (
   'abel-dias-o-ze-nunca-bateu-na-betty',
   'Abel Dias diz em tribunal que "o Zé nunca bateu na Betty"',
@@ -89,11 +92,21 @@ VALUES (
 <p>Roger tem "power of attorney". É uma procuração: o documento que dá a uma pessoa o poder de decidir em nome de outra. Cabe-lhe pagar as contas e cuidar de tudo.</p>
 <p>Marcella Fernandes, que já tinha testemunhado, passou o dia inteiro no Tribunal de Cascais. A presença dela não era necessária.</p>
 <p>Um ex-funcionário disse-me, a mim, em exclusivo, que Roger pagou a Marcella quando ela chegou a Portugal.</p>$html$,
-  '/exclusivo/abel-dias-betty.jpg',
+  'https://www.olhaqueduas.com/exclusivo/abel-dias-betty.jpg',
+  'https://www.olhaqueduas.com/exclusivo/abel-dias-betty-og.jpg',
   true,
   '2026-10-06 20:06:00+01'
 )
 ON CONFLICT (slug) DO UPDATE SET
   title = EXCLUDED.title,
   excerpt = EXCLUDED.excerpt,
-  content = EXCLUDED.content;
+  content = EXCLUDED.content,
+  cover_url = CASE
+    WHEN vinagre_posts.cover_url IN ('', '/exclusivo/abel-dias-betty.jpg')
+    THEN EXCLUDED.cover_url
+    ELSE vinagre_posts.cover_url
+  END,
+  og_image_url = CASE
+    WHEN vinagre_posts.og_image_url = '' THEN EXCLUDED.og_image_url
+    ELSE vinagre_posts.og_image_url
+  END;

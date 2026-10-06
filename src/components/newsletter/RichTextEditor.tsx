@@ -21,6 +21,7 @@ import {
   Type,
   Heading1,
   Heading2,
+  Quote,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useCallback, useEffect } from 'react';
@@ -30,6 +31,7 @@ interface RichTextEditorProps {
   onChange: (html: string) => void;
   placeholder?: string;
   minHeightClass?: string;
+  contentClassName?: string;
 }
 
 interface ToolbarButtonProps {
@@ -143,6 +145,13 @@ function MenuBar({ editor }: MenuBarProps) {
       >
         <Heading2 className="h-4 w-4" />
       </ToolbarButton>
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        isActive={editor.isActive('blockquote')}
+        title="Citação"
+      >
+        <Quote className="h-4 w-4" />
+      </ToolbarButton>
 
       <ToolbarDivider />
 
@@ -226,7 +235,13 @@ function MenuBar({ editor }: MenuBarProps) {
   );
 }
 
-export function RichTextEditor({ content, onChange, placeholder, minHeightClass = 'min-h-[120px]' }: RichTextEditorProps) {
+export function RichTextEditor({
+  content,
+  onChange,
+  placeholder,
+  minHeightClass = 'min-h-[120px]',
+  contentClassName = '',
+}: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -254,7 +269,7 @@ export function RichTextEditor({ content, onChange, placeholder, minHeightClass 
     },
     editorProps: {
       attributes: {
-        class: `prose prose-sm max-w-none ${minHeightClass} p-4 focus:outline-none`,
+        class: `prose prose-sm max-w-none ${minHeightClass} ${contentClassName} p-4 focus:outline-none`,
       },
     },
   });

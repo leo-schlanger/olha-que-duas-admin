@@ -5,6 +5,7 @@ export interface VinagrePost {
   excerpt: string;
   content: string;
   cover_url: string;
+  og_image_url: string;
   is_published: boolean;
   published_at: string | null;
   created_at: string;
@@ -17,6 +18,7 @@ export interface VinagreDraft {
   excerpt: string;
   content: string;
   cover_url: string;
+  og_image_url: string;
   is_published: boolean;
   published_at: string | null;
 }
@@ -43,6 +45,7 @@ export function parseVinagrePost(value: unknown): VinagrePost | null {
   const published = value.published_at;
   const excerpt = value.excerpt;
   const cover = value.cover_url;
+  const ogImage = value.og_image_url;
   return {
     id,
     slug,
@@ -54,5 +57,6 @@ export function parseVinagrePost(value: unknown): VinagrePost | null {
     published_at: typeof published === 'string' ? published : null,
     excerpt: typeof excerpt === 'string' ? excerpt : '',
     cover_url: typeof cover === 'string' ? cover : '',
+    og_image_url: typeof ogImage === 'string' ? ogImage : '',
   };
 }

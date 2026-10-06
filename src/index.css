@@ -192,3 +192,42 @@ body {
 .tiptap s {
   text-decoration: line-through;
 }
+
+.tiptap blockquote {
+  margin: 0.75rem 0 1rem;
+  padding: 0.35rem 0 0.35rem 0.9rem;
+  border-left: 3px solid var(--color-amarelo);
+}
+
+.tiptap.vinagre-compose {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+}
+
+.tiptap.vinagre-compose p {
+  margin-bottom: 1.15rem;
+}
+
+.tiptap.vinagre-compose h2 {
+  margin: 1.75rem 0 0.65rem;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.tiptap.vinagre-compose blockquote {
+  margin: 1.25rem 0 1.5rem;
+  padding: 0.85rem 1.1rem;
+  border-left: 4px solid #c6a15b;
+  border-radius: 0 0.9rem 0.9rem 0;
+  background: #f7f1e4;
+}
+
+.tiptap.vinagre-compose blockquote p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
