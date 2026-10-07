@@ -110,3 +110,59 @@ ON CONFLICT (slug) DO UPDATE SET
     WHEN vinagre_posts.og_image_url = '' THEN EXCLUDED.og_image_url
     ELSE vinagre_posts.og_image_url
   END;
+
+INSERT INTO vinagre_posts (slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at)
+VALUES (
+  'ronaldo-nao-voltara-a-ser-cr7',
+  'Jorge Jesus: "Ronaldo não voltará a ser CR7, o mentiroso não o voltará a convocar"',
+  'Artigo 160.º do Regulamento Disciplinar da FPF expulsa Cristiano da seleção',
+  $vinagre2$<p>A carta aberta de Cristiano Ronaldo, caída que nem uma bomba, ao final da tarde desta terça-feira, 6 de Outubro, já está a causar o pânico.</p>
+<p>O pior é que, apesar das horas e horas de comentários e especulações nos mais diversos órgãos de comunicação social, há uma lei para cumprir e um treinador que é deus. Neste caso, é Jorge Jesus.</p>
+<blockquote><p>"Ronaldo não voltará a ser CR7, o mentiroso não o voltará a convocar."</p></blockquote>
+<h2>O silêncio dos convocados</h2>
+<p>Vinte e quatro horas depois, o comunicado não tem um único "gosto" nem o apoio público de nenhum dos outros jogadores convocados por Jorge Jesus. O JN escreve que esse silêncio pode ser entendido como falta de apoio, ou simplesmente como um ficar à margem da polémica.</p>
+<p>"Recorde-se, por outro lado, que depois da vitória sobre a Dinamarca (2-4), no primeiro jogo após a saída de Cristiano Ronaldo do estágio da equipa em Copenhaga, vários futebolistas destacaram a importância de Jorge Jesus para os bons resultados e as boas exibições de Portugal, que sem CR7 venceu os três jogos disputados no Grupo A4 da Liga das Nações", refere a mesma fonte.</p>
+<h2>A pensar na equipa</h2>
+<p>Jorge Jesus está só "a pensar na equipa", depois de ler a verdade de Ronaldo. Isto, mesmo depois dos oito pontos do guião que o filho de Dolores lhe entregou, onde foi acusado de faltar duas vezes à palavra dada. A um mês de um novo jogo da equipa das quinas, e após quatro vitórias, o selecionador refere: "que venha a próxima etapa, estamos confiantes".</p>
+<p>Não se pode apagar 23 anos da "marca Pelé" de Portugal. Bruno Fernandes e João Cancelo sublinharam o estatuto e a importância do craque: "O Cris é e será o maior ícone da nossa seleção, merece o respeito de todos", "é o nosso capitão, um símbolo da nossa seleção, o melhor jogador que Portugal já teve".</p>
+<h2>O futuro do Cris</h2>
+<p>Em rigoroso exclusivo, em conversa comigo, ficam as ideias de Jesus para o futuro "do Cris".</p>
+<blockquote><p>"Ronaldo nunca terá uma saída ao nível de Deus como Messi teve."</p></blockquote>
+<h2>O artigo 160.º</h2>
+<p>Agora está tudo nas mãos do Conselho de Disciplina da FPF. São eles que têm de analisar o castigo que aplicarão a Cristiano. No Regulamento Disciplinar da FPF, o artigo 160.º é claro e não deixa margem para dúvidas. Ao abandonar o estágio, ficou automaticamente suspenso, e a pena pode ir até seis meses.</p>
+<p>Quando isto sucedeu com Ricardo Carvalho, que também deixou um estágio por sua vontade, a punição foi de um ano.</p>
+<p>Mais: quando terminar a suspensão e a multa da FPF, só há uma pessoa que poderá autorizar a volta de CR ao 7. Jorge Jesus. O próprio é claro.</p>
+<blockquote><p>"Um treinador jamais voltará a convocar um jogador que lhe chamou mentiroso, duas vezes."</p></blockquote>
+<p>Não se augura o regresso de Ronaldo aos jogos de Portugal, a menos que despeçam o treinador. E isso não vai acontecer.</p>
+<blockquote><p>"A direção da Federação só manda em mim, no resto mando eu em tudo."</p></blockquote>
+<p>"A direção da FPF só tem um poder, que é despedir-me. Em tudo o resto, mando eu." Jorge Jesus espelha a frase usada por Johan Cruyff, treinador do Barcelona, no dia da apresentação oficial de Luís Figo, em 1995, no Barça.</p>
+<h2>Nos bastidores</h2>
+<p>José Manuel Delgado, antiga glória da Seleção e veterano jornalista de A Bola, autor da biografia de Diogo Jota, disse hoje em direto na BBC Rádio, e também a mim, que "agora é melhor ter calma e acompanhar o processo".</p>
+<p>Nos bastidores ouve-se de tudo, e os comentários não param de chegar. De um momento para o outro, CR parece ter perdido o posto de herói nacional. Muito por culpa também do seu "ego inflamado", do "mau ambiente do balneário" e de outras acusações.</p>
+<p>Posso também avançar, em primeira mão, que Pedro Proença já está a equacionar a data e a hora da conferência de imprensa em que se explicará aos jornalistas.</p>
+<p>Outra garantia da minha fonte fidedigna, e muito próxima de toda esta novela, é que Cristiano Ronaldo terá sido aconselhado e pressionado a reagir, depois de Rui Santos ter dito na CNN que ele só voltaria se despedissem Jesus. Terá sido a Medialivre, dona da CMTV e da NOW, que instigou o seu dono a vir a público acabar com os mexericos. Ronaldo é acionista maioritário do grupo.</p>
+<p>Nas pesquisas mais populares do Google figuram agora os nomes de Simão Coutinho e de Tiago Craveiro. Hoje ninguém quer saber de Cristina Ferreira. O comunicado de Ronaldo surge no topo das mais procuradas.</p>
+<h2>Simão Coutinho e Tiago Craveiro</h2>
+<p>Nas diversas caixas de comentários figura tudo e mais um par de botas. Passo a citar.</p>
+<p>"Simão Coutinho e Tiago Craveiro, as duas pessoas próximas de Ronaldo mas alheias à seleção nacional que reuniram com Jesus."</p>
+<p>"Um é diretor desportivo do Al Nassr, clube onde joga Cristiano. O outro trabalha como consultor da CR7 SA, empresa que gere os negócios do jogador. Simão Coutinho e Tiago Craveiro foram identificados no comunicado de Ronaldo como testemunhas das conversas que o futebolista teve com Jorge Jesus no estágio da seleção nacional, tendo participado nas reuniões com o treinador", referiu a Tribuna do Expresso.</p>
+<p>Aqui surge um rol de opiniões polémicas.</p>
+<p>"O problema grave aqui foi não haver ninguém da FPF para ver o que foi ou não acordado naquela reunião, estava JJ desprotegido ao lado de 2 gajos próximos de Ronaldo a fazer pressão e a tentar controlar."</p>
+<p>"Ao contrário de outros jogadores que não podem levar a família consigo. O Ronaldo leva o staff para tomarem decisões por si, habituou-se toda a vida a ter a mãe e irmãs a mandarem, agora precisa noutros sectores de ter manas a mandar. O pau mandado é o Ronaldo que se rodeou de dois merdas, e um asno como o Tiago Craveiro que sempre se achou com o rei na barriga nunca teve nada a ver com futebol e é um gajo com sede de poder, além de político. O Ronaldo faz o que lhe mandam, antigamente era a mãe dele a mandar em tudo, agora tem estes comparsas, desde que rompeu a sua relação com o Jorge Mendes, a vida dele passou a estar em declínio em termos futebolísticos e os amigos do staff todos passaram a ter uma vida melhor. Sem esquecer ainda o Ricardo Regufe, um zé ninguém que deu um salto enorme."</p>
+<p>"A única coisa da gestão do Ronaldo profissional é o património, onde o Miguel Marques está a fazer um bom trabalho, a gerir a fortuna do Ronaldo. A gestão de carreira e imagem desde que rompeu com o J Mendes, deixou de ser uma gestão profissional, passou a ser por amigos e outros de competência duvidosa, passou a se rodear de gente que concorda cegamente com ele, e foi sempre a descer na sua percepção de imagem. E mesmo a gestão do património já começa a haver demasiados investimentos com retorno de capital muito duvidoso. Duvido muito que os netos do Ronaldo tenham algo para mostrar, já está tudo a ir ao pote."</p>
+<p>"Ainda gostava de perceber porque é que numa reunião entre o capitão e o selecionador é preciso haver uma ata assinada com testemunhas. É este o ambiente que se vive lá dentro? Só mostram o circo que está montado e a maneira como aquilo tem sido gerido."</p>
+<p>Reforço que estes comentários não são meus. Estão disponíveis para quem quiser ler na Tribuna do Expresso.</p>
+<p>Uma coisa é certa. A procissão saiu agora do adro.</p>$vinagre2$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-1791397809511.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-og-1791397809511.jpg',
+  true,
+  '2026-10-07 19:00:00+01'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at;

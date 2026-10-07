@@ -103,7 +103,7 @@ function CoverThumb({ url }: { url: string }) {
     <img
       src={src}
       alt=""
-      className="aspect-video w-full shrink-0 object-cover sm:aspect-auto sm:h-32 sm:w-56"
+      className="aspect-video w-full shrink-0 bg-black object-contain sm:aspect-auto sm:h-32 sm:w-56"
       onError={() => setBroken(true)}
     />
   );
