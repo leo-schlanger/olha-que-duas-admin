@@ -3,6 +3,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import {
   Bold,
@@ -257,6 +258,11 @@ export function RichTextEditor({
         openOnClick: false,
         HTMLAttributes: {
           class: 'text-vermelho underline',
+        },
+      }),
+      Image.configure({
+        HTMLAttributes: {
+          class: 'mx-auto h-auto max-w-full rounded-lg',
         },
       }),
       Placeholder.configure({

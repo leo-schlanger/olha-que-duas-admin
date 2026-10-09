@@ -166,3 +166,78 @@ ON CONFLICT (slug) DO UPDATE SET
   og_image_url = EXCLUDED.og_image_url,
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at;
+
+INSERT INTO vinagre_posts (slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at)
+VALUES (
+  'biografia-diogo-jota-livro-oficial-liverpool',
+  'Biografia de Diogo Jota vai ser lançada em Inglaterra: veja em primeira mão a capa do livro oficial do Liverpool',
+  'José Manuel Delgado publica a 22 de outubro, em Inglaterra, a biografia de Diogo Jota como livro oficial do Liverpool. O título é Forever in Our Hearts.',
+  $vinagre3$<p>José Manuel Delgado, o autor da história da vida de Diogo Jota, revelou-me em detalhe que irão publicar a sua obra, no dia 22 de Outubro, em Inglaterra.</p>
+<p>Agora como livro oficial do Liverpool FC, em homenagem ao jogador que amam, 'Forever in Our Hearts' é o título da versão inglesa. "Para sempre nos nossos corações", garantidamente.</p>
+<p>Na apresentação, diz-se que foi escrito por um jornalista português premiado e com entrevistas dos ícones do Liverpool FC, como o ex-técnico Jürgen Klopp, o atual capitão Virgil van Dijk e o ex-capitão Jordan Henderson, além de companheiros de equipa portugueses.</p>
+<p>Publicada originalmente em Portugal com grande sucesso na primavera, esta edição para o Reino Unido, que conta com o apoio da família, traz também depoimentos exclusivos dos pais e da esposa de Diogo Jota.</p>
+<h2>O verão de 2025</h2>
+<p>No verão de 2025, Diogo Jota tinha o mundo aos seus pés. Atacante de destaque do Liverpool FC e da Seleção portuguesa, havia acabado de conquistar a Premier League e a Liga das Nações antes de se casar com a sua namorada de infância.</p>
+<p>Mas, apenas 11 dias após o casamento com Rute Cardoso, a tragédia aconteceu. Enquanto Diogo e seu irmão, André Silva, viajavam de carro por Espanha para seguirem em ligação de volta ao Reino Unido, o Lamborghini alugado por eles sofreu um aparatoso e trágico acidente.</p>
+<p>Os irmãos Silva, filhos orgulhosos de Gondomar, perderam a vida. O que se seguiu foi uma enorme comoção, tanto por parte da família como de todo o mundo do futebol e de toda a população que, ainda hoje, acompanha a resiliência de Rute Cardoso, a companheira e mãe dos filhos de Diogo Jota.</p>
+<h2>Uma biografia intimista</h2>
+<p>Esta biografia intimista "narra os bastidores da sua carreira e da sua vida, antes de ela ser tragicamente interrompida".</p>
+<p>O autor entrevistou familiares, companheiros de equipa e treinadores "para traçar um retrato rico em detalhes de um jogador de futebol brilhante e de um homem muito querido".</p>
+<p>A sua viúva relata, com detalhes dolorosos, como enviou ao marido vídeos do casamento na noite do acidente, tendo ficado cada vez mais preocupada à medida que as horas passavam sem resposta.</p>
+<p>Companheiros de equipa, incluindo Virgil van Dijk e Jordan Henderson, prestam homenagem a alguém que consideravam um amigo, enquanto treinadores como Jürgen Klopp e Arne Slot também deixam os seus depoimentos.</p>
+<p>Esta biografia de grande impacto promete ser uma leitura obrigatória para os adeptos do Liverpool e para toda a comunidade do futebol.</p>
+<h2>O autor</h2>
+<p>O autor, José Manuel Delgado, nasceu em Lisboa, em 1957. Iniciou-se como futebolista nas camadas jovens do SC Braga e, quando entrou na Faculdade de Direito da Universidade de Lisboa, transferiu-se para os juniores do Sporting (1974/76), encetando depois uma carreira profissional na I Divisão Portuguesa que o levou a representar, entre 1976 e 1989, Montijo, Belenenses, Portimonense, Benfica, Farense e Espinho.</p>
+<p>Pelo Benfica, ganhou dois campeonatos e duas taças de Portugal. Representou as seleções nacionais jovens e foi convocado três vezes para a Seleção Nacional.</p>
+<p>Em 1989, aos 31 anos, terminou a carreira de futebolista e iniciou a de jornalista. Foi editor na revista Sábado e no jornal A Capital. No Record, foi diretor. Está no diário desportivo A Bola desde 2003, tendo integrado a direção do jornal de 2006 a 2023, tendo agora uma coluna de opinião na versão em papel e no digital.</p>
+<p>Recebeu vários prémios de jornalismo, foi membro da Associação Académica da Faculdade de Direito de Lisboa e da comissão executiva do Sindicato dos Jogadores. Foi mandatário para a Juventude, na reeleição do general António Ramalho Eanes, em 1980, participando, em 1986, na campanha presidencial de Francisco Salgado Zenha.</p>
+<p>Antes da biografia de Diogo Jota, 'Pulsação' foi o seu segundo livro, depois de 'A Vida aos Pontapés'. É casado, pai da Rita, do Miguel e do Francisco e avô da Upa e do Zico.</p>
+$vinagre3$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-1791479419119.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-og-1791479419119.jpg',
+  true,
+  '2026-10-08 18:00:00+01'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at;
+
+INSERT INTO vinagre_posts (slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at)
+VALUES (
+  'cristina-ferreira-joao-monteiro-realizam-sonho-fabio-marques-np4game',
+  'Cristina Ferreira e João Monteiro realizam sonho de Fábio Marques, da NP4 Game, e filho Tiago também é presenteado',
+  'A estrela da TVI recebeu um novo iPhone bordeaux, a sua cor preferida, numa surpresa preparada em segredo para o CEO da NP4 Game.',
+  $vinagre4$<p>A diretora de Ficção e Entretenimento da TVI é uma mulher que sabe reconhecer quem trabalha e lutou para alcançar o sucesso. Ou seja, quem, como ela, fez acontecer e chegou ao topo da montanha.</p>
+<p>Tanto assim é que nesta sexta-feira, 9 de Outubro, exatamente um mês depois de ter celebrado o 49.º aniversário, Cristina Ferreira foi presenteada com um novo iPhone decorado com uma capa bordeaux, a sua cor preferida e a marca do romance com João Monteiro, simbolizado por um coração púrpura 💜.</p>
+<h2>Dois homens do norte</h2>
+<p>O irmão de Francisco Monteiro, atualmente concorrente do Big Brother All Stars, ficou amigo de Fábio Marques, CEO da tecnológica NP4 Game. Dois homens do norte e uma ligação que agora fica eternizada aqui no site Olha que Duas.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-np4-foto1-1791571381754742984.jpg" alt="Fábio Marques, CEO da tecnológica NP4 Game">
+<p>Fábio confessou a João que tinha o sonho de ver Cristina Ferreira a promover o seu negócio. E assim foi. Esta manhã, o namorado da apresentadora ligou para o empresário por videochamada e passou o novo telefone a Cristina.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-np4-foto2-1791571381754742984.jpg" alt="Cristina Ferreira e João Monteiro na videochamada com Fábio Marques">
+<p>Fábio Marques estava a tomar café com a tia, que também ficou muito feliz por falar com a estrela da TVI, e explicou que os telemóveis estavam todos esgotados. Um verdadeiro sucesso de vendas!</p>
+<blockquote><p>"O Fábio merece. Veio do nada e agora já tem 13 lojas. 13, o número da sorte."</p></blockquote>
+<p>Foi assim que Cristina o explicou no vídeo. A verdade é que nunca se tinha visto até hoje Cristina e João expostos numa missão, o que demonstra bem o empenho em concretizar o desejo de Fábio, CEO da NP4 Game.</p>
+<h2>Uma surpresa preparada em segredo</h2>
+<p>Falei com Diogo Soares, diretor de Marketing da empresa, que me explicou que foi uma surpresa preparada em segredo e que Fábio Marques nunca imaginou que Cristina Ferreira também publicasse tudo no Instagram.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-np4-foto3-1791571381754742984.jpg" alt="O novo iPhone bordeaux de Cristina Ferreira, publicado no Instagram">
+<p>Para além da anfitriã da Roda da Sorte, que está a ser um verdadeiro êxito nos fins de tarde do canal 4, João Monteiro e Tiago, o filho de Cristina, também foram presenteados com o novo iPhone, acabadinho de chegar, disponível para reservas no site da NP4 e nas lojas, em nova remessa a caminho.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-np4-foto4-1791571381754742984.jpg" alt="O novo iPhone em pré-venda no site da NP4 Game">
+<p>Desta vez, a colega de Cláudio Ramos nas manhãs do 'Dois às 10' provou de uma vez por todas que é sensível a histórias de gente lutadora e faz tudo para ajudar. De coração!</p>$vinagre4$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-1791571381754742984.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-og-1791571381754742984.jpg',
+  true,
+  '2026-10-09 19:30:00+01'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at;
