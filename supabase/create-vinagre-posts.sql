@@ -241,3 +241,39 @@ ON CONFLICT (slug) DO UPDATE SET
   og_image_url = EXCLUDED.og_image_url,
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at;
+
+INSERT INTO vinagre_posts (slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at)
+VALUES (
+  'susana-da-silva-tribunal-antonio-pedro-cerdeira-romance-comandante-melides',
+  'Susana da Silva, em tribunal por violência de António Pedro Cerdeira, assume romance com comandante milionário de Melides',
+  'O julgamento no Tribunal de Sintra foi adiado para 30 de outubro. Susana da Silva fala em exclusivo e, segundo fonte da companhia aérea, tem um novo amor.',
+  $vinagre5$<p>Foi adiada, para dia 30 deste mês de Outubro, a próxima sessão do julgamento que opõe Susana da Silva ao ex-namorado, acusado de violência doméstica.</p>
+<p>Na barra criminal do Tribunal de Sintra, antes das alegações finais e leitura da sentença, que deverá suceder em meados de Novembro, ainda são esperados os depoimentos, em defesa de Susana, do músico Miguel Gameiro e de Rita Guerra, que foi casada com Cerdeira durante cinco meses.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-susana-foto1-1791656899047672848.jpg" alt="Susana da Silva e António Pedro Cerdeira">
+<blockquote><p>"Estou cansada, exausta, são muitos anos disto. Relembro que o agressor já foi acusado pelo Ministério Público de violência doméstica agravada, numa pena de três a cinco anos. E os meus pertences continuam na casa dele."</p></blockquote>
+<p>Foi o que revelou Susana, em declarações exclusivas. Para a profissional da aviação, "estes monstros merecem ser condenados, merecem cadeia".</p>
+<p>"Muitas figuras públicas, que se tornaram amigos de verdade, apoiam-me em silêncio, relatam episódios do Pedro, enfim", denunciou, em conversa comigo.</p>
+<h2>Um novo amor de Melides</h2>
+<p>Solteira desde 2022, depois de ter literalmente fugido de António Pedro Cerdeira, Susana da Silva terá voltado a encontrar o amor. Um amor que a faz mesmo andar nas nuvens.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-susana-foto3-1791656899047672848.jpg" alt="Susana da Silva, profissional da aviação">
+<p>A verdade é que, segundo fonte da companhia aérea onde Susana trabalha, esta não está mais sozinha. Desde há cerca de seis meses, Susana tem sido vista em clima de grande cumplicidade com um comandante milionário da TAP, com quem divide agora o tempo em Melides.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-susana-foto4-1791656899047672848.jpg" alt="Susana da Silva, sorridente, num abraço">
+<h2>O que Susana contou em tribunal</h2>
+<p>Em tribunal, quando o julgamento começou, em Abril, foi ouvida a versão da suposta vítima: "nos meses seguintes, os episódios tornaram-se mais frequentes e mais agressivos".</p>
+<p>Mais: "Tínhamos ido jantar. Levámos para casa o meu melhor amigo e uma amiga dele. Ele teve outro ataque de ciúmes. Deu-me um estalo. Fiquei parva. Vivi um pesadelo com ele. Aguentei sete anos".</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-susana-foto2-1791656899047672848.jpg" alt="António Pedro Cerdeira">
+<p>Susana explicou que "Cerdeira ficava mais agressivo quando consumia cocaína e bebia álcool. Nas ressacas, era muito ciumento".</p>
+<blockquote><p>"Quando consumia cocaína, bastava um homem olhar para mim. Batia-me de todas as maneiras. Não me batia na cara porque percebia que ficava negra. Levei murros, partiu-me as costelas e partiu-me a cabeça com um banco. Além de ter levado tareia, ouvia insultos como vaca, monte de mer***..."</p></blockquote>$vinagre5$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-1791656899047672848.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-og-1791656899047672848.jpg',
+  true,
+  '2026-10-10 19:30:00+01'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at;
