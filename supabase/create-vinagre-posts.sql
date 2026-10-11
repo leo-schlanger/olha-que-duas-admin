@@ -296,8 +296,8 @@ VALUES (
 <p>Em risco poderá ficar agora a viagem planeada para 6 a 17 de Novembro ao Uruguai, à Argentina e ao Peru.</p>
 <p>Robert Prevost, o primeiro Papa norte-americano, foi eleito em Maio de 2025, sucedendo a Francisco, que morreu aos 88 anos. Sua Santidade tem presença prevista em Fátima, nas cerimónias de 13 de Maio de 2027.</p>
 <p>A todos os cristãos, e não só, Leão XIV deixou um pedido de orações: <strong>"Rezem por mim!"</strong></p>$vinagre6$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-1791722438217020365.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-og-1791722438217020365.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-1791722624245102701.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-og-1791722624245102701.jpg',
   true,
   '2026-10-11 13:45:00+01'
 )
