@@ -277,3 +277,35 @@ ON CONFLICT (slug) DO UPDATE SET
   og_image_url = EXCLUDED.og_image_url,
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at;
+
+INSERT INTO vinagre_posts (slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at)
+VALUES (
+  'papa-leao-xiv-nodulo-pulmao-vai-ser-operado',
+  '"Rezem por mim!" Papa Leão XIV anuncia nódulo no pulmão e vai ser operado',
+  'O próprio Papa revelou no Angelus, na Praça de São Pedro, que lhe foi detetado um nódulo no pulmão em fase inicial. A cirurgia está marcada para os próximos dias.',
+  $vinagre6$<p>O Papa Leão XIV anunciou este domingo, 11 de Outubro, que vai ser submetido a uma cirurgia, depois de lhe ter sido detetado um nódulo no pulmão "em fase inicial".</p>
+<p>O anúncio foi feito pelo próprio Sumo Pontífice durante a oração do Angelus, na Praça de São Pedro, no Vaticano.</p>
+<p>Leão XIV, de 71 anos, explicou que os médicos detetaram um nódulo num dos pulmões e que a lesão, ainda numa fase inicial, está "circunscrita".</p>
+<blockquote><p>"Recentemente, durante alguns exames médicos, os médicos detetaram um nódulo localizado no meu pulmão. Foi detetado numa fase muito precoce e está bem delimitado."</p></blockquote>
+<p>É absolutamente fora do comum ser o próprio Papa a anunciar publicamente um problema de saúde desta gravidade.</p>
+<h2>Cirurgia marcada para os próximos dias</h2>
+<p>O Papa acrescentou que a operação vai acontecer já nos próximos dias:</p>
+<blockquote><p>"Os médicos consideram aconselhável intervir, pelo que, seguindo o seu conselho, decidi submeter-me a uma cirurgia para o remover. A operação já está marcada para os próximos dias."</p></blockquote>
+<p>O Vaticano não revelou mais detalhes sobre o estado de saúde de Leão XIV. Citada pela Reuters, a Santa Sé adianta apenas que o período de recuperação deverá durar cerca de uma semana.</p>
+<h2>Viagem à América do Sul em risco</h2>
+<p>Em risco poderá ficar agora a viagem planeada para 6 a 17 de Novembro ao Uruguai, à Argentina e ao Peru.</p>
+<p>Robert Prevost, o primeiro Papa norte-americano, foi eleito em Maio de 2025, sucedendo a Francisco, que morreu aos 88 anos. Sua Santidade tem presença prevista em Fátima, nas cerimónias de 13 de Maio de 2027.</p>
+<p>A todos os cristãos, e não só, Leão XIV deixou um pedido de orações: <strong>"Rezem por mim!"</strong></p>$vinagre6$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-1791722438217020365.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-og-1791722438217020365.jpg',
+  true,
+  '2026-10-11 13:45:00+01'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at;
