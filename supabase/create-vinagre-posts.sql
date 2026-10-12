@@ -309,3 +309,44 @@ ON CONFLICT (slug) DO UPDATE SET
   og_image_url = EXCLUDED.og_image_url,
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at;
+
+INSERT INTO vinagre_posts (slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at)
+VALUES (
+  'pedro-mourinho-fora-do-now',
+  'Pedro Mourinho fora do NOW: "Decidi sair. Não vou..."',
+  'O jornalista confirmou o adeus ao canal da Medialivre e revelou que a decisão partiu de forma natural. Dois anos e dois meses depois do arranque do NOW, voltou de férias e não regressou ao ecrã.',
+  $vinagre7$<p>Dois anos e dois meses depois do arranque do canal 9, o jornalista voltou de férias e nunca mais regressou ao ecrã.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-mourinho-foto1-1791828952801019418.jpg" alt="Pedro Mourinho no estúdio do NOW">
+<p><strong>DESMENTIDO OFICIAL!</strong> A saída de Pedro Mourinho não significa uma "baixa" na Medialivre. Até porque a decisão partiu de forma natural por parte do jornalista, que decidiu, juntamente com a direção liderada por Carlos Rodrigues, não continuar a trabalhar na televisão que tem Cristiano Ronaldo como acionista.</p>
+<h2>"Foi uma vontade minha"</h2>
+<p>Em declarações exclusivas à minha crónica, aqui no site 'Olha que Duas', o pai de Carolina, filha também de Iva Domingues, confirmou o adeus:</p>
+<blockquote><p>"Foi uma vontade minha, sair do NOW, mas está tudo bem e não houve nada de polémicas. Não vou nem posso dizer mais nada, até por uma questão de confidencialidade. Neste momento, já não estou na redação. Estou de férias, a aproveitar a vida e à espera do que vem por aí."</p></blockquote>
+<h2>Direção em silêncio, Roque de Pinho desmente conflito</h2>
+<p>Falei também com Carlos Rodrigues, diretor editorial da Medialivre, que não quis tecer quaisquer comentários.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-mourinho-foto2-1791828952801019418.jpg" alt="Carlos Rodrigues, diretor editorial da Medialivre (CMTV e NOW)">
+<p>Também por telefone, Frederico Roque de Pinho, que reforçou o NOW exatamente quando Pedro estava de férias, desmente qualquer conflito com o "amigo de há mais de 30 anos, desde a SIC". Na passada semana, dia 6, o antigo canal de Carnaxide completou o 34.º aniversário.</p>
+<blockquote><p>"Nunca houve nenhum problema entre mim e o Pedro Mourinho, nem pessoal nem profissional. Já trabalhámos também juntos na TVI e foi sempre tudo tranquilo."</p></blockquote>
+<p>Quem o diz é Roque de Pinho, que trocou a CNN pelo NOW.</p>
+<h2>"A missão do NOW será sempre o jornalismo"</h2>
+<p>A 3 de Maio de 2024, no dia da apresentação oficial do canal, que foi para o ar a 17 de Junho, o antigo animador da 'Geração 90' da RFM referiu que "a missão do NOW será sempre o jornalismo":</p>
+<blockquote><p>"É provavelmente a chegada aos media mais importante dos últimos anos, mas além da novidade em si, de um novo canal, tem o mais importante leque de protagonistas que alguma vez foi apresentado em conjunto. Poder trabalhar num dia com o António Costa e no dia seguinte com o Pedro Santana Lopes e logo depois com o Rui Rio é mais do que aliciante, e colocará o NOW a um nível de comunicação em que os telespectadores, os políticos, os decisores não vão prescindir do canal e de saber o que ali é dito."</p></blockquote>
+<p>O NOW (News Now) é um canal de televisão português por cabo pertencente ao grupo Medialivre, proprietário do Correio da Manhã, Jornal de Negócios, Record, Sábado, TV Guia e Flash!, que "tem registado crescimentos expressivos nas audiências do cabo e liderança em diversos momentos de prime-time face a canais concorrentes".</p>
+<h2>Quem é Pedro Mourinho</h2>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-mourinho-foto3-1791828952801019418.jpg" alt="Pedro Mourinho, pivô do NOW até Agosto">
+<p>Pedro Mourinho é um reputado jornalista e pivô de televisão português, nascido a 30 de Abril de 1972. É amplamente reconhecido pelo seu longo percurso na cobertura jornalística em Portugal e, mais recentemente, pelo seu trabalho de grande impacto na cobertura da guerra na Ucrânia. Até Agosto, desempenhou as funções de pivô principal no canal NOW.</p>
+<p>Começou a sua carreira na rádio, estreando-se na RTP a apresentar o 'Caderno Diário', em 1990. Integrou a equipa da SIC, onde permaneceu durante cerca de 20 anos, tornando-se um dos rostos mais familiares da informação do canal.</p>
+<p>Em 2020, mudou-se para a TVI, onde também assumiu cargos de subdireção de informação e foi um dos rostos principais no lançamento da CNN Portugal. Destacou-se internacionalmente pelas suas intensas reportagens no terreno durante o início do conflito ucraniano.</p>
+<p>Em Setembro de 2022, transferiu-se para o grupo Cofina (atual Medialivre). Inicialmente ligado à CMTV, tornou-se depois figura central do canal 9. <strong>Agora, aos 54 anos, rumou para outras paragens...</strong></p>$vinagre7$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-1791828952801019418.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-og-1791828952801019418.jpg',
+  true,
+  '2026-10-12 19:15:00+01'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at;
