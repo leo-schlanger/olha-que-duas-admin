@@ -350,3 +350,51 @@ ON CONFLICT (slug) DO UPDATE SET
   og_image_url = EXCLUDED.og_image_url,
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at;
+
+INSERT INTO vinagre_posts (slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at)
+VALUES (
+  'david-antunes-morte-netinho',
+  'David Antunes em choque com morte de Netinho: "Descansa em paz, meu querido amigo!"',
+  'O cantor brasileiro de "Milla" morreu aos 60 anos, vítima de um linfoma. David Antunes, amigo próximo e parceiro de palco em Portugal, reagiu em exclusivo.',
+  $vinagre8$<p>O conhecido e talentoso cantor e músico português David Antunes e o brasileiro Netinho, famoso pelo êxito mundial "Milla", mantinham uma forte ligação profissional e uma amizade muito próxima.</p>
+<p>Infelizmente, a relação entre ambos fica agora marcada pela tragédia: o cantor baiano Netinho faleceu hoje, terça-feira, 13 de Outubro, aos 60 anos, vítima de um linfoma não Hodgkin, um tipo de cancro do sistema linfático, contra o qual lutava desde Março do ano passado.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-netinho-foto1-1791915054968111982.jpg" alt="Netinho (1966-2026)">
+<h2>Amigos dentro e fora dos palcos</h2>
+<p>Netinho viajou várias vezes para Portugal a convite de David. Participou em diversos concertos integrados na digressão de David Antunes &amp; The Midnight Band, animando eventos conceituados como a Feira Nacional de Agricultura, em Santarém, e festas em Alpiarça e Vila Flor.</p>
+<p>O malogrado artista brasileiro marcou também presença no conhecido podcast de David Antunes, "Canta-me uma história", onde interpretou alguns dos seus temas icónicos e partilhou momentos descontraídos.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-netinho-foto2-1791915054968111982.jpg" alt="Netinho, convidado especial de David Antunes">
+<p>Quando Netinho foi diagnosticado com cancro, David Antunes e a sua banda prestaram públicas e emotivas homenagens ao cantor brasileiro nos palcos portugueses, demonstrando a forte união e amizade que existia entre os dois artistas e as respetivas famílias.</p>
+<p>Na hora do adeus, em jeito de homenagem, David Antunes deixou uma mensagem de pesar, revelada em exclusivo:</p>
+<blockquote><p>"Descansa em paz, meu querido amigo!"</p></blockquote>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-netinho-foto3-1791915054968111982.jpg" alt="David Antunes e Netinho abraçados em palco">
+<h2>A doença</h2>
+<p>Segundo a assessoria do cantor, nos últimos meses Netinho enfrentava um linfoma não Hodgkin do tipo B, que evoluiu para um quadro de falência renal e disfunção múltipla de órgãos.</p>
+<p>Por desejo do próprio, o velório e a cremação serão realizados de forma reservada, numa cerimónia restrita a familiares e amigos próximos.</p>
+<p>O diagnóstico foi anunciado pelo próprio a 22 de Março de 2025, depois de ter sido internado no Hospital Aliança Star, em Salvador, capital da Bahia, com fortes dores nas pernas. Durante o tratamento, falou abertamente sobre a morte e foi sempre mostrando as várias etapas nas redes sociais.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-netinho-foto4-1791915054968111982.jpg" alt="Netinho no hospital, durante o tratamento">
+<h2>Quem era Netinho</h2>
+<p>O artista ficou conhecido pelas músicas "Beijo na Boca", "Fim de Semana" e o maior dos seus sucessos, "Milla", que se tornou um dos símbolos do axé music.</p>
+<p>Netinho nasceu em Santo Antônio de Jesus, no Recôncavo baiano, a 12 de Julho de 1966. Aos 10 anos, mudou-se com a família para Salvador, onde entrou em contacto com a música e começou cedo a carreira.</p>
+<p>Aos 14 anos, recebeu da mãe a primeira guitarra e, aos 16, ingressou no curso de Engenharia Civil, na Universidade Católica do Salvador (UCSal). Nessa época, conciliava os estudos com pequenos espetáculos em escolas, até começar a tocar profissionalmente em bares, com um repertório de MPB (Música Popular Brasileira) e bossa nova.</p>
+<p>Em 1988, estreou-se como vocalista da Banda Beijo no Carnaval de Salvador e, no mesmo ano, explodiu em todo o Brasil com "Beijo na Boca". Seguiram-se outros êxitos, como "Estrela Primeira", "Barracos" e "A Vida é Festa".</p>
+<p>O maior sucesso da sua voz foi "Milla", lançado em 1996, três anos depois de ter iniciado a carreira a solo. O cantor tornou-se um ídolo nacional e ajudou a levar o axé music ao mundo, com atuações em países como Itália e Chile.</p>
+<p>Como empresário, abriu um grande estúdio de gravação e mistura no Rio de Janeiro, por onde passaram nomes como Maria Bethânia, Milton Nascimento, Gilberto Gil, Laura Pausini e Lenny Kravitz. Criou também uma editora para lançar novos artistas baianos.</p>
+<p>Entre 1997 e 2003, foi casado com a jornalista Mariana Trindade, com quem teve uma filha, Bruna Trindade.</p>
+<h2>Polémicas e problemas de saúde</h2>
+<p>Em 2010, assumiu publicamente ser bissexual. Dois anos depois, no programa 'Fantástico', da TV Globo, disse preferir não se alongar sobre o assunto:</p>
+<blockquote><p>"Eu acho cafona ficar falando sobre isso. Não tem muito sentido."</p></blockquote>
+<p>Em 2013, sofreu três acidentes vasculares cerebrais (AVC) que lhe causaram, entre outros problemas, a perda da voz, o principal instrumento do seu trabalho. Por isso, esteve quatro anos sem atuar no Carnaval de Salvador.</p>
+<p>Apoiante de Jair Bolsonaro, participou em pelo menos uma manifestação a favor do então Presidente da República, em 2021, posicionamento que lhe valeu críticas.</p>
+<p>Nas eleições de 2022, candidatou-se a deputado federal pelo PL, o partido de Bolsonaro, mas obteve apenas 31 mil votos e não foi eleito, ficando como suplente.</p>$vinagre8$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-1791915054968111982.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-og-1791915054968111982.jpg',
+  true,
+  now()
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published;
