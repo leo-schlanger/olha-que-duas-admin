@@ -398,3 +398,43 @@ ON CONFLICT (slug) DO UPDATE SET
   cover_url = EXCLUDED.cover_url,
   og_image_url = EXCLUDED.og_image_url,
   is_published = EXCLUDED.is_published;
+
+INSERT INTO vinagre_posts (slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at)
+VALUES (
+  'fernanda-serrano-desmente-novo-amor',
+  '"Quais borboletas?" Fernanda Serrano desmente novo amor: "Não tenho! Quando quero..."',
+  'A TV Guia garantiu que a atriz de ''Coração de Mãe'' está apaixonada. Antes de partir para uma aventura nos Açores com o filho Santiago, Fernanda Serrano desmentiu tudo em exclusivo.',
+  $vinagre9$<p>A revista TV Guia escreveu esta quarta-feira, 14 de Outubro, numa história rapidamente replicada por outros sites, que Fernanda Serrano, de 52 anos, "tem um novo amor e está novamente apaixonada".</p>
+<p>A mesma publicação referiu que, três anos após o fim da relação com o personal trainer Ricardo Pereira, "a atriz vive uma nova paixão e está a manter a identidade do companheiro em segredo", tanto que "colegas de elenco referem que se mostra radiante e com 'borboletas na barriga'". De referir que as gravações de 'Coração de Mãe', em exibição na TVI, terminaram há mais de duas semanas.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-serrano-foto1-1792002431589005800.jpg" alt="Fernanda Serrano">
+<h2>Do Alentejo aos Açores</h2>
+<p>No passado fim-de-semana, a estrela das novelas do canal 4 refugiou-se no Alentejo, em São Teotónio, onde aproveitou para se deliciar com as maravilhas de uma região que tanto lhe diz, uma vez que tem raízes bem fortes em Estremoz.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-serrano-foto2-1792002431589005800.jpg" alt="Fernanda Serrano no Alentejo">
+<p>Hoje, dia 14, a filha única de Ercília e Jaime Serrano já está nos Açores, na ilha do Pico, com Santiago, o seu primogénito, a concretizar um sonho desenhado desde Abril: uma expedição, uma aventura conduzida por um guia todo-o-terreno.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-serrano-foto3-1792002431589005800.jpg" alt="Santiago, filho de Fernanda Serrano, a caminho dos Açores">
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-serrano-foto4-1792002431589005800.jpg" alt="O guia todo-o-terreno da expedição no Pico">
+<h2>"Quais borboletas?!"</h2>
+<p>Antes de se lançar ao desafio, Fernanda Serrano conversou em exclusivo comigo, aqui na minha coluna do 'Olha que Duas', e desmentiu o novo amor. Em primeira mão, respondeu:</p>
+<blockquote><p>"Quais borboletas?!! Não tenho! Os meus maiores amores, os de sempre, são os mesmos! Os meus 4 filhos! Estes sim, serão para sempre! Meus!"</p></blockquote>
+<p>E deixou a dica:</p>
+<blockquote><p>"Vão vendo a minha página (Instagram) e mantenham-se a par das notícias! Só eu as dou, quando e como quero. Obrigada!"</p></blockquote>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-serrano-foto5-1792002431589005800.jpg" alt="Fernanda Serrano na ilha do Pico, nos Açores">
+<h2>O adeus à Madalena</h2>
+<p>De lágrimas nos olhos, Fernanda confessou que "há despedidas que não são fáceis" e não escondeu a emoção no último dia de gravações, a 30 de Setembro:</p>
+<blockquote><p>"Foi dia de dizer adeus à Madalena. E há despedidas que não são fáceis. A Madalena foi muito mais do que uma personagem. Doce, reservada, sonhadora, uma mãe profundamente dedicada, teve de enfrentar um processo de reencontro consigo mesma e perceber que tinha o direito de escolher a sua própria vida."</p></blockquote>
+<p>A atriz acrescentou ainda que viveu com a personagem "medos, silêncios, lágrimas, recomeços":</p>
+<blockquote><p>"Mas vivi, sobretudo, aquele amor que só uma mãe conhece. E que nos ensina que nunca é tarde para recomeçar (...) Por todos os dias em que entrámos em estúdio e deixámos um bocadinho de nós em cada cena. Uma mãe pode ter medo, pode cansar-se, pode cair… mas quando ama, encontra sempre uma forma de continuar. Obrigada, Madalena. Foi um privilégio ser a tua voz, o teu rosto e o teu coração durante estes meses. Despeço-me de ti… mas algumas histórias não acabam verdadeiramente quando terminam as gravações. Ficam em nós. Para sempre."</p></blockquote>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-serrano-foto6-1792002431589005800.jpg" alt="Fernanda Serrano como Madalena, em 'Coração de Mãe'">
+<p>Na novela, que vai para o ar de segunda a sexta-feira, logo depois do especial 'Big Brother All Stars', Fernanda Serrano interpreta Madalena, uma professora casada com a personagem de Marco Delgado, que vai viver um romance proibido com um aluno, o 'Fonzie'.</p>$vinagre9$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-1792002431589005800.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-og-1792002431589005800.jpg',
+  true,
+  now()
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published;
