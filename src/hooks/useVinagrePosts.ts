@@ -2,17 +2,23 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { parseVinagrePost, type VinagreDraft, type VinagrePost } from '../types/vinagre';
 
-export function useVinagrePosts() {
+export function useVinagrePosts(programId: string | null) {
   const [posts, setPosts] = useState<VinagrePost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchPosts = useCallback(async () => {
+    if (!programId) {
+      setPosts([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     const { data, error: fetchError } = await supabase
       .from('vinagre_posts')
       .select('*')
+      .eq('program_id', programId)
       .order('published_at', { ascending: false, nullsFirst: false });
 
     if (fetchError) {
@@ -27,7 +33,7 @@ export function useVinagrePosts() {
         .filter((post): post is VinagrePost => post !== null),
     );
     setLoading(false);
-  }, []);
+  }, [programId]);
 
   useEffect(() => {
     void fetchPosts();
@@ -38,6 +44,16 @@ export function useVinagrePosts() {
     id?: string,
   ): Promise<string | null> => {
     setError(null);
+    const { data: programClash } = await supabase
+      .from('exclusive_programs')
+      .select('id')
+      .eq('slug', draft.slug)
+      .limit(1);
+    if (programClash && programClash.length > 0) {
+      const message = 'Este endereço já é um programa. Escolhe outro.';
+      setError(message);
+      return message;
+    }
     const payload = {
       ...draft,
       updated_at: new Date().toISOString(),

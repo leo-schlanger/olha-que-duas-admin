@@ -6,10 +6,12 @@ import { Label } from '../components/ui/label';
 import { Switch } from '../components/ui/switch';
 import { Textarea } from '../components/ui/textarea';
 import { RichTextEditor } from '../components/newsletter/RichTextEditor';
+import { useExclusivePrograms } from '../hooks/useExclusivePrograms';
 import { useVinagrePosts } from '../hooks/useVinagrePosts';
 import { supabase } from '../lib/supabase';
 import { fromLocalInput, publicMediaUrl, renderShareImage, slugify, toLocalInput } from '../lib/vinagre';
-import type { VinagrePost } from '../types/vinagre';
+import type { ExclusiveProgram, ExclusiveProgramDraft } from '../types/exclusivo';
+import type { VinagreDraft, VinagrePost } from '../types/vinagre';
 import {
   ArrowLeft,
   ExternalLink,
@@ -20,7 +22,9 @@ import {
   Trash2,
 } from 'lucide-react';
 
-const SITE = 'https://www.olhaqueduas.com/exclusivo';
+function postUrl(programSlug: string, postSlug: string): string {
+  return `https://www.olhaqueduas.com/exclusivo/${programSlug}/${postSlug}`;
+}
 
 interface FormState {
   title: string;
@@ -110,7 +114,118 @@ function CoverThumb({ url }: { url: string }) {
 }
 
 export function Vinagre() {
-  const { posts, loading, error, savePost, deletePost } = useVinagrePosts();
+  const { programs, loading, error, saveProgram, deleteProgram } = useExclusivePrograms();
+  const [selected, setSelected] = useState<ExclusiveProgram | null>(null);
+  const [editingProgram, setEditingProgram] = useState<ExclusiveProgram | 'new' | null>(null);
+
+  if (editingProgram) {
+    const current = editingProgram === 'new' ? null : editingProgram;
+    return (
+      <ProgramEditor
+        program={current}
+        onBack={() => setEditingProgram(null)}
+        onSave={async (draft) => {
+          const message = await saveProgram(draft, current?.id);
+          if (!message) setEditingProgram(null);
+          return message;
+        }}
+      />
+    );
+  }
+
+  if (selected) {
+    return (
+      <PostList
+        program={selected}
+        onBack={() => setSelected(null)}
+        onEditProgram={() => setEditingProgram(selected)}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {error && (
+        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">{error}</div>
+      )}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="font-display text-lg font-bold text-charcoal">Exclusivo Olha que Duas</h2>
+          <p className="text-sm text-muted-foreground">
+            Cada programa tem as suas notícias. O que publicares aparece no separador do site.
+          </p>
+        </div>
+        <Button onClick={() => setEditingProgram('new')}>
+          <Plus className="h-4 w-4 mr-2" />
+          Novo programa
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-16 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          A carregar…
+        </div>
+      ) : programs.length === 0 ? (
+        <Card>
+          <CardContent className="py-16 text-center text-muted-foreground">
+            Ainda não há programas.
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {programs.map((program) => (
+            <Card key={program.id}>
+              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    {program.is_published ? 'No ar' : 'Escondido'}
+                    {program.author ? ` · ${program.author}` : ''}
+                  </p>
+                  <h3 className="font-display text-lg font-bold text-charcoal">{program.title}</h3>
+                  {program.description && (
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{program.description}</p>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => setSelected(program)}>Notícias</Button>
+                  <Button variant="outline" size="sm" onClick={() => setEditingProgram(program)}>
+                    <Pencil className="h-4 w-4 mr-1.5" />
+                    Editar
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => {
+                      if (window.confirm(`Apagar o programa "${program.title}"? Só é possível se não tiver notícias.`)) {
+                        void deleteProgram(program.id);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1.5" />
+                    Apagar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PostList({
+  program,
+  onBack,
+  onEditProgram,
+}: {
+  program: ExclusiveProgram;
+  onBack: () => void;
+  onEditProgram: () => void;
+}) {
+  const { posts, loading, error, savePost, deletePost } = useVinagrePosts(program.id);
   const [editing, setEditing] = useState<VinagrePost | 'new' | null>(null);
 
   if (editing) {
@@ -118,9 +233,10 @@ export function Vinagre() {
     return (
       <Editor
         post={current}
+        programSlug={program.slug}
         onBack={() => setEditing(null)}
         onSave={async (draft) => {
-          const message = await savePost(draft, current?.id);
+          const message = await savePost({ ...draft, program_id: program.id }, current?.id);
           if (!message) setEditing(null);
           return message;
         }}
@@ -131,24 +247,29 @@ export function Vinagre() {
   return (
     <div className="space-y-4">
       {error && (
-        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">
-          {error}
-        </div>
+        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">{error}</div>
       )}
-
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="font-display text-lg font-bold text-charcoal">
-            Exclusivo Olha que Duas
-          </h2>
+          <Button type="button" variant="ghost" className="mb-2 -ml-3" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Programas
+          </Button>
+          <h2 className="font-display text-lg font-bold text-charcoal">{program.title}</h2>
           <p className="text-sm text-muted-foreground">
-            Notícias da coluna do Eduardo Vinagre. O que publicares aparece no separador do site.
+            {program.author}. As notícias deste programa, da mais recente para a mais antiga.
           </p>
         </div>
-        <Button onClick={() => setEditing('new')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova notícia
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={onEditProgram}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Editar programa
+          </Button>
+          <Button onClick={() => setEditing('new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova notícia
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -159,7 +280,7 @@ export function Vinagre() {
       ) : posts.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center text-muted-foreground">
-            Ainda não há notícias nesta coluna.
+            Ainda não há notícias neste programa.
           </CardContent>
         </Card>
       ) : (
@@ -174,13 +295,9 @@ export function Vinagre() {
                       {post.is_published ? 'Publicada' : 'Rascunho'}
                       {post.published_at ? ` · ${formatWhen(post.published_at)}` : ''}
                     </p>
-                    <h3 className="font-display text-lg font-bold text-charcoal">
-                      {post.title}
-                    </h3>
+                    <h3 className="font-display text-lg font-bold text-charcoal">{post.title}</h3>
                     {post.excerpt && (
-                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                        {post.excerpt}
-                      </p>
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>
                     )}
                   </div>
                   <div className="mt-auto flex flex-wrap gap-2">
@@ -188,9 +305,9 @@ export function Vinagre() {
                       <Pencil className="h-4 w-4 mr-1.5" />
                       Editar
                     </Button>
-                    {post.is_published && (
+                    {post.is_published && program.is_published && (
                       <Button variant="outline" size="sm" asChild>
-                        <a href={`${SITE}/${post.slug}`} target="_blank" rel="noopener noreferrer">
+                        <a href={postUrl(program.slug, post.slug)} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="h-4 w-4 mr-1.5" />
                           Ver no site
                         </a>
@@ -220,23 +337,202 @@ export function Vinagre() {
   );
 }
 
+function ProgramEditor({
+  program,
+  onBack,
+  onSave,
+}: {
+  program: ExclusiveProgram | null;
+  onBack: () => void;
+  onSave: (draft: ExclusiveProgramDraft) => Promise<string | null>;
+}) {
+  const [title, setTitle] = useState(program?.title ?? '');
+  const [author, setAuthor] = useState(program?.author ?? '');
+  const [tagline, setTagline] = useState(program?.tagline ?? '');
+  const [description, setDescription] = useState(program?.description ?? '');
+  const [slug, setSlug] = useState(program?.slug ?? '');
+  const [slugTouched, setSlugTouched] = useState(Boolean(program));
+  const [sortOrder, setSortOrder] = useState(String(program?.sort_order ?? 0));
+  const [portraitUrl] = useState(program?.portrait_url ?? '');
+  const [portraitFocus, setPortraitFocus] = useState(program?.portrait_focus ?? 'center');
+  const [coverUrl] = useState(program?.cover_url ?? '');
+  const [published, setPublished] = useState(program?.is_published ?? false);
+  const [portraitFile, setPortraitFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const upload = async (file: File, prefix: string): Promise<string | null> => {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const safeExt = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext) ? ext : 'jpg';
+    const path = `${prefix}-${Date.now()}.${safeExt}`;
+    const { error: uploadError } = await supabase.storage
+      .from('media-library')
+      .upload(path, file, { contentType: file.type || 'image/jpeg' });
+    if (uploadError) {
+      setFormError(uploadError.message);
+      return null;
+    }
+    return supabase.storage.from('media-library').getPublicUrl(path).data.publicUrl;
+  };
+
+  const submit = async () => {
+    const nextTitle = title.trim();
+    const nextAuthor = author.trim();
+    const nextSlug = slugify(slug || nextTitle);
+    if (!nextTitle || !nextAuthor || !nextSlug) {
+      setFormError('Título, autor e endereço são obrigatórios.');
+      return;
+    }
+    const order = Number(sortOrder);
+    if (!Number.isFinite(order)) {
+      setFormError('A ordem tem de ser um número.');
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
+    let nextPortrait = portraitUrl;
+    let nextCover = coverUrl;
+    if (portraitFile) {
+      const uploaded = await upload(portraitFile, 'programa-retrato');
+      if (!uploaded) {
+        setSaving(false);
+        return;
+      }
+      nextPortrait = uploaded;
+    }
+    if (coverFile) {
+      const uploaded = await upload(coverFile, 'programa-capa');
+      if (!uploaded) {
+        setSaving(false);
+        return;
+      }
+      nextCover = uploaded;
+    }
+    const message = await onSave({
+      title: nextTitle,
+      author: nextAuthor,
+      slug: nextSlug,
+      tagline: tagline.trim(),
+      description: description.trim(),
+      portrait_url: publicMediaUrl(nextPortrait),
+      portrait_focus: portraitFocus.trim() || 'center',
+      cover_url: nextCover ? publicMediaUrl(nextCover) : '',
+      sort_order: order,
+      is_published: published,
+    });
+    setSaving(false);
+    if (message) setFormError(message);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="button" variant="ghost" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Programas
+        </Button>
+        <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
+          {title.trim() || 'Novo programa'}
+        </p>
+        <Button type="button" onClick={() => void submit()} disabled={saving}>
+          {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+          Guardar
+        </Button>
+      </div>
+      {formError && (
+        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">{formError}</div>
+      )}
+      <Card>
+        <CardContent className="grid gap-4 p-5">
+          <div className="space-y-2">
+            <Label htmlFor="program-title">Título</Label>
+            <Input
+              id="program-title"
+              value={title}
+              onChange={(event) => {
+                const next = event.target.value;
+                setTitle(next);
+                if (!slugTouched) setSlug(slugify(next));
+              }}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="program-author">Autor</Label>
+            <Input id="program-author" value={author} onChange={(event) => setAuthor(event.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="program-tagline">Frase por baixo do nome</Label>
+            <Input id="program-tagline" value={tagline} onChange={(event) => setTagline(event.target.value)} maxLength={240} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="program-description">Descrição na lista de programas</Label>
+            <Textarea
+              id="program-description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              rows={3}
+              maxLength={400}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="program-slug">Endereço</Label>
+            <Input
+              id="program-slug"
+              value={slug}
+              onChange={(event) => {
+                setSlugTouched(true);
+                setSlug(event.target.value);
+              }}
+            />
+            <p className="break-all text-xs text-muted-foreground">
+              olhaqueduas.com/exclusivo/{slugify(slug || title) || '…'}
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="program-order">Ordem na lista</Label>
+              <Input id="program-order" value={sortOrder} onChange={(event) => setSortOrder(event.target.value)} inputMode="numeric" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="program-focus">Enquadramento do retrato</Label>
+              <Input id="program-focus" value={portraitFocus} onChange={(event) => setPortraitFocus(event.target.value)} placeholder="center" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="program-portrait">Retrato</Label>
+            <Input id="program-portrait" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setPortraitFile(event.target.files?.[0] ?? null)} />
+            {portraitUrl && !portraitFile && (
+              <img src={publicMediaUrl(portraitUrl)} alt="" className="h-24 w-24 rounded-full object-cover" />
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="program-cover">Capa do programa</Label>
+            <Input id="program-cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={(event) => setCoverFile(event.target.files?.[0] ?? null)} />
+            {coverUrl && !coverFile && (
+              <img src={publicMediaUrl(coverUrl)} alt="" className="h-32 w-full rounded-lg bg-black object-contain" />
+            )}
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="program-published">Mostrar no site</Label>
+            <Switch id="program-published" checked={published} onCheckedChange={setPublished} />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function Editor({
   post,
+  programSlug,
   onBack,
   onSave,
 }: {
   post: VinagrePost | null;
+  programSlug: string;
   onBack: () => void;
-  onSave: (draft: {
-    slug: string;
-    title: string;
-    excerpt: string;
-    content: string;
-    cover_url: string;
-    og_image_url: string;
-    is_published: boolean;
-    published_at: string | null;
-  }) => Promise<string | null>;
+  onSave: (draft: Omit<VinagreDraft, 'program_id'>) => Promise<string | null>;
 }) {
   const [form, setForm] = useState<FormState>(() => (post ? fromPost(post) : emptyForm()));
   const [file, setFile] = useState<File | null>(null);
@@ -519,7 +815,7 @@ function Editor({
               </div>
               <p className="text-xs text-muted-foreground">
                 {form.published
-                  ? 'Visível no separador Exclusivo Olha que Duas.'
+                  ? 'Visível na página deste programa.'
                   : 'Desligado, a notícia fica em rascunho.'}
               </p>
               <div className="space-y-2">
@@ -551,11 +847,11 @@ function Editor({
                 }
               />
               <p className="break-all text-xs text-muted-foreground">
-                {SITE}/{slug || '…'}
+                {postUrl(programSlug, slug || '…')}
               </p>
               {form.published && slug && (
                 <a
-                  href={`${SITE}/${slug}`}
+                  href={postUrl(programSlug, slug)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center text-xs text-vermelho underline"

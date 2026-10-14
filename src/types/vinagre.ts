@@ -10,6 +10,7 @@ export interface VinagrePost {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  program_id: string;
 }
 
 export interface VinagreDraft {
@@ -21,6 +22,7 @@ export interface VinagreDraft {
   og_image_url: string;
   is_published: boolean;
   published_at: string | null;
+  program_id: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -58,5 +60,6 @@ export function parseVinagrePost(value: unknown): VinagrePost | null {
     excerpt: typeof excerpt === 'string' ? excerpt : '',
     cover_url: typeof cover === 'string' ? cover : '',
     og_image_url: typeof ogImage === 'string' ? ogImage : '',
+    program_id: str(value, 'program_id') ?? '',
   };
 }
