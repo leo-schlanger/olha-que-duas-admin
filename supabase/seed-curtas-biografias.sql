@@ -1,6 +1,6 @@
 -- Curtas Biografias, com Alexandra Serra.
 -- Correr depois de exclusive-programs.sql e depois do site que filtra por programa.
--- A Marluce é o episódio 1 (17:00). O António Sala é o episódio 2 (18:00)
+-- A Marluce é o episódio 1 (16:00). O António Sala é o episódio 2 (16:05)
 -- e, como a coluna mostra a peça mais recente em destaque, é ele que abre a página.
 
 INSERT INTO exclusive_programs (
@@ -48,7 +48,7 @@ VALUES (
   'https://www.olhaqueduas.com/exclusivo/marluce-revoredo-silva.jpg',
   'https://www.olhaqueduas.com/exclusivo/marluce-revoredo-silva-og.jpg',
   true,
-  '2026-10-14 17:00:00+01',
+  '2026-10-14 16:00:00+01',
   'e4b81f06-3a27-4c9d-8e55-1d7a6b0c92f8'
 )
 ON CONFLICT (slug) DO UPDATE SET
@@ -82,7 +82,7 @@ VALUES (
   'https://www.olhaqueduas.com/exclusivo/antonio-sala.jpg',
   'https://www.olhaqueduas.com/exclusivo/antonio-sala-og.jpg',
   true,
-  '2026-10-14 18:00:00+01',
+  '2026-10-14 16:05:00+01',
   'e4b81f06-3a27-4c9d-8e55-1d7a6b0c92f8'
 )
 ON CONFLICT (slug) DO UPDATE SET
