@@ -68,7 +68,7 @@ VALUES (
   'A coluna exclusiva de Eduardo Vinagre. Notícias, bastidores e o que não sai no resto da imprensa.',
   'https://www.olhaqueduas.com/exclusivo/eduardo-vinagre.jpg',
   'center 64%',
-  '',
+  'https://www.olhaqueduas.com/exclusivo/olha-que-duas-e-eu.jpg',
   1,
   true
 )
@@ -79,6 +79,7 @@ ON CONFLICT (slug) DO UPDATE SET
   description = EXCLUDED.description,
   portrait_url = EXCLUDED.portrait_url,
   portrait_focus = EXCLUDED.portrait_focus,
+  cover_url = EXCLUDED.cover_url,
   sort_order = EXCLUDED.sort_order,
   is_published = EXCLUDED.is_published;
 
