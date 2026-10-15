@@ -438,3 +438,58 @@ ON CONFLICT (slug) DO UPDATE SET
   cover_url = EXCLUDED.cover_url,
   og_image_url = EXCLUDED.og_image_url,
   is_published = EXCLUDED.is_published;
+
+-- Luís Maia, 50 anos, 15 de outubro de 2026. Olha que Duas e Eu.
+INSERT INTO vinagre_posts (
+  slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at, program_id
+)
+VALUES (
+  'passado-secreto-luis-maia-50-anos',
+  'Exclusivo! O passado secreto de Luís Maia: a morte de Angélico afastou o repórter da enteada',
+  'No dia do 50.º aniversário, o "mano" Hernâni Carvalho recorda "o palerma da praxe". Luís Maia foi surpreendido nas manhãs da SIC.',
+  $luis50$<p>Luís Maia é uma cara bastante conhecida das reportagens criminais, agora na 'Casa Feliz' da SIC. Em dia de festa, saiba que o repórter fez parte do 'Survivor' da TVI e trabalhou no 'Você na TV!' quando Cristina Ferreira estreou como apresentadora principal.</p>
+<p>50 anos depois de 15 de Outubro de 1976, Luís Maia foi hoje surpreendido e homenageado para Portugal ver nas manhãs da SIC.</p>
+<p>Com a cumplicidade de Hernâni Carvalho e de Diana Chaves, e até da equipa de produção e realização, pensou que ia ao estúdio entregar umas folhas e eis que foi apanhado. Seguiu-se a mensagem de parabéns da mãe orgulhosa e a entrada enternecedora de Susana, a esposa, e o apagar da vela num bolo de pastéis de nata, o seu docinho preferido. Foi um momento de televisão feliz e inesquecível de um homem, de quem os amigos e colegas só dizem o melhor.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-luis-maia-50-estudio.jpg" alt="Luís Maia nas manhãs da SIC">
+<h2>O estágio na TVI</h2>
+<p>Luís Maia anda nestas lides há muito tempo. Praticamente desde sempre. Em 1999, estagiou na editoria de Sociedade da TVI, onde foi apadrinhado por Paulo Salvador, na altura pré-'Big Brother', quando o Jornal Nacional ainda era o Directo XXI.</p>
+<p>Antes de terminar o estágio, Júlio Magalhães já estava em Queluz de Baixo e, após Luís ter partilhado com ele a paixão pelo heavy metal, o ex-jornalista da TVI pediu a Maia que fizesse uma série de cinco reportagens, uma por cada dia do noticiário da hora de almoço.</p>
+<h2>Cabelos compridos e heavy metal</h2>
+<p>O repórter da 'Análise Criminal' foi um jovem de cabelos compridos, louco por baterias e músico de várias bandas "a rasgar", como por exemplo os Dark Saga. Aliás, foi o desbravar deste mundo, dos engravatados que se transformam em "gandas malucos" de calças rasgadas e cabedal com correntes, que ajudaram o jovem jornalista a iniciar uma carreira de sucesso no jornalismo televisivo.</p>
+<p>Aqui no site 'Olha que Duas', nesta data querida, hoje juntamos as vozes para cantar e entoar, com uma salva de palmas, os muitos parabéns a Luís Maia.</p>
+<h2>Da Duvídeo ao 'Você na TV!'</h2>
+<p>Em reportagem exclusiva, nos bastidores da sua vida, descobrimos ainda que o jornalista trabalhou na RTP, através da produtora Duvídeo, no espaço agora ocupado pelo 'Bom Dia, Portugal'. Em 2000, com Guilherme Simões, agora pivô das noites da SIC Notícias, no 'Hora Viva - Segurança em Directo'.</p>
+<p>Em 2004, fez parte da equipa que lançou o êxito 'Você na TV!' e viu o despontar da dupla Cristina Ferreira e Manuel Luís Goucha. Viu a jovem tímida transformar-se na estrela da TVI, ele que também trabalhou com a 'patroa' do canal 4 no 'Programa da Cristina' na SIC.</p>
+<p>O percurso de Luís Maia é vasto, diversificado, um currículo de luxo. Também na televisão agora dirigida por Daniel Oliveira, trabalhou na saudosa Comunicasom, de Manolo Bello, na crónica criminal do 'SIC 10 Horas' anfitriado por Fátima Lopes.</p>
+<h2>O palerma da praxe</h2>
+<p>Foi por ali que conheceu e tornou-se no melhor amigo do "mano" Hernâni Carvalho. Na faculdade, no Instituto Superior de Ciências Sociais e Políticas da Universidade de Lisboa (ISCSP), Luís estudava Comunicação Social e o apresentador do 'Linha Aberta' entrou como caloiro em Ciência Política. Anos mais tarde, já em contexto de trabalho, quando Luís perguntou se ele o conhecia, o "justiceiro" da SIC respondeu, à gargalhada:</p>
+<blockquote><p>"Ah, tu é que eras o palerma que me queria praxar..."</p></blockquote>
+<h2>Sempre em direto, no Parque Holanda</h2>
+<p>Desde 2011 na SIC, com escritório no Parque Holanda, onde são feitos os programas 'Casa Feliz', 'Júlia', 'Passadeira Vermelha', entre outros da SIC, SIC Caras, Mulher e Radical, mesmo em frente às antigas instalações da estação fundada por Emídio Rangel, Luís Maia percorre também o país a relatar os crimes, a história dos protagonistas, os relatos dos familiares e vizinhos. Sempre em direto do local.</p>
+<h2>'Lux', 'Survivor' e o 11 de Setembro</h2>
+<p>Pelo meio, também teve uma perninha no Minho cor de rosa e nos reality shows. Foi parte integrante do 'Lux', o magazine social abrilhantado por Rita Seguro e Diogo Morgado, e trabalhou com Teresa Guilherme no selvagem 'Survivor'. A 11 de Setembro de 2001, estava a viajar do Panamá para Miami, quando tiveram que voltar para trás, após o ataque aos Estados Unidos, a tragédia das Torres Gémeas.</p>
+<h2>Susana, a Lia e o dia de Angélico</h2>
+<p>Luís Maia não gosta muito de falar da vida pessoal. O importante é o casamento feliz com Susana Maia, maquilhadora profissional. Juntos desde 2011, oficializaram a união a 7 de Junho de 2015. Têm dois filhos: o Afonso, que faz 13 anos em Dezembro, e a Lia, fruto de uma relação anterior de Susana, mas que para Luís é mais que uma enteada.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-luis-maia-50-familia.jpg" alt="Luís Maia com Susana, Lia e Afonso">
+<p>E é aqui que entra Angélico Vieira na vida desta família. Lia tinha três anos, quando Luís Maia ia conhecer a menina. Porém, o momento coincidiu com o brutal acidente que vitimou o eterno D'Zrt. O repórter das manhãs da SIC teve que ir de imediato para o Porto, para acompanhar os últimos dias de Angélico, e só mais tarde viu Lia pela primeira vez:</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-luis-maia-50-angelico.jpg" alt="Angélico Vieira">
+<blockquote><p>"Um amor eterno, uma família de quatro carinhosa e muito cúmplice."</p></blockquote>
+<h2>'O Meu Filho Não Dorme' e a festa dos 50</h2>
+<p>Agora que já sabe tudo sobre o jornalista e o homem, realizado e feliz aos 50, fique com mais este detalhe: pode comprar e ler o livro de Luís Maia, um testemunho real sobre a privação de sono dos pais, 'O Meu Filho Não Dorme'.</p>
+<p>Para além disso, é professor na pós-graduação em Criminologia no ISCSP e dá aulas também na pós-graduação em Enfermagem Forense no Centro de Ensino Superior Politécnico e Universitário (CESPU).</p>
+<p>No fim-de-semana, o jornalista vai juntar familiares, colegas e amigos para a festa do meio século. E faz ele muito bem! Razões não lhe faltam para comemorar a vida. Que seja sempre assim!</p>$luis50$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-luis-maia-50-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-luis-maia-50-og.jpg',
+  true,
+  '2026-10-15 21:30:00+01',
+  '7c2a9e14-5b60-4f83-9d21-6a0e8c4b17d3'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at,
+  program_id = EXCLUDED.program_id;
