@@ -505,3 +505,43 @@ ON CONFLICT (slug) DO UPDATE SET
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at,
   program_id = EXCLUDED.program_id;
+
+-- Joaquim Letria, 82 anos, 16 de outubro de 2026. Olha que Duas e Eu.
+INSERT INTO vinagre_posts (
+  slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at, program_id
+)
+VALUES (
+  'o-adeus-de-joaquim-letria-aos-82-anos',
+  '"Que pena! Grande Homem! Descanse em paz!" O adeus de Joaquim Letria aos 82 anos',
+  'Morreu Joaquim Letria, aos 82 anos. Figura ímpar do jornalismo português, esteve na génese do Expresso e fundou O Jornal, o Tal & Qual e a revista Sábado. José Manuel Delgado reage em exclusivo.',
+  $letria$<p>Nascido a 8 de Novembro de 1943, em Lisboa, filiou-se, aos 16 anos, no Partido Comunista Português, desvinculando-se em Outubro de 1968, após a invasão de Praga.</p>
+<p>Começou a carreira de jornalista em 1963, no Diário de Lisboa. Foi repórter internacional da agência The Associated Press e correspondente da Deutsche-Presse Agentur até 1970.</p>
+<p>Mudou-se para Londres depois de ter sido selecionado para a BBC, regressando a Portugal em 1974 para dirigir a informação da RTP pós 25 de Abril.</p>
+<p>Fez parte da equipa criadora do Expresso, concebeu e fundou O Jornal, o Tal &amp; Qual e a revista Sábado. Também foi autor e apresentador de múltiplos programas de rádio e televisão, presidente do Sindicato dos Jornalistas e porta-voz do Presidente da República General Ramalho Eanes.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-joaquim-letria-imprensa.jpg" alt="Joaquim Letria numa exposição dedicada à imprensa">
+<h2>Um homem bom e um visionário</h2>
+<p>Joaquim Letria era, literalmente, um homem bom. Respeitado, admirado e comum, um visionário. Vivia apaixonado pela mulher, Berta, irmã mais velha da atriz Helena Isabel. Era tio de Agir, acrescente-se.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-joaquim-letria-berta.jpg" alt="Joaquim Letria com a mulher, Berta">
+<h2>"Que pena! Grande Homem!"</h2>
+<p>Fátima Lopes, que trabalhou com Letria quando ele tinha um espaço de escárnio e humor justiceiro no programa das tardes da TVI, só tem elogios para lhe fazer.</p>
+<p>José Manuel Delgado, veterano futebolista e jornalista, atualmente cronista d'A Bola, autor da biografia de Diogo Jota, fez parte das direções dos jornais e da revista que Joaquim fundou. Quando o informámos do falecimento, disse-nos:</p>
+<blockquote><p>"Que pena! Grande Homem!"</p></blockquote>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-joaquim-letria-retrato.jpg" alt="Joaquim Letria (1943-2026)">
+<h2>"Este é um país livre..."</h2>
+<p>Numa entrevista que lhe fiz, há alguns anos, Joaquim Letria foi igual a si próprio. Não deixou nada por dizer. Respondeu a tudo. E fazia sempre questão de dizer:</p>
+<blockquote><p>"Ponha tudo o que eu falei, não tenha medo, é a verdade e este é um país livre..."</p></blockquote>$letria$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-joaquim-letria-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-joaquim-letria-og.jpg',
+  true,
+  '2026-10-16 16:20:00+01',
+  '7c2a9e14-5b60-4f83-9d21-6a0e8c4b17d3'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at,
+  program_id = EXCLUDED.program_id;
