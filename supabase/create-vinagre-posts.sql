@@ -545,3 +545,50 @@ ON CONFLICT (slug) DO UPDATE SET
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at,
   program_id = EXCLUDED.program_id;
+
+-- Sandra Felgueiras, Jornalista do Ano nos Prémios Júlio César Andrino, 17 de outubro de 2026. Olha que Duas e Eu.
+INSERT INTO vinagre_posts (
+  slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at, program_id
+)
+VALUES (
+  'filha-de-sandra-felgueiras-orgulho-na-mae',
+  'Exclusivo! Declaração inédita da filha de Sandra Felgueiras: Sara tem "orgulho na mãe", premiada Jornalista do Ano',
+  'Pela primeira vez, Sara, a filha de 13 anos de Sandra Felgueiras, aceitou falar: "Tenho muito orgulho na mãe que tenho." A pivô da TVI e CNN Portugal foi distinguida Jornalista do Ano nos Prémios Júlio César Andrino.',
+  $felgueiras$<p>Em rigoroso exclusivo aqui para a coluna do site Olha que Duas, Sara, a filha de 13 anos de Sandra Felgueiras, estava radiante e, pela primeira vez, aceitou falar:</p>
+<blockquote><p>"Tenho muito orgulho na mãe que tenho. É a melhor do mundo e uma excelente profissional. Trabalha muito e merece tudo."</p></blockquote>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-sandra-felgueiras-filha-sara.jpg" alt="Sandra Felgueiras com a filha, Sara, e o troféu de Jornalista do Ano">
+<p>"Tudo" é também o troféu de Jornalista do Ano, recebido na noite do sábado passado, 17 de Outubro, nos Prémios Júlio César Andrino.</p>
+<p>No palco do Auditório Municipal Ruy de Carvalho, em Oeiras, Sandra Felgueiras era o retrato de uma mulher feliz e realizada.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-sandra-felgueiras-entrega.jpg" alt="Sandra Felgueiras recebe o prémio no palco do Auditório Municipal Ruy de Carvalho, em Oeiras">
+<h2>Um prémio partilhado com as âncoras da sua vida</h2>
+<blockquote><p>"Distingue o meu percurso, mas ele confunde-se inevitavelmente com muitas pessoas sem as quais nunca teria chegado aqui: os meus pais, que me deram a educação e os valores que me orientam; a minha filha, que se tornou no meu farol; o meu companheiro, que é uma referência e a minha âncora; a minha equipa do Exclusivo, sem a qual não haveria jornalismo de investigação com a minha assinatura; e por fim, mas crucial, o meu diretor de informação, Nuno Santos, que sempre apostou em mim e me cria diariamente condições para eu poder fazer mais e melhor. Não há ninguém que consiga trabalhar a 200% sem uma grande equipa, nem um grande líder por detrás. Apesar de ser um prémio individual, que me honra profundamente, dedico-o a eles!"</p></blockquote>
+<p>Palavras que destacam a relação de amor e felicidade que mantém com Sérgio Furtado, jornalista e correspondente de guerra da TVI e CNN.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-sandra-felgueiras-trofeu.jpg" alt="Sandra Felgueiras com o troféu de Jornalista do Ano dos Prémios Júlio César Andrino">
+<h2>"A nossa lealdade é aos factos"</h2>
+<p>Num discurso emocionado, a pivô do Jornal Nacional agradeceu esta distinção a Eduarda Andrino, ao júri e à organização dos Prémios da Cultura Júlio César Andrino.</p>
+<blockquote><p>"Este prémio não é meu, mas de uma equipa inteira que se chama Exclusivo. Reconhece a independência jornalística. E para mim isso significa muito", enalteceu.</p></blockquote>
+<p>Para Sandra, "o jornalismo não é uma afronta pessoal. É uma exigência da democracia":</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-sandra-felgueiras-discurso.jpg" alt="Sandra Felgueiras discursa no púlpito dos Prémios da Cultura Júlio César Andrino">
+<blockquote><p>"Não podemos aceitar como normal que quem exerce o poder procure condicionar jornalistas, intimidá-los ou transformar perguntas legítimas em ataques pessoais. O poder não confere imunidade à crítica. E a liberdade de imprensa não pode depender da tolerância de quem é escrutinado.</p>
+<p>Mas esta exigência também nos obriga, enquanto jornalistas, a olhar para dentro da nossa própria profissão. A independência não se proclama. Pratica-se. Todos os dias. Sobretudo quando é difícil.</p>
+<p>É preciso resistir à tentação de confundir o acesso privilegiado a fontes com o acesso privilegiado à verdade. Ter fontes é essencial. Ser refém delas é inaceitável. Um jornalista não pode transformar-se no instrumento de quem lhe fornece informação para servir interesses próprios, manipular a realidade ou alimentar narrativas falsas.</p>
+<p>A nossa lealdade não é às fontes. Não é aos poderosos. Não é às audiências. A nossa lealdade é aos factos.</p>
+<p>Obrigada por me terem reconhecido de uma forma tão bonita. O vídeo que prepararam mostrou uma versão de mim que raramente veem. Uma versão de quem eu sou. Versátil, leve, capaz de fazer as perguntas que se impõem não por capricho, mas por dever."</p></blockquote>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-sandra-felgueiras-passadeira.jpg" alt="Sandra Felgueiras na passadeira vermelha dos Prémios Júlio César Andrino">
+<h2>Exclusivo ganha programa próprio na CNN Portugal</h2>
+<p>Com o aproximar do quinto aniversário da CNN Portugal, a 22 de Novembro, muitas novidades estão preparadas. Um dos destaques será o programa Exclusivo, que deixa de ser "apenas" uma rubrica no Jornal Nacional, conduzido por Sandra Felgueiras, para ser um espaço dedicado ao jornalismo de investigação, que vai assumir a vertente de entrevista e/ou debate, dependendo dos temas em análise, e terá também uma versão em podcast.</p>$felgueiras$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-sandra-felgueiras-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-sandra-felgueiras-og.jpg',
+  true,
+  '2026-10-19 15:00:00+01',
+  '7c2a9e14-5b60-4f83-9d21-6a0e8c4b17d3'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at,
+  program_id = EXCLUDED.program_id;
