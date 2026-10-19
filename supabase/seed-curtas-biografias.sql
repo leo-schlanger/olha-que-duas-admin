@@ -94,3 +94,35 @@ ON CONFLICT (slug) DO UPDATE SET
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at,
   program_id = EXCLUDED.program_id;
+
+INSERT INTO vinagre_posts (
+  slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at, program_id
+)
+VALUES (
+  'jose-castelo-branco',
+  'José Castelo Branco: rei do glamour e da polémica',
+  'De Tete à noite lisboeta dos anos 80, do fenómeno dos reality shows ao confronto com a justiça: as metamorfoses da mais polarizadora figura do espetáculo em Portugal.',
+  $castelobranco$<p>José Alberto Castelo Branco da Silva Vieira nasceu a 8 de dezembro de 1962 em Tete, Moçambique. Filho de Francisco José e de Inês, cresceu num ambiente ultramarino tradicional e marcadamente católico, desenvolvendo desde muito cedo uma veneração profunda pela figura materna. Com a descolonização e a Revolução de 1974, a família viu-se forçada a regressar a Portugal na condição de retornados, enfrentando a perda abrupta de património e o desafio da reintegração numa Lisboa em plena transformação social.</p>
+<h2>A noite lisboeta e Tatiana Romanova</h2>
+<p>Foi na noite lisboeta dos anos 1980 que começou a desenhar a sua primeira grande metamorfose. No emblemático clube Frágil, no Bairro Alto, deu vida ao alter ego transformista «Tatiana Romanova», fascinado pelo glamour imperial e pelo requinte cénico. Por essa mesma época viveu o seu primeiro casamento, com Maria Arlene Perna, união da qual nasceu em 1988 o seu único filho, Guilherme Castelo Branco Vieira uma das âncoras mais discretas da sua vida, que mais tarde lhe daria a neta, Constança.</p>
+<h2>Alta sociedade e o casamento com Betty Grafstein</h2>
+<p>Ao afastar-se dos palcos noturnos, José reinventou-se como negociador de arte e figura da alta sociedade, adotando um discurso aristocrático, maneirismos teatrais e uma estética andrógina em saltos altos que desafiava os códigos tradicionais. Em 1996, o casamento mediático com a joalheira norte-americana Elizabeth Larner, universalmente conhecida como Betty Grafstein, consolidou a sua projeção nas crónicas sociais internacionais, dividindo a vida entre Sintra e Manhattan.</p>
+<h2>O fenómeno dos reality shows</h2>
+<p>A consagração de massas deu-se nos anos 2000 com o fenómeno dos reality shows da TVI. A vitória estrondosa na «Quinta das Celebridades» em 2004, seguida de participações na «1.ª Companhia» e no «Circo das Celebridades», transformou-o num dos maiores marcos de audiência da história televisiva em Portugal. Durante essa era de ouro mediática, o público acolheu-o como um produtor involuntário de comédia e um «guilty pleasure» nacional, enquanto outros setores o acusavam de oportunismo e decadência, ao mesmo tempo que, deliberadamente ou não, colocava a fluidez de género e a diferença em horário nobre perante uma sociedade ainda conservadora.</p>
+<h2>A queda e o confronto com a justiça</h2>
+<p>A fronteira entre a persona pública exuberante e a esfera privada acabou, contudo, por ruir de forma irremediável. Em 2024, após décadas de exposição, foi detido na sequência de graves denúncias de violência doméstica física e psicológica apresentadas por Betty Grafstein após um internamento hospitalar, ficando formalmente impedido por via judicial de se aproximar da mulher. O choque judicial transformou o antigo fascínio e a tolerância do público em indignação moral e repúdio generalizado. Entre a desconstrução da personagem, a encenação perpétua e o confronto com a justiça, José Castelo Branco permanece a mais polarizadora e barroca máscara do espetáculo em Portugal.</p>$castelobranco$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-jose-castelo-branco.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-jose-castelo-branco-og.jpg',
+  true,
+  '2026-10-17 13:35:00+01',
+  'e4b81f06-3a27-4c9d-8e55-1d7a6b0c92f8'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at,
+  program_id = EXCLUDED.program_id;
