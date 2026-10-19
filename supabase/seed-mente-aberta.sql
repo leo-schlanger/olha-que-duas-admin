@@ -13,7 +13,7 @@ VALUES (
   'Mente Aberta',
   'Marluce Revorêdo',
   'Reflexões para cuidar de si, por dentro',
-  'O espaço de reflexão de Marluce Revorêdo, terapeuta de desenvolvimento pessoal e hipnose clínica. Um olhar sereno sobre o mundo, as pessoas e o que se passa dentro de nós.',
+  'O espaço de reflexão de Marluce Revorêdo, terapeuta de desenvolvimento pessoal e hipnose clínica. Um olhar sereno sobre o mundo, as pessoas e o que se passa dentro de nós. Na rádio às terças, às 11h e às 17h.',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-retrato-marluce-revoredo.jpg',
   'center',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-capa-mente-aberta.jpg',
@@ -60,7 +60,7 @@ VALUES (
 <p>Com esta reflexão, gostava que repensassem um pouco. Não no mundo, não nos outros, mas sobretudo em vocês. O que vos magoa? O que vos traumatiza? O que vos faz ter raiva, inveja, mágoa de outras pessoas?</p>
 <p>Valerá a pena carregar isso? Valerá a pena gastar esta oportunidade de vida que Deus nos deu a gerar ódio, a deixar de ver e de sentir o que é lindo na vida?</p>
 <blockquote><p>Será que vale a pena?</p></blockquote>
-<p><em>Marluce Revorêdo é terapeuta de desenvolvimento pessoal e hipnose clínica. Para quem quer cuidar de si por dentro, acompanha presencialmente e online em <a href="https://motivar.pt">motivar.pt</a>. O Mente Aberta chega em breve à rádio Olha que Duas.</em></p>$menteaberta1$,
+<p><em>Marluce Revorêdo é terapeuta de desenvolvimento pessoal e hipnose clínica. Para quem quer cuidar de si por dentro, acompanha presencialmente e online em <a href="https://motivar.pt">motivar.pt</a>. Ouça o Mente Aberta na rádio Olha que Duas, todas as terças-feiras, às 11h e às 17h.</em></p>$menteaberta1$,
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/mente-aberta-ep01-capa.jpg',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/mente-aberta-ep01-og.jpg',
   true,
@@ -76,3 +76,23 @@ ON CONFLICT (slug) DO UPDATE SET
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at,
   program_id = EXCLUDED.program_id;
+
+-- Grelha da rádio no painel admin (aplicado a 2026-10-19): semanal, terças 11:00 e 17:00.
+-- day_of_week 0 = domingo. Na rádio: playlist AzuraCast 117, schedules 384/385.
+INSERT INTO events (id, name, description, icon_url, is_active)
+VALUES (
+  'fe2f08cf-bea8-4c9f-885e-710d8c90264b',
+  'Mente Aberta - com Marluce Revorêdo',
+  'Reflexões para cuidar de si, por dentro. Programa semanal.',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/event-icons/icons/1792433142425-mente-aberta.png',
+  true
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO schedule (event_id, day_of_week, time, end_time, is_active, is_all_day)
+SELECT 'fe2f08cf-bea8-4c9f-885e-710d8c90264b', 2, t.s::time, t.e::time, true, false
+FROM (VALUES ('11:00', '11:10'), ('17:00', '17:10')) AS t(s, e)
+WHERE NOT EXISTS (
+  SELECT 1 FROM schedule
+  WHERE event_id = 'fe2f08cf-bea8-4c9f-885e-710d8c90264b' AND day_of_week = 2 AND time = t.s::time
+);
