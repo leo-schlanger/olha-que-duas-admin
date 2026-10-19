@@ -13,7 +13,7 @@ VALUES (
   'Mente Aberta',
   'Marluce Revorêdo',
   'Reflexões para cuidar de si, por dentro',
-  'O espaço de reflexão de Marluce Revorêdo, terapeuta de desenvolvimento pessoal e hipnose clínica. Um olhar sereno sobre o mundo, as pessoas e o que se passa dentro de nós. Na rádio às terças, às 11h e às 17h.',
+  'Às terças, às 11h e às 17h, na rádio: o espaço de reflexão de Marluce Revorêdo, terapeuta de desenvolvimento pessoal e hipnose clínica.',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-retrato-marluce-revoredo.jpg',
   'center',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-capa-mente-aberta.jpg',
