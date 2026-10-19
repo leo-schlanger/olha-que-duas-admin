@@ -17,7 +17,7 @@ VALUES (
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-retrato-marluce-revoredo.jpg',
   'center',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-capa-mente-aberta.jpg',
-  5,
+  4,
   true
 )
 ON CONFLICT (slug) DO UPDATE SET
@@ -37,7 +37,7 @@ INSERT INTO vinagre_posts (
 VALUES (
   'temos-tudo-e-o-odio-cresce',
   'Temos tudo e o ódio cresce: será que vale a pena?',
-  'No primeiro Mente Aberta, Marluce Revorêdo olha para a violência que tem enchido as notícias no Brasil, em França e em Portugal, e deixa uma pergunta a cada um de nós: vale a pena carregar o ódio?',
+  'Marluce Revorêdo olha para a violência nas notícias do Brasil, de França e de Portugal e pergunta a cada um de nós: vale a pena carregar o ódio?',
   $menteaberta1$<p>Hoje gostaria de falar... Quer dizer, não gostaria de falar, mas vou falar sobre os últimos acontecimentos no mundo e nas pessoas. E é realmente uma pena que tudo isto esteja a acontecer numa época em que temos tudo.</p>
 <p>Há 300 anos, nem os reis tinham o que a dita classe pobre tem hoje. Não tinham telemóveis, não tinham água corrente, não tinham gás em casa. Raramente podiam tomar banho, e para falar com alguém só por mensagem: dias e dias a cavalo para a entregar, dias e dias para voltar com a resposta. Hoje falamos de graça com o mundo inteiro.</p>
 <h2>O ódio que nos corrói</h2>
@@ -51,9 +51,9 @@ VALUES (
 <img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/mente-aberta-ep01-brasil.jpg" alt="Agente da Polícia Judicial num local de voto em Brasília, na primeira volta das eleições de 2026">
 <p><em>Brasil. Polícia Judicial num local de voto em Brasília, na primeira volta das eleições, a 4 de outubro. Entre 16 de agosto e 4 de outubro, as organizações Terra de Direitos e Justiça Global contaram 134 casos de violência política no país, dois deles assassinatos. Foto: Saulo Cruz/Agência Senado, <a href="https://commons.wikimedia.org/wiki/File:Elei%C3%A7%C3%B5es_2026_-_Primeiro_turno_(55569129539).jpg">CC BY-SA 4.0</a>.</em></p>
 <img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/mente-aberta-ep01-franca.jpg" alt="Bombeiro de Paris junto a um carro em chamas no Boulevard Voltaire, a 17 de outubro de 2026">
-<p><em>França. Bombeiro de Paris junto a um carro em chamas no Boulevard Voltaire, a 17 de outubro. Os protestos contra o custo de vida acabaram em confrontos em várias cidades francesas, com mais de 160 detidos. Foto: Jorge Jaramillo, <a href="https://commons.wikimedia.org/wiki/File:Paris_riots,_17_October_2026_-_Firefighter_approaching_a_burning_car_-_JJxFile_0029.jpg">CC BY-SA 4.0</a>.</em></p>
+<p><em>França. Bombeiro de Paris junto a um carro em chamas no Boulevard Voltaire, a 17 de outubro. Os protestos, iniciados por estudantes e engrossados por sindicatos, acabaram em confrontos em várias cidades francesas; o ministro do Interior fala em quase 400 detidos. Foto: Jorge Jaramillo, <a href="https://commons.wikimedia.org/wiki/File:Paris_riots,_17_October_2026_-_Firefighter_approaching_a_burning_car_-_JJxFile_0029.jpg">CC BY-SA 4.0</a>.</em></p>
 <img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/mente-aberta-ep01-portugal.jpg" alt="Cartaz contra o preço das rendas numa manifestação pela habitação em Lisboa">
-<p><em>Portugal. Manifestação Casa para Viver, em Lisboa, em março. A luta pela habitação voltou às ruas em outubro: a 15, uma intervenção da PSP num protesto na Praça D. João I, no Porto, deixou dezenas de feridos, segundo o movimento; a PSP fala num polícia ferido. Foto: Rafael Medeiros/Esquerda.net, <a href="https://commons.wikimedia.org/wiki/File:Manifesta%C3%A7%C3%A3o_Casa_para_Viver,_Lisboa,_Mar.2026_(55160416679).jpg">CC BY-SA 4.0</a>.</em></p>
+<p><em>Portugal. Manifestação Casa para Viver, em Lisboa, em março. A luta pela habitação voltou às ruas em outubro: a 15, uma intervenção da PSP num protesto na Praça D. João I, no Porto, deixou 37 feridos, segundo o Movimento pela Habitação. Foto: Rafael Medeiros/Esquerda.net, <a href="https://commons.wikimedia.org/wiki/File:Manifesta%C3%A7%C3%A3o_Casa_para_Viver,_Lisboa,_Mar.2026_(55160416679).jpg">CC BY-SA 4.0</a>.</em></p>
 <h2>Que mundo deixamos?</h2>
 <p>Devíamos estar muito mais evoluídos no amor, na cumplicidade, na verdade, no companheirismo de todos. Não só de um casal, de uma família ou de uns vizinhos, mas de todos. Porque temos condições para isso. Infelizmente, o ser humano está a ir por outro caminho, e é triste. Muito triste mesmo. Tenho filhos, tenho netos, e não sei que caminho o mundo vai tomar para eles.</p>
 <h2>Olhar para dentro</h2>

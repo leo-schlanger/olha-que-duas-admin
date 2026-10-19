@@ -16,7 +16,7 @@ VALUES (
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-retrato-olha-que-duas.jpg',
   'center',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-capa-noticias-olha-que-duas.jpg',
-  4,
+  5,
   true
 )
 ON CONFLICT (slug) DO UPDATE SET
