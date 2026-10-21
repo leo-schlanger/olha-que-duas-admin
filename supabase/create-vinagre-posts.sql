@@ -600,9 +600,9 @@ INSERT INTO vinagre_posts (
 VALUES (
   'guilherme-castelo-branco-tem-razao-sentenca-janeiro-2027',
   'Explosivo! Sentença em Janeiro de 2027: Guilherme Castelo Branco tem razão, a data da audiência estava marcada desde Junho',
-  'Guilherme Castelo Branco depôs pela defesa do pai e estranhou a ausência da imprensa. A data estava marcada desde Junho e foi divulgada. Marcella Fernandes esteve na sala sem ser convocada. A sentença deve ser lida em meados de Janeiro de 2027.',
+  'Guilherme Castelo Branco depôs pela defesa do pai e estranhou a falta de imprensa. A data estava marcada desde Junho. Sentença em meados de Janeiro de 2027.',
   $guilherme$<p>Tal como o Correio da Manhã avançou em primeira mão, na passada segunda-feira, 12 de Outubro, no dia seguinte, 13, não haveria a habitual sessão das terças-feiras por motivo de doença da juíza. Ou seja, a comunicação social estava devidamente informada de que as testemunhas da defesa iriam a tribunal nesta terça, 20 de Outubro.</p>
-<p>No programa V+ Fama, onde é comentador, Guilherme Castelo Branco abriu uma excepção para falar do caso que opõe o pai a Betty Grafstein. O filho do socialite prestou ontem depoimento no Tribunal de Cascais.</p>
+<p>No programa V+ Fama, onde é comentador, Guilherme Castelo Branco abriu uma exceção para falar do caso que opõe o pai a Betty Grafstein. O filho do socialite prestou ontem depoimento no Tribunal de Cascais.</p>
 <blockquote><p>"Não costumo falar deste tema e não estou a abrir um precedente, falo porque quero que seja falado aqui no programa antes de ser noutro sítio qualquer. Prestei as minhas declarações em sede própria, no processo que está a haver entre o meu pai e a minha madrasta. Não quero falar do processo em si porque acho que as declarações têm que ser apreciadas pelas pessoas que estavam lá e que vão apreciar da forma mais correta possível", explicou o enteado de Betty Grafstein.</p></blockquote>
 <img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-guilherme-castelo-branco-com-o-pai.jpg" alt="Guilherme Castelo Branco com o pai, José Castelo Branco">
 <h2>"Senti quase como se um peso fosse posto para trás das costas"</h2>
