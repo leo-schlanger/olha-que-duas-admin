@@ -592,3 +592,49 @@ ON CONFLICT (slug) DO UPDATE SET
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at,
   program_id = EXCLUDED.program_id;
+
+-- Guilherme Castelo Branco no V+ Fama, depois de depor em Cascais, 20 de outubro de 2026. Olha que Duas e Eu.
+INSERT INTO vinagre_posts (
+  slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at, program_id
+)
+VALUES (
+  'guilherme-castelo-branco-tem-razao-sentenca-janeiro-2027',
+  'Explosivo! Sentença em Janeiro de 2027: Guilherme Castelo Branco tem razão, a data da audiência estava marcada desde Junho',
+  'Guilherme Castelo Branco depôs pela defesa do pai e estranhou a ausência da imprensa. A data estava marcada desde Junho e foi divulgada. Marcella Fernandes esteve na sala sem ser convocada. A sentença deve ser lida em meados de Janeiro de 2027.',
+  $guilherme$<p>Tal como o Correio da Manhã avançou em primeira mão, na passada segunda-feira, 12 de Outubro, no dia seguinte, 13, não haveria a habitual sessão das terças-feiras por motivo de doença da juíza. Ou seja, a comunicação social estava devidamente informada de que as testemunhas da defesa iriam a tribunal nesta terça, 20 de Outubro.</p>
+<p>No programa V+ Fama, onde é comentador, Guilherme Castelo Branco abriu uma excepção para falar do caso que opõe o pai a Betty Grafstein. O filho do socialite prestou ontem depoimento no Tribunal de Cascais.</p>
+<blockquote><p>"Não costumo falar deste tema e não estou a abrir um precedente, falo porque quero que seja falado aqui no programa antes de ser noutro sítio qualquer. Prestei as minhas declarações em sede própria, no processo que está a haver entre o meu pai e a minha madrasta. Não quero falar do processo em si porque acho que as declarações têm que ser apreciadas pelas pessoas que estavam lá e que vão apreciar da forma mais correta possível", explicou o enteado de Betty Grafstein.</p></blockquote>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-guilherme-castelo-branco-com-o-pai.jpg" alt="Guilherme Castelo Branco com o pai, José Castelo Branco">
+<h2>"Senti quase como se um peso fosse posto para trás das costas"</h2>
+<p>Assumindo a dificuldade em manter a neutralidade, dada a proximidade com as duas partes, explicou que não gosta de abordar o tema porque existe "o problema de eventualmente não conseguir ser imparcial por estar muito envolvido no processo":</p>
+<blockquote><p>"São pessoas da minha família, portanto espero que compreendam que eu não faça declarações. Tem sido um pouco difícil para mim, como devem calcular. São pessoas que são muito queridas. Independentemente do resultado, estarei cá para ajudar ambos, e pelo menos a quem eu possa ter acesso. Mas estou mais tranquilo. Senti quase como se um peso fosse posto para trás das costas."</p></blockquote>
+<p>E prosseguiu:</p>
+<blockquote><p>"Fui lá dizer o que vi, prestar as declarações que achei necessárias, tentar dar um ponto de vista que às vezes não é feito publicamente porque as pessoas inclinam sempre mais para um lado ou para o outro. Mas é o que é a sociedade."</p></blockquote>
+<h2>A data estava marcada desde Junho</h2>
+<p>Por causa da doença da juíza, a sessão de terça-feira, dia 13, foi remarcada para ontem, 20 de Outubro. Toda a gente foi informada, das testemunhas à imprensa. Aliás, estas datas estão agendadas desde Junho. Daí a estranheza de Guilherme.</p>
+<blockquote><p>"Poderei estar a ser um bocado injusto, mas reparem que em todas as audiências em que foram pessoas pela acusação ou pelo Ministério Público, houve sempre imprensa, houve sempre pessoas lá para averiguar o que é que estava a acontecer, tirar as notas e depois mostrar os depoimentos publicamente. Desta vez, pela primeira vez, vão as pessoas da defesa, e houve zero imprensa. Isto só para demonstrar que o sangue vende. Peço desculpa se estiver a ser injusto realmente, mas é a realidade", especificou.</p></blockquote>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-guilherme-castelo-branco-com-betty-e-jose.jpg" alt="Guilherme Castelo Branco com Betty Grafstein e José Castelo Branco">
+<h2>Marcella Fernandes na sala sem ser convocada</h2>
+<p>O apresentador do final das manhãs do V+ TVI, Adriano Silva Martins, afirmou que "se calhar o tribunal trocou as voltas à imprensa, que isso também acontece. Eu, se não fosse por ti, não saberia".</p>
+<p>A verdade é que a data estava marcada e divulgada publicamente, e Marcella Fernandes, testemunha de Betty, voltou a estar todo o dia na sala de audiências. Sem qualquer convocatória para tal, marcou presença "porque sim".</p>
+<p>A terminar, Guilherme foi claro e direto:</p>
+<blockquote><p>"Também trocaram as voltas quando foi a acusação. Também houve falhas, também houve alterações. E esteve lá presente a comunicação social. Portanto, posso estar enganado..."</p></blockquote>
+<h2>Sentença em meados de Janeiro de 2027</h2>
+<p>A próxima sessão está agendada para 24 de Novembro, naquela que será a última audiência e onde, alegadamente, José Castelo Branco poderá finalmente falar perante o tribunal.</p>
+<p>A 15 de Dezembro, é o confronto das partes, entre advogados de acusação e de defesa. E, de acordo com a lei, trinta dias depois, será lida a sentença. Ou seja, em meados de Janeiro de 2027, ficaremos a saber qual é o veredito de José Castelo Branco.</p>
+<p>Resumindo, as audiências foram sempre anunciadas nos sites de todos os órgãos de comunicação social. Logo, Guilherme tem razão. Só não foi quem não quis ou porque, desta vez, ali "não havia sangue".</p>$guilherme$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-guilherme-castelo-branco-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-guilherme-castelo-branco-og.jpg',
+  true,
+  '2026-10-21 21:00:00+01',
+  '7c2a9e14-5b60-4f83-9d21-6a0e8c4b17d3'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at,
+  program_id = EXCLUDED.program_id;
