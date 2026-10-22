@@ -638,3 +638,49 @@ ON CONFLICT (slug) DO UPDATE SET
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at,
   program_id = EXCLUDED.program_id;
+
+-- Ana Gomes, a nova "picarota": Lages do Pico, Bruxelas e o fim do ciclo na SIC, 22 de outubro de 2026. Olha que Duas e Eu.
+INSERT INTO vinagre_posts (
+  slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at, program_id
+)
+VALUES (
+  'ana-gomes-picarota-vida-secreta-sic-bruxelas-pico',
+  'Explosivo! A vida secreta da "picarota" Ana Gomes: a "prisão" da SIC, o "chopinho" em Bruxelas, a "tremenda ladra" Isabel dos Santos, o "ódio" a Paulo Portas e os dias no Pico',
+  'Aos 72 anos, Ana Gomes trocou a SIC, "aquilo era uma prisão", pela ilha do Pico. E mostramos a foto secreta do "chopinho" em Bruxelas.',
+  $anagomes$<p>A antiga e polémica eurodeputada vive agora na ilha do Pico, onde lê, escreve, pinta, passeia pelos campos e faz jardinagem. E, apesar de já ter subido ao Pico, ainda nunca alcançou o topo da montanha mais alta de Portugal. Está no Pico, mas "longe do Pico do Pico".</p>
+<p>Aos 72 anos, mudou a vida para a vila de Lages do Pico e sente-se no paraíso, isto desde que deixou de ser comentadora regular na SIC Notícias, já que "aquilo era uma prisão".</p>
+<h2>Recebida com pompa em Lages do Pico</h2>
+<p>A mais nova "picarota", é este o nome de quem reside na ilha, foi recebida à chegada com pompa por uma grande comitiva: a camarada socialista Ana Brum, presidente da Câmara Municipal de Lages do Pico, o vice-presidente, Manuel Pimentel, e até o vereador Amílcar Goulart.</p>
+<p>Tratou-se de "uma audiência de apresentação de cumprimentos no edifício dos Paços do Concelho", escreveu o jornal local Ilha Maior, na edição de 4 de Fevereiro, referindo que o encontro se "revestiu de carácter institucional, constituindo um momento de diálogo e de troca de impressões sobre temas de interesse comum, reforçando a proximidade entre o poder local e as personalidades da vida política nacional".</p>
+<h2>O "ódio" a Paulo Portas e a guerra com Isabel Moreira</h2>
+<p>Para trás ficam as polémicas. Ana Gomes foi acusada pela deputada do PS Isabel Moreira de «justicialismo barato e vingativo» e de «ódio pessoal» contra Paulo Portas, então presidente do CDS-PP.</p>
+<p>Em resposta, Ana Gomes acusou Isabel Moreira de, enquanto assessora do então ministro dos Negócios Estrangeiros, Luís Amado, impedir a abertura de um inquérito judicial à alegada autorização concedida pelo governo de Portugal ao governo dos Estados Unidos para o repatriamento de vários prisioneiros de Guantánamo através da Base das Lajes.</p>
+<p>Em contrarresposta, Isabel Moreira lembrou que Ana Gomes, enquanto membro da comissão temporária que investigou os voos da CIA em Portugal de repatriamento de prisioneiros para Guantánamo, pretendia limitar a investigação ao período de governo de José Manuel Durão Barroso e Paulo Portas, de modo a atingi-los politicamente, o que, segundo Isabel Moreira, terá sido recusado pelo ministro Luís Amado.</p>
+<h2>A "tremenda ladra" Isabel dos Santos</h2>
+<p>Apoiante do hacker Rui Pinto no processo Luanda Leaks, Ana Gomes descreveu Isabel dos Santos como "bonita, esperta, bem educada" e "uma tremenda ladra do seu povo".</p>
+<h2>O "chopinho" em Bruxelas</h2>
+<p>Mas por detrás destas guerras está uma mulher que gosta de gozar a vida. Hoje, aqui na coluna do Olha que Duas, tiramos do baú secreto uma foto onde "a gémea" de Herman José surge a "tomar um chopinho":</p>
+<blockquote><p>"Com os meus assistentes Carolina, Vasco, Ariana e Francisco, ao fim dum dia de calor intenso, passado a encerrar últimos dossiers, na Place du Luxembourg."</p></blockquote>
+<p>A esplanada fica mesmo em frente ao Parlamento Europeu, em Bruxelas.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-ana-gomes-bruxelas.jpg" alt="Ana Gomes com os assistentes numa esplanada da Place du Luxembourg, em Bruxelas">
+<h2>O fim de um ciclo de 10 anos na SIC</h2>
+<p>Voltando ao papel de comentadora televisiva, que agora acontece muito esporadicamente porque foi dispensada, estivemos em contacto com a direção da SIC, que nos confirmou o "fim de um ciclo de 10 anos".</p>
+<p>A decisão terá sido da estação. A ex-eurodeputada e ex-candidata presidencial deixou a colaboração. Bernardo Ferrão, diretor de informação da SIC e diretor da SIC Notícias, explicou:</p>
+<blockquote><p>"A Ana Gomes teve com a SIC Notícias uma estreita e excelente relação de quase 10 anos, mas estamos desde setembro num processo de reformulação dos espaços de comentário e, nesse âmbito, decidimos que faria sentido, no que toca aos comentadores, repensar horários, com que frequência, e que era altura de fazer uma renovação em algumas faixas horárias."</p></blockquote>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-ana-gomes-sic.jpg" alt="Ana Gomes nos estúdios da SIC Notícias">
+<p>No entanto, e segundo o que conseguimos apurar, tal como aconteceu há uma semana, Ana Gomes voltou aos estúdios da SIC, num regresso marcado por um desaguisado a propósito dos conflitos em França. Em antena, enquanto outro convidado falava, abanou várias vezes a cabeça, e isso não foi muito bem visto pela direção de informação do canal...</p>$anagomes$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-ana-gomes-picarota-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/vinagre-ana-gomes-picarota-og.jpg',
+  true,
+  '2026-10-22 21:10:00+01',
+  '7c2a9e14-5b60-4f83-9d21-6a0e8c4b17d3'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at,
+  program_id = EXCLUDED.program_id;
