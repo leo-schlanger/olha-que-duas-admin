@@ -639,7 +639,7 @@ ON CONFLICT (slug) DO UPDATE SET
   published_at = EXCLUDED.published_at,
   program_id = EXCLUDED.program_id;
 
--- Ana Gomes, a nova "picarota": Lages do Pico, Bruxelas e o fim do ciclo na SIC, 22 de outubro de 2026. Olha que Duas e Eu.
+-- Ana Gomes, a nova "picarota": Lajes do Pico, Bruxelas e o fim do ciclo na SIC, 22 de outubro de 2026. Olha que Duas e Eu.
 INSERT INTO vinagre_posts (
   slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at, program_id
 )
