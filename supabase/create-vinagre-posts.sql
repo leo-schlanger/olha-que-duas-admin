@@ -648,12 +648,12 @@ VALUES (
   'Explosivo! A vida secreta da "picarota" Ana Gomes: a "prisão" da SIC, o "chopinho" em Bruxelas, a "tremenda ladra" Isabel dos Santos, o "ódio" a Paulo Portas e os dias no Pico',
   'Aos 72 anos, Ana Gomes trocou a SIC, "aquilo era uma prisão", pela ilha do Pico. E mostramos a foto secreta do "chopinho" em Bruxelas.',
   $anagomes$<p>A antiga e polémica eurodeputada vive agora na ilha do Pico, onde lê, escreve, pinta, passeia pelos campos e faz jardinagem. E, apesar de já ter subido ao Pico, ainda nunca alcançou o topo da montanha mais alta de Portugal. Está no Pico, mas "longe do Pico do Pico".</p>
-<p>Aos 72 anos, mudou a vida para a vila de Lages do Pico e sente-se no paraíso, isto desde que deixou de ser comentadora regular na SIC Notícias, já que "aquilo era uma prisão".</p>
-<h2>Recebida com pompa em Lages do Pico</h2>
-<p>A mais nova "picarota", é este o nome de quem reside na ilha, foi recebida à chegada com pompa por uma grande comitiva: a camarada socialista Ana Brum, presidente da Câmara Municipal de Lages do Pico, o vice-presidente, Manuel Pimentel, e até o vereador Amílcar Goulart.</p>
+<p>Aos 72 anos, mudou a vida para a vila de Lajes do Pico e sente-se no paraíso, isto desde que deixou de ser comentadora regular na SIC Notícias, já que "aquilo era uma prisão".</p>
+<h2>Recebida com pompa em Lajes do Pico</h2>
+<p>A mais nova "picarota", é este o nome de quem reside na ilha, foi recebida à chegada com pompa por uma grande comitiva: a camarada socialista Ana Brum, presidente da Câmara Municipal de Lajes do Pico, o vice-presidente, Manuel Pimentel, e até o vereador Amílcar Goulart.</p>
 <p>Tratou-se de "uma audiência de apresentação de cumprimentos no edifício dos Paços do Concelho", escreveu o jornal local Ilha Maior, na edição de 4 de Fevereiro, referindo que o encontro se "revestiu de carácter institucional, constituindo um momento de diálogo e de troca de impressões sobre temas de interesse comum, reforçando a proximidade entre o poder local e as personalidades da vida política nacional".</p>
 <h2>O "ódio" a Paulo Portas e a guerra com Isabel Moreira</h2>
-<p>Para trás ficam as polémicas. Ana Gomes foi acusada pela deputada do PS Isabel Moreira de «justicialismo barato e vingativo» e de «ódio pessoal» contra Paulo Portas, então presidente do CDS-PP.</p>
+<p>Para trás ficam as polémicas. Ana Gomes foi acusada pela deputada do PS Isabel Moreira de "justicialismo barato e vingativo" e de "ódio pessoal" contra Paulo Portas, então presidente do CDS-PP.</p>
 <p>Em resposta, Ana Gomes acusou Isabel Moreira de, enquanto assessora do então ministro dos Negócios Estrangeiros, Luís Amado, impedir a abertura de um inquérito judicial à alegada autorização concedida pelo governo de Portugal ao governo dos Estados Unidos para o repatriamento de vários prisioneiros de Guantánamo através da Base das Lajes.</p>
 <p>Em contrarresposta, Isabel Moreira lembrou que Ana Gomes, enquanto membro da comissão temporária que investigou os voos da CIA em Portugal de repatriamento de prisioneiros para Guantánamo, pretendia limitar a investigação ao período de governo de José Manuel Durão Barroso e Paulo Portas, de modo a atingi-los politicamente, o que, segundo Isabel Moreira, terá sido recusado pelo ministro Luís Amado.</p>
 <h2>A "tremenda ladra" Isabel dos Santos</h2>
