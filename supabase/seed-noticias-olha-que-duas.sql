@@ -58,3 +58,35 @@ ON CONFLICT (slug) DO UPDATE SET
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at,
   program_id = EXCLUDED.program_id;
+
+-- Episódio 2: Dulce Pontes cancela o concerto no festival Escritaria, em Penafiel (2026-10-24).
+INSERT INTO vinagre_posts (
+  slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at, program_id
+)
+VALUES (
+  'dulce-pontes-cancela-concerto-escritaria-penafiel',
+  'Dulce Pontes obrigada a cancelar concerto esgotado no festival Escritaria, em Penafiel, por motivos de saúde',
+  'Por motivos de saúde, Dulce Pontes cancelou o concerto esgotado de 23 de outubro no Ponto C, em Penafiel, integrado no festival literário Escritaria.',
+  $noticias2$<p>Estava tudo preparado e com lotação esgotada para ouvir a voz inconfundível de Dulce Pontes na noite desta sexta-feira, dia 23 de outubro, em Penafiel, mas a artista viu-se forçada a falhar o encontro com o público. O espetáculo, que teria lugar no Ponto C — Cultura e Criatividade e integrava a programação de destaque da 19.ª edição do festival literário Escritaria, foi cancelado à última hora devido a um imprevisto de saúde da cantora.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/noticias-dulce-pontes-concerto.jpg" alt="Dulce Pontes a cantar em palco, acompanhada por uma orquestra">
+<h2>O comunicado da artista</h2>
+<p>O anúncio foi feito pela própria intérprete através de um comunicado partilhado nas suas páginas oficiais nas redes sociais, onde explicou que, por motivos de saúde, se encontrava impossibilitada de subir ao palco no concerto inserido no certame que este ano homenageia a obra e o percurso do escritor timorense Luís Cardoso. Sem especificar a condição clínica que a afastou do espetáculo, a cantora e compositora lamentou profundamente a impossibilidade de atuar perante o público penafidelense e agradeceu a compreensão e o carinho de todos os admiradores que já tinham garantido lugar na sala.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/noticias-dulce-pontes-comunicado.jpg" alt="Comunicado de Dulce Pontes sobre o cancelamento do espetáculo de 23 de outubro no Ponto C, em Penafiel">
+<h2>Reembolso e reagendamento</h2>
+<p>Relativamente aos portadores de bilhete para o espetáculo, Dulce Pontes esclareceu na mesma nota que todas as decisões sobre um eventual reagendamento da data ou o processo de reembolso dos ingressos estão sob a responsabilidade da organização e do Município de Penafiel, junto do qual a equipa da artista aguarda as diretrizes oficiais.</p>
+<p>Apesar da baixa de peso no cartaz musical de sexta-feira, a 19.ª edição do festival Escritaria prossegue em Penafiel até este domingo, dia 25 de outubro, mantendo a cidade transformada num ponto de encontro da língua portuguesa, da literatura e da cultura lusófona.</p>$noticias2$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/noticias-dulce-pontes-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/noticias-dulce-pontes-og.jpg',
+  true,
+  '2026-10-24 08:00:00+01',
+  '9b4e1a82-6c35-4d91-a2f7-8e5c0b3d1946'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at,
+  program_id = EXCLUDED.program_id;

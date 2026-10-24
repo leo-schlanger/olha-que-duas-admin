@@ -126,3 +126,38 @@ ON CONFLICT (slug) DO UPDATE SET
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at,
   program_id = EXCLUDED.program_id;
+
+-- Episódio: Rute Cardoso, a corrida como refúgio no luto de Diogo Jota (2026-10-24).
+INSERT INTO vinagre_posts (
+  slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at, program_id
+)
+VALUES (
+  'rute-cardoso',
+  '«Espero que estejas orgulhoso de mim»: o refúgio emocionante de Rute Cardoso para sobreviver ao luto de Diogo Jota',
+  'Quatro meses depois de perder Diogo Jota, Rute Cardoso calçou as sapatilhas. Da corrida ao boxe, fez do treino o refúgio para cuidar da mente.',
+  $rutecardoso$<p>Há dores que parecem parar o relógio, mas há escolhas que nos devolvem o movimento. Quando na madrugada de 3 de julho de 2025 o país acordou em choque com a partida trágica de Diogo Jota e do irmão, André Silva, apenas onze dias depois de um casamento feliz, o mundo de Rute Cardoso desabou. Ficou o silêncio pesado da ausência e a missão gigante de ser o porto seguro de três filhos pequenos: Dinis, Duarte e Mafalda.</p>
+<p>Como se reconstrói a mente quando o chão desaparece? Para Rute, a resposta não veio apenas do tempo, mas do movimento.</p>
+<h2>Correr para acalmar a alma</h2>
+<p>No final de novembro do ano passado, quatro meses após a tragédia, decidiu calçar as sapatilhas de corrida. Já praticava musculação, mas precisava de mais. Precisava, nas suas próprias palavras, de um desafio para «acalmar um bocadinho a cabeça». Sem dar por isso, fez do asfalto, das luvas de boxe e do rigor do treino o seu maior refúgio terapêutico.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-rute-cardoso-treino.jpg" alt="Rute Cardoso a empurrar o trenó numa prova de treino híbrido">
+<p>No desporto, a dor física tem uma vantagem sobre a dor emocional: tem princípio, meio e fim. Cada quilómetro percorrido passou a ser uma conversa consigo mesma e um ato de resistência pela sua saúde mental. Rodeada por uma equipa de treinadores e amigos que nunca lhe largaram a mão, Rute transformou a vulnerabilidade em força bruta.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-rute-cardoso-hyrox.jpg" alt="Rute Cardoso com o treinador diante do tempo final do HYROX de Valência, 1:06:14">
+<h2>A vitória silenciosa</h2>
+<p>Vimo-la superar-se no exigente desafio do Hybrid Day no Estoril, vimo-la correr pela causa do IPO do Porto e, num dos momentos mais comoventes deste ano, vimo-la cortar a meta da Meia Maratona do Porto. Ao fim de 21 quilómetros, olhou para o céu e deixou a mensagem que nos apertou o coração a todos: «I hope you are proud of me» (Espero que estejas orgulhoso de mim).</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-rute-cardoso-ipo-porto.jpg" alt="Rute Cardoso de costas, com o dorsal 20, na corrida pelo IPO do Porto">
+<p>Rute Cardoso não corre para fugir à saudade — até porque uma história de amor começada em 2012, nos corredores da escola, é eterna. Ela corre para ter fôlego para a vida. Ao cuidar da mente através do corpo, deu-nos uma das mais bonitas lições de resiliência dos últimos tempos: o luto não se apaga, mas aprende-se a caminhar — e a correr — com ele.</p>$rutecardoso$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-rute-cardoso-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-rute-cardoso-og.jpg',
+  true,
+  '2026-10-24 08:05:00+01',
+  'e4b81f06-3a27-4c9d-8e55-1d7a6b0c92f8'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at,
+  program_id = EXCLUDED.program_id;
