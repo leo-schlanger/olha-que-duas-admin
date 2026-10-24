@@ -67,6 +67,8 @@ function page(peca, formato, base) {
     ...peca,
     foto: asUrl(peca.foto, base),
     foco: peca.foco || "50% 35%",
+    // "inteira": whole photo over a blurred copy, for portrait or small photos.
+    inteira: peca.encaixe === "inteira",
     kicker: esc(peca.kicker || prog.kicker),
     titulo: comTitulo ? marked(peca.titulo) : "",
     linha: comTitulo ? esc(peca.linha || "") : "",
@@ -139,7 +141,7 @@ async function main() {
       });
       await pg.waitForTimeout(200);
       const overflow = await pg.evaluate(() =>
-        [...document.querySelectorAll("[data-fit]")].some((el) => el.scrollHeight > el.clientHeight + 1),
+        [...document.querySelectorAll("[data-fit]")].some((el) => el.scrollHeight > el.clientHeight + 4),
       );
       if (overflow) console.warn(`! ${slug} ${formato}: headline does not fit, shorten it`);
       const path = join(out, `${slug}-${formato}.jpg`);

@@ -170,7 +170,12 @@ export const programas = {
     retrato: "",
     classe: "nt",
     html: (d) => `
-      <div class="ph" style="background-image:url('${d.foto}');background-position:${d.foco}"></div>
+      ${
+        d.inteira
+          ? `<div class="ph blur" style="background-image:url('${d.foto}')"></div>
+             <div class="ph fit" style="background-image:url('${d.foto}')"></div>`
+          : `<div class="ph" style="background-image:url('${d.foto}');background-position:${d.foco}"></div>`
+      }
       <div class="shade"></div>
       <div class="lt">
         <div class="tag"><span>${d.kicker}</span>${d.data ? `<time>${d.data}</time>` : ""}</div>
@@ -178,6 +183,10 @@ export const programas = {
       </div>`,
     css: `
 .nt{background:#1a0a10}
+.nt .ph.blur{inset:-40px;background-position:center;filter:blur(26px) brightness(.55) saturate(1.1)}
+.nt .ph.fit{left:auto;right:5%;width:56%;bottom:24%;top:3%;background-size:contain;background-position:center;
+  filter:drop-shadow(0 calc(10*var(--u)) calc(30*var(--u)) rgba(0,0,0,.5))}
+.nt.sem-titulo .ph.fit{right:50%;transform:translateX(50%);width:76%;top:4%;bottom:13%}
 .nt .shade{position:absolute;inset:0;background:linear-gradient(0deg,rgba(26,6,12,.94) 0%,rgba(26,6,12,.72) 30%,rgba(26,6,12,0) 62%)}
 .nt.sem-titulo .shade{background:linear-gradient(0deg,rgba(26,6,12,.75) 0%,rgba(26,6,12,0) 30%)}
 .nt .lt{position:absolute;left:calc(34*var(--u));right:calc(34*var(--u));bottom:calc(34*var(--u))}

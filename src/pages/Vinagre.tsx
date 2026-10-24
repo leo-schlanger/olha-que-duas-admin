@@ -920,7 +920,7 @@ function GoogleFields({
         <Input
           id="vinagre-seo-title"
           value={form.seoTitle}
-          maxLength={70}
+          maxLength={60}
           onChange={(event) => setForm((current) => ({ ...current, seoTitle: event.target.value }))}
           placeholder="Nome + o facto principal, sem «Exclusivo!»"
         />
@@ -935,7 +935,7 @@ function GoogleFields({
         <Textarea
           id="vinagre-seo-description"
           value={form.seoDescription}
-          maxLength={170}
+          maxLength={160}
           rows={2}
           onChange={(event) => setForm((current) => ({ ...current, seoDescription: event.target.value }))}
           placeholder="120 a 155 caracteres. Vazio usa o resumo."
