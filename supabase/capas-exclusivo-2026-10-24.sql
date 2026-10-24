@@ -38,3 +38,6 @@ UPDATE vinagre_posts SET title = replace(title, '"Cá por Casa"', '«Cá por Cas
   excerpt = replace(excerpt, '"Cá por Casa"', '«Cá por Casa»'),
   content = replace(content, '"Cá por Casa"', '«Cá por Casa»')
 WHERE slug = 'herman-jose-regresso-ca-por-casa-13-temporada-rtp1';
+-- Aspas portuguesas no livro da Júlia Pinheiro (notícia do Herman).
+UPDATE vinagre_posts SET content = replace(content, '("Não Sei Nada Sobre o Amor")', '(«Não Sei Nada Sobre o Amor»)')
+WHERE slug = 'herman-jose-regresso-ca-por-casa-13-temporada-rtp1';
