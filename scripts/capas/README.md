@@ -51,7 +51,10 @@ O script avisa se o título não couber e falha se uma imagem não carregar.
 
 1. Enviar os dois JPEG para o media-library como `exclusivo-<slug>-capa.jpg` e `exclusivo-<slug>-og.jpg`.
 2. Pôr esses URLs em `cover_url` e `og_image_url` (no painel ou no SQL da peça).
-3. No repo do site, `node scripts/generate-sitemap.mjs` e commit do `sitemap.xml`.
+3. Preencher «No Google» (título curto até 55, descrição até 155) no painel.
+
+O sitemap é automático desde 2026-10-24 (`/api/sitemap` no site): a peça entra sozinha,
+mesmo agendada, quando passa a hora.
 
 ## Dependências
 
