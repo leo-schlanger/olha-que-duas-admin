@@ -61,8 +61,8 @@ VALUES (
 <p>Valerá a pena carregar isso? Valerá a pena gastar esta oportunidade de vida que Deus nos deu a gerar ódio, a deixar de ver e de sentir o que é lindo na vida?</p>
 <blockquote><p>Será que vale a pena?</p></blockquote>
 <p><em>Marluce Revorêdo é terapeuta de desenvolvimento pessoal e hipnose clínica. Para quem quer cuidar de si por dentro, acompanha presencialmente e online em <a href="https://motivar.pt">motivar.pt</a>. Ouça o Mente Aberta na rádio Olha que Duas, todas as terças-feiras, às 11h e às 17h.</em></p>$menteaberta1$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-temos-tudo-e-o-odio-cresce-capa.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-temos-tudo-e-o-odio-cresce-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-temos-tudo-e-o-odio-cresce-capa.jpg?v=2',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-temos-tudo-e-o-odio-cresce-og.jpg?v=2',
   true,
   '2026-10-19 16:00:00+01',
   'eddc0013-2f3c-46e7-966b-8c6c1155d902'

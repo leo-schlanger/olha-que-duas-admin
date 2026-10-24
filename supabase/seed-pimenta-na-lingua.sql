@@ -45,8 +45,8 @@ VALUES (
 <p>E onde andam, perguntamos nós, as grandes associações de apoio às vítimas? Aquelas que enchem telejornais e recebem subsídios chorudos em nome da causa? O silêncio destas estruturas perante um disparate legislativo desta dimensão é ensurdecedor, cúmplice e cobarde. Na hora de assinar comunicados solenes e aparecer nas fotografias institucionais, estão sempre na primeira fila. Mas quando é preciso rasgar as vestes no terreno, arregaçar as mangas e travar esta violência institucional contra quem já foi martirizado em casa... onde estão? Na realidade do dia a dia, em campo, o apoio real brilha pela ausência, transformando-se numa rede de papel que se desmancha ao primeiro sopro da burocracia do Estado.</p>
 <h2>Até quando?</h2>
 <p>Se o Estado cria leis que penalizam a vítima por ser vítima, e se quem devia defendê-la prefere o silêncio confortável dos gabinetes, então estamos entregues à bichana. Proteger na teoria e abandonar na prática é a face mais cínica de um país que continua a falhar redondamente a quem mais precisa. Até quando?</p>$pimenta1$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-violencia-domestica-licenca-parental-capa.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-violencia-domestica-licenca-parental-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-violencia-domestica-licenca-parental-capa.jpg?v=2',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-violencia-domestica-licenca-parental-og.jpg?v=2',
   true,
   now(),
   '3f9d2c71-8a4e-4b06-b5d8-9e1c7a2f6043'

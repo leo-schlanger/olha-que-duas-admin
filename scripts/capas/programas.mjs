@@ -120,7 +120,9 @@ export const programas = {
 .pim .bt{display:flex;flex-direction:column;gap:calc(4*var(--u))}
 .pim .bt b{font:800 calc(22*var(--u))/1 Playfair;color:#c4271b}
 .pim .bt i{font:600 calc(14*var(--u))/1 Inter;font-style:normal;letter-spacing:.16em;text-transform:uppercase;color:#2b1510}
-.pim.sem-titulo .by{flex-direction:column;align-items:flex-start;bottom:auto;top:calc(250*var(--u));gap:calc(18*var(--u))}
+.pim.sem-titulo .q{left:calc(26*var(--u));top:calc(140*var(--u));font-size:calc(220*var(--u))}
+.pim.sem-titulo .by{flex-direction:column;align-items:flex-start;bottom:auto;top:calc(290*var(--u));gap:calc(18*var(--u))}
+.pim.sem-titulo .bt{gap:calc(16*var(--u))}
 .pim.sem-titulo .bt b{font-size:calc(52*var(--u));line-height:1.02;width:calc(300*var(--u))}
 .pim .band{display:none}`,
   },
@@ -139,13 +141,14 @@ export const programas = {
       ${headline(d)}
       ${byline(d)}`,
     css: `
-.ma{font-variation-settings:"WONK" 0;background:radial-gradient(120% 120% at 0% 0%,#f6f3ea 0%,#e8eee2 60%,#dfe8d9 100%)}
+.ma{font-optical-sizing:none;font-variation-settings:"opsz" 36,"WONK" 0;font-variant-ligatures:no-common-ligatures no-discretionary-ligatures;background:radial-gradient(120% 120% at 0% 0%,#f6f3ea 0%,#e8eee2 60%,#dfe8d9 100%)}
 .ma .arch{position:absolute;right:calc(44*var(--u));top:calc(40*var(--u));bottom:0;width:38%;border-radius:999px 999px 0 0;overflow:hidden;box-shadow:0 0 0 calc(6*var(--u)) #f6f3ea,0 0 0 calc(7.5*var(--u)) #b7c9ad}
 .ma.sem-titulo .arch{width:46%}
 .ma .leaf{position:absolute;left:calc(40*var(--u));top:calc(140*var(--u));width:calc(120*var(--u))}
 .ma .tx{position:absolute;left:calc(40*var(--u));top:calc(190*var(--u));width:50%;max-height:calc(300*var(--u));overflow:hidden}
+.ma *{font-optical-sizing:none!important;font-feature-settings:"liga" 0,"dlig" 0!important;font-variation-settings:"opsz" 24,"SOFT" 50,"WONK" 0!important}
 .ma .k{font:500 calc(24*var(--u))/1 Fraunces;letter-spacing:.02em;color:#4d6b50}
-.ma h1{margin-top:calc(14*var(--u));font:500 calc(60*var(--u))/1.08 Fraunces;color:#2c372c;letter-spacing:-.01em;font-variation-settings:"SOFT" 100,"WONK" 0}
+.ma h1{margin-top:calc(14*var(--u));font:500 calc(60*var(--u))/1.08 Fraunces;color:#2c372c;letter-spacing:-.01em;font-variation-settings:"opsz" 24,"SOFT" 100,"WONK" 0}
 .ma h1 em{font-style:italic;color:#8a4536}
 .ma .tx p{margin-top:calc(14*var(--u));font:400 calc(20*var(--u))/1.4 Inter;color:#4a564a}
 .ma .by{position:absolute;left:calc(40*var(--u));bottom:calc(34*var(--u));display:flex;align-items:center;gap:calc(12*var(--u))}
@@ -155,7 +158,7 @@ export const programas = {
 .ma .bt i{font:italic 400 calc(16*var(--u))/1 Fraunces;color:#4d6b50}
 .ma.sem-titulo .by{flex-direction:column;align-items:flex-start;bottom:auto;top:calc(200*var(--u));gap:calc(16*var(--u))}
 .ma.sem-titulo .pt{display:none}
-.ma.sem-titulo .bt b{font:400 calc(80*var(--u))/1 Fraunces;letter-spacing:-.02em;color:#2c372c}
+.ma.sem-titulo .bt b{font:500 calc(62*var(--u))/1 Fraunces;letter-spacing:-.01em;color:#2c372c}
 .ma.sem-titulo .bt i{font-size:calc(26*var(--u))}`,
   },
 

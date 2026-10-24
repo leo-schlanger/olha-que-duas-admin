@@ -29,3 +29,12 @@ WHERE slug = 'dulce-pontes-cancela-concerto-escritaria-penafiel';
 UPDATE vinagre_posts SET cover_url = 'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-violencia-domestica-licenca-parental-capa.jpg',
   og_image_url = 'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-violencia-domestica-licenca-parental-og.jpg'
 WHERE slug = 'violencia-domestica-licenca-parental';
+
+-- Revisao do qa (2026-10-24): Mente Aberta legivel, Pimenta equilibrada; ?v=2 fura a cache do CDN.
+UPDATE vinagre_posts SET cover_url = cover_url || '?v=2', og_image_url = og_image_url || '?v=2'
+WHERE slug IN ('temos-tudo-e-o-odio-cresce', 'violencia-domestica-licenca-parental') AND cover_url NOT LIKE '%?v=2';
+-- Aspas portuguesas na noticia do Herman, como nas outras pecas.
+UPDATE vinagre_posts SET title = replace(title, '"Cá por Casa"', '«Cá por Casa»'),
+  excerpt = replace(excerpt, '"Cá por Casa"', '«Cá por Casa»'),
+  content = replace(content, '"Cá por Casa"', '«Cá por Casa»')
+WHERE slug = 'herman-jose-regresso-ca-por-casa-13-temporada-rtp1';
