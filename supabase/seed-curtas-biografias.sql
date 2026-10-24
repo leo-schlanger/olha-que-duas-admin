@@ -45,8 +45,8 @@ VALUES (
 <p>Contudo, é longe dos holofotes que se revela a sua maior grandeza: a de mãe e amiga inabalável. Mãe devota de três filhos — entre eles Marta Cruz — e avó apaixonada, Marluce sempre colocou a família no centro de tudo, servindo de porto de abrigo seguro mesmo nas horas mais cinzentas. Diante das maiores tempestades públicas e dos períodos de profundo escrutínio, nunca vacilou na sua dignidade nem na defesa dos laços familiares, demonstrando uma nobreza de espírito e uma generosidade que os amigos mais próximos apontam como a sua marca mais genuína. É a companheira de todas as horas, dona de uma gargalhada contagiante e de uma sensibilidade agregadora que transforma qualquer adversidade numa lição de superação e perdão.</p>
 <h2>Master Coach, autora e diretora</h2>
 <p>Essa sabedoria de vida encontrou um desfecho natural no seu trabalho enquanto Master Coach e autora, vertida em obras inspiradoras como «12 Pérolas para uma Vida Feliz», onde ensina que o bem-estar e a paz interior se constroem com resiliência, afeto e autoconhecimento. Longe de abrandar, Marluce continua hoje plenamente ativa e com o olhar posto no futuro. Como diretora da agência de comunicação Olha que Duas, lidera projetos com dinamismo, visão estratégica e um entusiasmo contagiante, provando que o tempo só apura o talento. Entre a comunicação, o desenvolvimento pessoal e os projetos que abraça a cada dia, Marluce Revorêdo Silva continua a reinventar-se, reafirmando-se como um símbolo vivo de força feminina, generosidade e beleza intemporal.</p>$marluce$,
-  'https://www.olhaqueduas.com/exclusivo/marluce-revoredo-silva.jpg',
-  'https://www.olhaqueduas.com/exclusivo/marluce-revoredo-silva-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-marluce-revoredo-silva-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-marluce-revoredo-silva-og.jpg',
   true,
   '2026-10-14 16:00:00+01',
   'e4b81f06-3a27-4c9d-8e55-1d7a6b0c92f8'
@@ -79,8 +79,8 @@ VALUES (
 <h2>Os livros e a vida pública</h2>
 <p>E porque comunicar também se faz no papel, assinou vários livros entre o humor, a poesia, o romance e as memórias, destacando-se Palavras Despidas de Música, o romance Império de Brandos Costumes, Histórias para os Avós Contarem aos Netos e Memórias da Vida e da Rádio dos Afectos.</p>
 <p>Casado com Elizabeth Sala e pai de Miguel Sala, foi também professor universitário de Comunicação, vice-presidente do Sport Lisboa e Benfica no final dos anos 90 e, após superar um problema oncológico em 2012, tornou-se um exemplo público de resiliência e otimismo. Distinguido como Comendador da Ordem do Mérito em 2010 e Comendador da Ordem do Infante D. Henrique em 2024, António Sala é, indiscutivelmente, uma das páginas mais luminosas da cultura popular portuguesa.</p>$sala$,
-  'https://www.olhaqueduas.com/exclusivo/antonio-sala.jpg',
-  'https://www.olhaqueduas.com/exclusivo/antonio-sala-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-antonio-sala-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-antonio-sala-og.jpg',
   true,
   '2026-10-14 16:05:00+01',
   'e4b81f06-3a27-4c9d-8e55-1d7a6b0c92f8'
@@ -111,8 +111,8 @@ VALUES (
 <p>A consagração de massas deu-se nos anos 2000 com o fenómeno dos reality shows da TVI. A vitória estrondosa na «Quinta das Celebridades» em 2004, seguida de participações na «1.ª Companhia» e no «Circo das Celebridades», transformou-o num dos maiores marcos de audiência da história televisiva em Portugal. Durante essa era de ouro mediática, o público acolheu-o como um produtor involuntário de comédia e um «guilty pleasure» nacional, enquanto outros setores o acusavam de oportunismo e decadência, ao mesmo tempo que, deliberadamente ou não, colocava a fluidez de género e a diferença em horário nobre perante uma sociedade ainda conservadora.</p>
 <h2>A queda e o confronto com a justiça</h2>
 <p>A fronteira entre a persona pública exuberante e a esfera privada acabou, contudo, por ruir de forma irremediável. Em 2024, após décadas de exposição, foi detido na sequência de graves denúncias de violência doméstica física e psicológica apresentadas por Betty Grafstein após um internamento hospitalar, ficando formalmente impedido por via judicial de se aproximar da mulher. O choque judicial transformou o antigo fascínio e a tolerância do público em indignação moral e repúdio generalizado. Entre a desconstrução da personagem, a encenação perpétua e o confronto com a justiça, José Castelo Branco permanece a mais polarizadora e barroca máscara do espetáculo em Portugal.</p>$castelobranco$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-jose-castelo-branco.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-jose-castelo-branco-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-jose-castelo-branco-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-jose-castelo-branco-og.jpg',
   true,
   '2026-10-17 13:35:00+01',
   'e4b81f06-3a27-4c9d-8e55-1d7a6b0c92f8'
@@ -146,8 +146,8 @@ VALUES (
 <p>Vimo-la superar-se no exigente desafio do Hybrid Day no Estoril, vimo-la correr pela causa do IPO do Porto e, num dos momentos mais comoventes deste ano, vimo-la cortar a meta da Meia Maratona do Porto. Ao fim de 21 quilómetros, olhou para o céu e deixou a mensagem que nos apertou o coração a todos: «I hope you are proud of me» (Espero que estejas orgulhoso de mim).</p>
 <img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-rute-cardoso-ipo-porto.jpg" alt="Rute Cardoso de costas, com o dorsal 20, na corrida pelo IPO do Porto">
 <p>Rute Cardoso não corre para fugir à saudade — até porque uma história de amor começada em 2012, nos corredores da escola, é eterna. Ela corre para ter fôlego para a vida. Ao cuidar da mente através do corpo, deu-nos uma das mais bonitas lições de resiliência dos últimos tempos: o luto não se apaga, mas aprende-se a caminhar — e a correr — com ele.</p>$rutecardoso$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-rute-cardoso-capa.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-rute-cardoso-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-rute-cardoso-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-rute-cardoso-og.jpg',
   true,
   '2026-10-24 08:05:00+01',
   'e4b81f06-3a27-4c9d-8e55-1d7a6b0c92f8'
@@ -182,8 +182,8 @@ VALUES (
 <img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-marisa-cruz-desfile.jpg" alt="Marisa Cruz sentada na primeira fila de um desfile, de óculos escuros">
 <h2>A fase da «mulher sábia»</h2>
 <p>Mais do que superar a crise pessoal, a apresentadora transformou a sua dor numa missão coletiva. Depois de quatro anos de estudo e investigação, nos quais investiu as suas próprias poupanças e enfrentou o receio de entrar num mercado altamente competitivo, lançou a Risa, uma marca de cuidados de pele e bem-estar íntimo pensada especificamente para mulheres na menopausa. Para Marisa Cruz, esta nova etapa já não é vista como um fim, mas sim como a fase da «mulher sábia» e o momento de maior poder e coragem da sua vida, provando que nunca é tarde para recomeçar, dar voz a quem se sente sozinha e correr atrás dos sonhos que ficaram por cumprir.</p>$marisacruz$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-marisa-cruz-capa.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-marisa-cruz-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-marisa-cruz-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-marisa-cruz-og.jpg',
   true,
   '2026-10-25 09:00:00+00',
   'e4b81f06-3a27-4c9d-8e55-1d7a6b0c92f8'

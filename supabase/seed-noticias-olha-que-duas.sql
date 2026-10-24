@@ -43,8 +43,8 @@ VALUES (
 <h2>Uma estreia memorável no sofá e na RTP Play</h2>
 <p>A estreia não podia ter sido mais memorável, juntando no mesmo sofá a apresentação do primeiro romance de ficção de Júlia Pinheiro ("Não Sei Nada Sobre o Amor"), a partilha artística de Lídia Franco e Tiago Torres da Silva, e o talento musical ao vivo de Tiago Nacarato, FF e do projeto Vizinhos. Para quem não conseguiu ver na televisão ou quer simplesmente rever cada gargalhada, esta nova temporada, assim como todo o arquivo das 12 anteriores, já está disponível gratuitamente na RTP Play.</p>
 <p>Muitos parabéns ao eterno Herman José e a toda a sua equipa por este regresso em grande e por continuarem a dar tanto à cultura e ao humor em Portugal. Quem mais estava com saudades de passar os serões de quarta-feira "Cá por Casa"?</p>$noticias1$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/noticias-ca-por-casa-13-temporada.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/noticias-ca-por-casa-13-temporada-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-herman-jose-regresso-ca-por-casa-13-temporada-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-herman-jose-regresso-ca-por-casa-13-temporada-og.jpg',
   true,
   '2026-10-16 16:40:00+01',
   '9b4e1a82-6c35-4d91-a2f7-8e5c0b3d1946'
@@ -75,8 +75,8 @@ VALUES (
 <h2>Reembolso e reagendamento</h2>
 <p>Relativamente aos portadores de bilhete para o espetáculo, Dulce Pontes esclareceu na mesma nota que todas as decisões sobre um eventual reagendamento da data ou o processo de reembolso dos ingressos estão sob a responsabilidade da organização e do Município de Penafiel, junto do qual a equipa da artista aguarda as diretrizes oficiais.</p>
 <p>Apesar da baixa de peso no cartaz musical de sexta-feira, a 19.ª edição do festival Escritaria prossegue em Penafiel até este domingo, dia 25 de outubro, mantendo a cidade transformada num ponto de encontro da língua portuguesa, da literatura e da cultura lusófona.</p>$noticias2$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/noticias-dulce-pontes-capa.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/noticias-dulce-pontes-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-dulce-pontes-cancela-concerto-escritaria-penafiel-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-dulce-pontes-cancela-concerto-escritaria-penafiel-og.jpg',
   true,
   '2026-10-24 08:00:00+01',
   '9b4e1a82-6c35-4d91-a2f7-8e5c0b3d1946'
