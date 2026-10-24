@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -31,6 +31,8 @@ interface FormState {
   title: string;
   slug: string;
   excerpt: string;
+  seoTitle: string;
+  seoDescription: string;
   content: string;
   coverUrl: string;
   ogImageUrl: string;
@@ -46,6 +48,8 @@ function emptyForm(): FormState {
     title: '',
     slug: '',
     excerpt: '',
+    seoTitle: '',
+    seoDescription: '',
     content: '<p></p>',
     coverUrl: '',
     ogImageUrl: '',
@@ -60,6 +64,8 @@ function fromPost(post: VinagrePost): FormState {
     title: post.title,
     slug: post.slug,
     excerpt: post.excerpt,
+    seoTitle: post.seo_title,
+    seoDescription: post.seo_description,
     content: post.content || '<p></p>',
     coverUrl: post.cover_url,
     ogImageUrl: post.og_image_url,
@@ -118,6 +124,7 @@ function CoverThumb({ url }: { url: string }) {
 
 export function Vinagre() {
   const { programs, loading, error, saveProgram, deleteProgram } = useExclusivePrograms();
+  const stats = useProgramStats(programs.length);
   const [selected, setSelected] = useState<ExclusiveProgram | null>(null);
   const [editingProgram, setEditingProgram] = useState<ExclusiveProgram | 'new' | null>(null);
 
@@ -185,13 +192,18 @@ export function Vinagre() {
                     {program.is_published ? 'No ar' : 'Escondido'}
                     {program.author ? ` · ${program.author}` : ''}
                   </p>
-                  <h3 className="font-display text-lg font-bold text-charcoal">{program.title}</h3>
-                  {program.description && (
-                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{program.description}</p>
-                  )}
+                  <h3 className="font-display text-lg font-bold text-charcoal">
+                    <span className="mr-2 text-sm font-normal text-muted-foreground">{program.sort_order}.</span>
+                    {program.title}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {programSummary(stats.get(program.id))}
+                  </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" onClick={() => setSelected(program)}>Notícias</Button>
+                  <Button size="sm" onClick={() => setSelected(program)}>
+                    Notícias ({stats.get(program.id)?.total ?? 0})
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => setEditingProgram(program)}>
                     <Pencil className="h-4 w-4 mr-1.5" />
                     Editar
@@ -648,6 +660,8 @@ function Editor({
       title,
       slug,
       excerpt: form.excerpt.trim(),
+      seo_title: form.seoTitle.trim(),
+      seo_description: form.seoDescription.trim(),
       content: form.content,
       cover_url: publicMediaUrl(coverUrl),
       og_image_url: ogImageUrl ? publicMediaUrl(ogImageUrl) : '',
@@ -720,6 +734,7 @@ function Editor({
                   placeholder="A frase que aparece no cartão e na partilha"
                 />
               </div>
+              <GoogleFields form={form} setForm={setForm} programSlug={programSlug} />
             </CardContent>
           </Card>
 
@@ -871,4 +886,123 @@ function Editor({
       </div>
     </div>
   );
+}
+
+const SEO_TITLE_MAX = 55;
+const SEO_DESCRIPTION_MAX = 155;
+
+/** Título e descrição para o Google, com a pré-visualização do resultado. */
+function GoogleFields({
+  form,
+  setForm,
+  programSlug,
+}: {
+  form: FormState;
+  setForm: Dispatch<SetStateAction<FormState>>;
+  programSlug: string;
+}) {
+  const title = form.seoTitle.trim() || form.title.trim();
+  const description = form.seoDescription.trim() || form.excerpt.trim();
+  const titleTooLong = title.length > 60;
+  const count = (value: number, max: number) =>
+    value > max ? 'text-red-600 font-semibold' : 'text-muted-foreground';
+
+  return (
+    <div className="space-y-3 rounded-lg border border-dashed p-3">
+      <p className="text-sm font-semibold text-charcoal">No Google</p>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="vinagre-seo-title">Título curto</Label>
+          <span className={`text-xs ${count(form.seoTitle.length, SEO_TITLE_MAX)}`}>
+            {form.seoTitle.length}/{SEO_TITLE_MAX}
+          </span>
+        </div>
+        <Input
+          id="vinagre-seo-title"
+          value={form.seoTitle}
+          maxLength={70}
+          onChange={(event) => setForm((current) => ({ ...current, seoTitle: event.target.value }))}
+          placeholder="Nome + o facto principal, sem «Exclusivo!»"
+        />
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="vinagre-seo-description">Descrição</Label>
+          <span className={`text-xs ${count(form.seoDescription.length, SEO_DESCRIPTION_MAX)}`}>
+            {form.seoDescription.length}/{SEO_DESCRIPTION_MAX}
+          </span>
+        </div>
+        <Textarea
+          id="vinagre-seo-description"
+          value={form.seoDescription}
+          maxLength={170}
+          rows={2}
+          onChange={(event) => setForm((current) => ({ ...current, seoDescription: event.target.value }))}
+          placeholder="120 a 155 caracteres. Vazio usa o resumo."
+        />
+      </div>
+      <div className="rounded-md bg-white p-3 text-left shadow-sm">
+        <p className="truncate text-xs text-emerald-800">
+          olhaqueduas.com › exclusivo › {programSlug || 'programa'}
+        </p>
+        <p className="mt-0.5 line-clamp-1 text-base text-[#1a0dab]">{title || 'Título da notícia'}</p>
+        <p className="mt-0.5 line-clamp-2 text-sm text-[#4d5156]">{description || 'Descrição da notícia'}</p>
+      </div>
+      {titleTooLong && !form.seoTitle.trim() && (
+        <p className="text-xs text-amber-700">
+          O título tem {title.length} caracteres e o Google corta-o com «...». Escreve um título curto.
+        </p>
+      )}
+    </div>
+  );
+}
+
+interface ProgramStats {
+  total: number;
+  live: number;
+  scheduled: number;
+  drafts: number;
+  last: string | null;
+}
+
+/** Contagem das notícias por programa, para escolher o programa sem abrir cada um. */
+function useProgramStats(refresh: number): Map<string, ProgramStats> {
+  const [stats, setStats] = useState<Map<string, ProgramStats>>(new Map());
+  useEffect(() => {
+    let cancelled = false;
+    void supabase
+      .from('vinagre_posts')
+      .select('program_id, is_published, published_at')
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        const now = Date.now();
+        const map = new Map<string, ProgramStats>();
+        for (const row of data as { program_id: string; is_published: boolean; published_at: string | null }[]) {
+          const s = map.get(row.program_id) ?? { total: 0, live: 0, scheduled: 0, drafts: 0, last: null };
+          s.total += 1;
+          const when = row.published_at ? Date.parse(row.published_at) : 0;
+          if (!row.is_published) s.drafts += 1;
+          else if (when > now) s.scheduled += 1;
+          else {
+            s.live += 1;
+            if (row.published_at && (!s.last || row.published_at > s.last)) s.last = row.published_at;
+          }
+          map.set(row.program_id, s);
+        }
+        setStats(map);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [refresh]);
+  return stats;
+}
+
+function programSummary(s: ProgramStats | undefined): string {
+  if (!s || s.total === 0) return 'Ainda sem notícias';
+  const parts = [`${s.live} no ar`];
+  if (s.scheduled) parts.push(`${s.scheduled} agendada${s.scheduled > 1 ? 's' : ''}`);
+  if (s.drafts) parts.push(`${s.drafts} rascunho${s.drafts > 1 ? 's' : ''}`);
+  if (s.last) parts.push(`última a ${new Date(s.last).toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })}`);
+  return parts.join(' · ');
 }

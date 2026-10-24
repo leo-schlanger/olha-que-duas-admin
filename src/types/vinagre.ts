@@ -2,6 +2,8 @@ export interface VinagrePost {
   id: string;
   slug: string;
   title: string;
+  seo_title: string;
+  seo_description: string;
   excerpt: string;
   content: string;
   cover_url: string;
@@ -16,6 +18,8 @@ export interface VinagrePost {
 export interface VinagreDraft {
   slug: string;
   title: string;
+  seo_title: string;
+  seo_description: string;
   excerpt: string;
   content: string;
   cover_url: string;
@@ -58,6 +62,8 @@ export function parseVinagrePost(value: unknown): VinagrePost | null {
     is_published: value.is_published,
     published_at: typeof published === 'string' ? published : null,
     excerpt: typeof excerpt === 'string' ? excerpt : '',
+    seo_title: str(value, 'seo_title') ?? '',
+    seo_description: str(value, 'seo_description') ?? '',
     cover_url: typeof cover === 'string' ? cover : '',
     og_image_url: typeof ogImage === 'string' ? ogImage : '',
     program_id: str(value, 'program_id') ?? '',
