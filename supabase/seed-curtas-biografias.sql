@@ -161,3 +161,39 @@ ON CONFLICT (slug) DO UPDATE SET
   is_published = EXCLUDED.is_published,
   published_at = EXCLUDED.published_at,
   program_id = EXCLUDED.program_id;
+
+-- Episódio: Marisa Cruz, a menopausa e o renascimento aos 51 anos (agendado para domingo, 2026-10-25 09:00 Lisboa).
+-- A hora de verão acaba nessa madrugada: domingo às 09:00 em Lisboa é +00, não +01.
+INSERT INTO vinagre_posts (
+  slug, title, excerpt, content, cover_url, og_image_url, is_published, published_at, program_id
+)
+VALUES (
+  'marisa-cruz',
+  'Marisa Cruz abre o coração sobre a fase mais assustadora da sua vida e o renascimento aos 51 anos: «Assustei-me verdadeiramente com a mulher em que me estava a tornar»',
+  'Aos 51 anos, Marisa Cruz fala da menopausa, das feridas da infância e da terapia, e da Risa, a marca que criou para as mulheres nesta fase.',
+  $marisacruz$<p>Habituada aos holofotes desde os anos 90 como uma das mulheres mais bonitas e admiradas de Portugal, Marisa Cruz viveu nos últimos anos uma tempestade silenciosa longe das câmaras. Aos 51 anos, a apresentadora e atriz decidiu quebrar o tabu e partilhar os momentos mais duros da sua história recente, marcada pelo embate violento com a perimenopausa e a menopausa, pela cura de feridas profundas do passado e por uma superação que a levou a reinventar-se no mundo dos negócios.</p>
+<h2>A tempestade silenciosa</h2>
+<p>Tudo começou por volta dos 47 anos, quando os primeiros sinais de alteração hormonal surgiram de forma avassaladora e sem aviso prévio. Sempre conhecida pelo seu otimismo e sorriso fácil, Marisa Cruz viu-se subitamente mergulhada num estado emocional irreconhecível, marcado por insónias severas, suores noturnos, pesadelos constantes e pensamentos sombrios que nunca antes tinha experimentado. A apresentadora confessa que a parte psicológica foi a mais difícil de gerir, chegando a sentir-se à beira de uma depressão e assustada com a falta de controlo sobre as próprias emoções. Qualquer pequeno contratempo transformava-se num problema gigante, gerando uma irritabilidade e uma falta de paciência em casa que a deixavam consumida pela culpa perante os dois filhos, João e Diogo.</p>
+<p>Sem encontrar abertura para falar sobre o tema entre mulheres da sua idade e sentindo falta de preparação preventiva por parte da medicina, Marisa acabou por se isolar e fechar em casa durante algum tempo. A par das alterações físicas e da perda de libido, pesava também o rótulo cruel que a sociedade ainda impõe às mulheres que deixam a fase reprodutiva. A apresentadora admite que chegou a questionar o seu papel e a sua identidade enquanto mulher, confrontada com a sensação de vazio e de perda de propósito que tantas vezes acompanha esta transição em silêncio.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-marisa-cruz-gala.jpg" alt="Marisa Cruz de vestido preto com folhos brancos, numa noite de gala">
+<h2>As cicatrizes antigas</h2>
+<p>Este turbilhão obrigou-a também a mergulhar fundo na terapia e a encarar de frente cicatrizes antigas que ainda condicionavam a sua vida adulta. Com uma infância marcada pela instabilidade, pela pobreza extrema e pela ausência de uma estrutura familiar segura — onde a última memória do pai foi uma visita na prisão antes de descobrir a sua morte da forma mais fria e abrupta através do padrasto —, Marisa Cruz percebeu que carregava há décadas um medo inconsciente do abandono. Durante muito tempo, sentiu que precisava de ter alguém ao lado para estar completa e carregou o peso da culpa por não ter sido mãe a tempo inteiro enquanto viajava para trabalhar e garantir o sustento da família.</p>
+<p>Foi precisamente no fundo dessa vulnerabilidade que começou a sua verdadeira superação. Recusando-se a aceitar que uma mulher depois dos 50 anos perde a sua validade ou o seu brilho, Marisa Cruz procurou acompanhamento médico especializado, adotou uma nova disciplina física com caminhadas matinais e mudanças na alimentação, e fez um trabalho profundo de amor-próprio. Hoje, garante que aprendeu a estar inteira sozinha, libertou-se da necessidade de agradar aos outros e elevou a fasquia nas suas relações, recusando aceitar menos do que aquilo que entrega.</p>
+<img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-marisa-cruz-desfile.jpg" alt="Marisa Cruz sentada na primeira fila de um desfile, de óculos escuros">
+<h2>A fase da «mulher sábia»</h2>
+<p>Mais do que superar a crise pessoal, a apresentadora transformou a sua dor numa missão coletiva. Depois de quatro anos de estudo e investigação, nos quais investiu as suas próprias poupanças e enfrentou o receio de entrar num mercado altamente competitivo, lançou a Risa, uma marca de cuidados de pele e bem-estar íntimo pensada especificamente para mulheres na menopausa. Para Marisa Cruz, esta nova etapa já não é vista como um fim, mas sim como a fase da «mulher sábia» e o momento de maior poder e coragem da sua vida, provando que nunca é tarde para recomeçar, dar voz a quem se sente sozinha e correr atrás dos sonhos que ficaram por cumprir.</p>$marisacruz$,
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-marisa-cruz-capa.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/curtas-biografias-marisa-cruz-og.jpg',
+  true,
+  '2026-10-25 09:00:00+00',
+  'e4b81f06-3a27-4c9d-8e55-1d7a6b0c92f8'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  excerpt = EXCLUDED.excerpt,
+  content = EXCLUDED.content,
+  cover_url = EXCLUDED.cover_url,
+  og_image_url = EXCLUDED.og_image_url,
+  is_published = EXCLUDED.is_published,
+  published_at = EXCLUDED.published_at,
+  program_id = EXCLUDED.program_id;

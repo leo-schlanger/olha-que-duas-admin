@@ -11,6 +11,7 @@ import { useVinagrePosts } from '../hooks/useVinagrePosts';
 import { supabase } from '../lib/supabase';
 import { fromLocalInput, publicMediaUrl, renderShareImage, slugify, toLocalInput } from '../lib/vinagre';
 import type { ExclusiveProgram, ExclusiveProgramDraft } from '../types/exclusivo';
+import { publishState } from '../types/stories';
 import type { VinagreDraft, VinagrePost } from '../types/vinagre';
 import {
   ArrowLeft,
@@ -82,6 +83,8 @@ function isImageFile(file: File): boolean {
   if (file.type.startsWith('image/')) return true;
   return /\.(jpe?g|png|webp|gif)$/i.test(file.name);
 }
+
+const STATE_LABEL = { rascunho: 'Rascunho', agendado: 'Agendada', publicado: 'Publicada' } as const;
 
 function formatWhen(iso: string): string {
   return new Date(iso).toLocaleString('pt-PT', {
@@ -292,7 +295,7 @@ function PostList({
                 <CardContent className="flex flex-1 flex-col gap-3 p-4">
                   <div>
                     <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                      {post.is_published ? 'Publicada' : 'Rascunho'}
+                      {STATE_LABEL[publishState(post)]}
                       {post.published_at ? ` · ${formatWhen(post.published_at)}` : ''}
                     </p>
                     <h3 className="font-display text-lg font-bold text-charcoal">{post.title}</h3>
@@ -814,9 +817,11 @@ function Editor({
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                {form.published
-                  ? 'Visível na página deste programa.'
-                  : 'Desligado, a notícia fica em rascunho.'}
+                {!form.published
+                  ? 'Desligado, a notícia fica em rascunho.'
+                  : fromLocalInput(form.publishedAt) && new Date(fromLocalInput(form.publishedAt)!) > new Date()
+                    ? 'Agendada: aparece no site na data abaixo.'
+                    : 'Visível na página deste programa.'}
               </p>
               <div className="space-y-2">
                 <Label htmlFor="vinagre-date">Data</Label>
