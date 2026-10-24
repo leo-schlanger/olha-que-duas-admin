@@ -33,6 +33,7 @@ interface FormState {
   excerpt: string;
   seoTitle: string;
   seoDescription: string;
+  author: string;
   content: string;
   coverUrl: string;
   ogImageUrl: string;
@@ -50,6 +51,7 @@ function emptyForm(): FormState {
     excerpt: '',
     seoTitle: '',
     seoDescription: '',
+    author: '',
     content: '<p></p>',
     coverUrl: '',
     ogImageUrl: '',
@@ -66,6 +68,7 @@ function fromPost(post: VinagrePost): FormState {
     excerpt: post.excerpt,
     seoTitle: post.seo_title,
     seoDescription: post.seo_description,
+    author: post.author,
     content: post.content || '<p></p>',
     coverUrl: post.cover_url,
     ogImageUrl: post.og_image_url,
@@ -662,6 +665,7 @@ function Editor({
       excerpt: form.excerpt.trim(),
       seo_title: form.seoTitle.trim(),
       seo_description: form.seoDescription.trim(),
+      author: form.author.trim(),
       content: form.content,
       cover_url: publicMediaUrl(coverUrl),
       og_image_url: ogImageUrl ? publicMediaUrl(ogImageUrl) : '',
@@ -732,6 +736,16 @@ function Editor({
                   rows={3}
                   maxLength={400}
                   placeholder="A frase que aparece no cartão e na partilha"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vinagre-author">Assinada por</Label>
+                <Input
+                  id="vinagre-author"
+                  value={form.author}
+                  maxLength={120}
+                  onChange={(event) => setForm((current) => ({ ...current, author: event.target.value }))}
+                  placeholder="Vazio = o autor do programa"
                 />
               </div>
               <GoogleFields form={form} setForm={setForm} programSlug={programSlug} />
