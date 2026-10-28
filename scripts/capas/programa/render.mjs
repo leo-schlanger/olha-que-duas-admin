@@ -1,5 +1,5 @@
 // Render program cover HTML files to 900x1200 JPEG.
-// Usage: node render.mjs <file.html> <out.jpg> [more pairs...]
+// Usage: [W=900 H=1200] node render.mjs <file.html[#hash]> <out.jpg> [more pairs...]
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
 import { resolve, join } from "node:path";
@@ -10,8 +10,9 @@ const exe = process.env.CHROMIUM_PATH || join(homedir(), ".cache/ms-playwright/c
 const a = process.argv.slice(2);
 const b = await chromium.launch({ executablePath: exe });
 for (let i = 0; i < a.length; i += 2) {
-  const p = await b.newPage({ viewport: { width: 900, height: 1200 } });
-  await p.goto(pathToFileURL(resolve(a[i])).href, { waitUntil: "networkidle" });
+  const p = await b.newPage({ viewport: { width: +(process.env.W || 900), height: +(process.env.H || 1200) } });
+  const [f, hash] = a[i].split("#");
+  await p.goto(pathToFileURL(resolve(f)).href + (hash ? "#" + hash : ""), { waitUntil: "networkidle" });
   await p.evaluate(() => document.fonts.ready);
   await p.waitForFunction(() => !document.querySelector("[data-fitw]") || document.body.dataset.ready === "1");
   await p.waitForTimeout(250);
