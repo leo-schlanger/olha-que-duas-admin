@@ -74,7 +74,7 @@ const PANEL_GROUPS: { label: string; items: PanelItem[] }[] = [
   {
     label: 'Conteúdo',
     items: [
-      { value: 'exclusivo', label: 'Exclusivo Olha que Duas', icon: Newspaper },
+      { value: 'exclusivo', label: 'Especiais Olha que Duas', icon: Newspaper },
       { value: 'newsletter', label: 'Newsletter', icon: Mail },
       { value: 'library', label: 'Biblioteca', icon: ImageIcon },
     ],
