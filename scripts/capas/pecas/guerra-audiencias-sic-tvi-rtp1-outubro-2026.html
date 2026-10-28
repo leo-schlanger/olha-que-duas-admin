@@ -1,0 +1,193 @@
+<!doctype html><html lang="pt-PT"><head><meta charset="utf-8">
+<!-- Cover, OG and body charts for the TV ratings piece (v3a family).
+     Render: W=.. H=.. node ../programa/render.mjs "<this>#m=capa" out.jpg
+     m = capa 1600x1000 | og 1200x630 | g1 1200x760 | g2 1200x900 | g3 1200x900 | g1v 1080x1920 | g3v 1080x1920 -->
+<link rel="stylesheet" href="../programa/_base.css">
+<style>
+html,body{width:auto;height:auto}
+:root{--sic:#f2c14e;--tvi:#f6ead2;--rtp1:#7fb6dc;--rtp2:#b9aca2;--cabo:#c9993f;--outros:#a08e86;--creme:#f6ead2;--mute:rgba(246,234,210,.62)}
+.c{width:var(--w);height:var(--h);background:var(--bordo-900);color:var(--creme);font-variant-numeric:tabular-nums}
+.glow{position:absolute;inset:0;background:radial-gradient(70% 80% at 72% 40%,rgba(92,15,32,.9),transparent 70%)}
+.grid{position:absolute;inset:0;opacity:.55;background:repeating-linear-gradient(90deg,transparent 0 44px,rgba(201,153,63,.08) 44px 45px,transparent 45px 146px)}
+.grain{position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.3;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.logo{z-index:5}
+.lab{display:flex;align-items:center;gap:12px;font:800 15px/1 Inter;letter-spacing:.28em;text-transform:uppercase;color:var(--amarelo)}
+.lab i{width:10px;height:10px;border-radius:50%;background:#ff3b2e;box-shadow:0 0 12px 3px rgba(255,59,46,.6)}
+.blade{display:block;height:10px;width:100%;margin:16px 0}
+.box{position:absolute}
+/* ---------- cover / og ---------- */
+.duel{position:absolute;display:flex;align-items:flex-end}
+.duel .ch{display:flex;flex-direction:column}
+.duel .n{font:italic 900 1em/.82 Playfair;letter-spacing:-.04em}
+.duel .k{font:800 .11em/1 Inter;letter-spacing:.3em;margin-top:.16em;color:var(--mute)}
+.duel .sic .n{color:var(--sic)} .duel .tvi .n{color:var(--creme)}
+.duel .vs{font:italic 500 .2em/1 Playfair;color:var(--mute);margin:0 .35em .9em}
+.gap{position:absolute;font:600 22px/1.2 Inter;color:var(--creme)}
+.gap b{font:italic 800 1.5em/1 Playfair;color:var(--amarelo)}
+.mast{font:italic 900 104px/.9 Playfair;letter-spacing:-.035em;color:#fbf1dc}
+h1{font:800 60px/1.0 Playfair;letter-spacing:-.015em;color:#fbf1dc}
+h1 em{font-style:italic;font-weight:700;color:var(--amarelo)}
+.dt{margin-top:14px;font:italic 500 19px/1 Playfair;color:var(--mute)}
+.bars{position:absolute;display:flex;align-items:flex-end;gap:6px;opacity:.9}
+.bars span{flex:1;border-radius:3px 3px 0 0;max-width:10px}
+.bars{justify-content:space-between}
+/* ---------- charts ---------- */
+.hd{position:absolute;left:56px;right:56px;top:44px;padding-left:96px;min-height:72px}
+.hd .logo{left:0;top:0;width:72px;height:72px}
+.hd .kk{font:800 14px/1 Inter;letter-spacing:.26em;text-transform:uppercase;color:var(--amarelo)}
+.hd h2{margin-top:10px;font:italic 800 44px/1.05 Playfair;color:#fbf1dc;letter-spacing:-.01em}
+.hd p{margin-top:10px;font:500 20px/1.3 Inter;color:var(--mute)}
+.ft{position:absolute;left:56px;right:56px;bottom:30px;padding-top:14px;border-top:1px solid rgba(246,234,210,.25);
+  font:500 15px/1.4 Inter;color:rgba(246,234,210,.55)}
+.ft b{color:rgba(246,234,210,.8);font-weight:700}
+.rows{position:absolute;left:56px;right:56px}
+.row{display:grid;align-items:center}
+.row .nm{font:800 26px/1 Inter;letter-spacing:.06em}
+.row .nm small{display:block;margin-top:6px;font:500 15px/1.2 Inter;letter-spacing:0;color:var(--mute)}
+.track{position:relative;height:100%;}
+.bar{position:absolute;left:0;top:0;bottom:0;border-radius:0 6px 6px 0}
+.val{font:italic 800 46px/1 Playfair;white-space:nowrap}
+.val i{font:600 .45em/1 Inter;font-style:normal;color:var(--mute);margin-left:.15em}
+.dv{font:700 17px/1 Inter;padding:6px 9px;border-radius:5px;margin-left:12px;vertical-align:middle;white-space:nowrap}
+.dv.up{background:rgba(127,182,220,.18);color:#bfe0f5} .dv.dn{background:rgba(255,120,100,.16);color:#ffb3a6}
+.sep{font:800 13px/1 Inter;letter-spacing:.24em;text-transform:uppercase;color:var(--cabo);padding:14px 0 10px;border-bottom:1px solid rgba(201,153,63,.35);margin-bottom:6px}
+.callout{position:absolute;font:600 19px/1.25 Inter;color:var(--creme);display:flex;align-items:center;gap:10px}
+.callout b{font:italic 800 30px/1 Playfair;color:var(--amarelo)}
+/* table chart */
+.tb .row{border-bottom:1px solid rgba(246,234,210,.14)}
+.tb .th{font:800 13px/1 Inter;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);border-bottom:1px solid rgba(246,234,210,.35)}
+.chip{display:inline-block;font:800 18px/1 Inter;letter-spacing:.08em;padding:8px 10px;border-radius:5px;color:#1c0a0e}
+.pg{font:700 27px/1.15 Playfair;color:#fbf1dc}
+.pg small{display:block;margin-top:6px;font:600 17px/1 Inter;color:var(--mute)}
+.num{font:italic 800 40px/1 Playfair;text-align:right}
+.sbar{height:12px;border-radius:6px;background:rgba(246,234,210,.1);margin-top:10px;overflow:hidden}
+.sbar span{display:block;height:100%;border-radius:6px}
+/* 9:16 reel: everything larger, kept inside the safe zone (top 250, bottom 380) */
+.V .hd{top:250px;padding-left:136px;min-height:110px}
+.V .hd .logo{width:110px;height:110px}
+.V .hd .kk{font-size:20px}
+.V .hd h2{font-size:70px;margin-top:14px}
+.V .hd p{font-size:27px;margin-top:16px}
+.V .row .nm{font-size:38px}
+.V .ft{bottom:360px;font-size:20px}
+</style></head><body>
+<div class="c" id="c"><div class="glow"></div><div class="grid"></div><div id="z"></div><div class="grain"></div></div>
+<script>
+const m = new URLSearchParams(location.hash.slice(1)).get("m") || "capa";
+const S = {capa:[1600,1000],og:[1200,630],g1:[1200,760],g2:[1200,900],g3:[1200,900],g1v:[1080,1920],g3v:[1080,1920]}[m];
+const c = document.getElementById("c"), z = document.getElementById("z");
+c.style.setProperty("--w", S[0] + "px"); c.style.setProperty("--h", S[1] + "px");
+document.body.style.width = S[0] + "px";
+const logo = (cls = "logo", st = "") => `<img class="${cls}" style="${st}" src="../assets/logo.webp" alt="">`;
+const blade = `<svg class="blade" viewBox="0 0 400 10" preserveAspectRatio="xMinYMid meet"><line x1="0" y1="5" x2="352" y2="5" stroke="#c9993f" stroke-width="1.2"/><path d="M352 3.6 L372 3.6 C384 3.6 394 5 398 7.6 L352 6.4 Z" fill="#f2c14e"/></svg>`;
+const pct = (v, d = 1) => v.toFixed(d).replace(".", ",");
+const V = m.endsWith("v");
+if (V) c.classList.add("V");
+
+// ---- data (supabase/rascunhos/guerra-audiencias.md) ----
+const DIA = [["SIC", 14.0, "--sic"], ["TVI", 13.9, "--tvi"], ["RTP1", 11.4, "--rtp1"], ["RTP2", 0.7, "--rtp2"]];
+const SEM = [["SIC", 13.5, "--sic", null], ["TVI", 13.3, "--tvi", -0.1], ["RTP1", 10.8, "--rtp1", +0.1]];
+const SEM2 = [["Cabo", 40.7, "--cabo", null, "total dos canais de cabo"], ["Outros", 20.3, "--outros", -0.1, "time shift, streaming, vídeo e jogos"]];
+const MIN = [["RTP1", "--rtp1", "O Preço Certo", "19h56", 10.7, 23.1], ["SIC", "--sic", "Jornal da Noite", "20h11", 9.0, 21.7],
+             ["TVI", "--tvi", "Big Brother: All Stars – Especial", "22h36", 7.6, 21.7], ["RTP2", "--rtp2", "Ouro Azul", "22h20", 1.1, 2.5]];
+const F1 = "<b>Fonte:</b> Quinto Canal e TV Independente, 28/10/2026 · share Live+VOSDAL · Gráfico: Olha que Duas";
+const F2 = "<b>Fonte:</b> Meios &amp; Publicidade / SAPO, 27/10/2026, dados Havas Media Network · Gráfico: Olha que Duas";
+const F3 = "<b>Fonte:</b> Zapping, dados provisórios CAEM/GfK com VOSDAL · Gráfico: Olha que Duas";
+
+function duel(fs, left, top, w) {
+  // stacked scoreboard: label, giant number, hairline with the 0,1 gap
+  const row = (k, n, col) => `<div style="display:flex;align-items:center;gap:${fs * .14}px">
+      <span style="font:800 ${fs * .1}px/1 Inter;letter-spacing:.24em;color:var(${col});width:${fs * .5}px">${k}</span>
+      <span style="font:italic 900 ${fs}px/.9 Playfair;letter-spacing:-.04em;color:var(${col})">${n}<span style="font-size:.4em;letter-spacing:0;margin-left:.08em">%</span></span></div>`;
+  return `<div class="box" style="left:${left}px;top:${top}px;width:${w}px">
+    ${row("SIC", "14,0", "--sic")}
+    <div style="display:flex;align-items:center;gap:14px;margin:${fs * .06}px 0 ${fs * .08}px ${fs * .64}px">
+      <span style="flex:1;height:1.5px;background:linear-gradient(90deg,#c9993f,rgba(201,153,63,.15))"></span>
+      <span style="font:600 ${Math.max(16, fs * .075)}px/1 Inter;color:var(--mute);white-space:nowrap"><b style="font:italic 800 1.5em/1 Playfair;color:var(--amarelo)">0,1</b> ponto · share de 27/10</span></div>
+    ${row("TVI", "13,9", "--tvi")}</div>`;
+}
+function eqBars(n, x, y, w, h) {
+  let s = ""; for (let i = 0; i < n; i++) {
+    const a = Math.abs(Math.sin(i * .9) * .55 + Math.sin(i * 2.3 + 1) * .3 + Math.sin(i * .37) * .25);
+    s += `<span style="height:${(18 + a * 82).toFixed(0)}%;background:${i % 9 === 4 ? "rgba(242,193,78,.55)" : "rgba(201,153,63,.16)"}"></span>`;
+  }
+  return `<div class="bars" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${s}</div>`;
+}
+
+if (m === "capa") {
+  z.innerHTML = `${eqBars(120, 56, 860, 1488, 100)}
+    ${logo("logo", "left:48px;top:41px;width:152px;height:152px")}
+    <div class="box" style="left:56px;top:330px;width:500px"><div class="lab"><i></i>Especiais Olha que Duas</div>${blade}
+      <div class="mast">Notícias</div><div class="dt">29 de outubro de 2026</div></div>
+    ${duel(250, 640, 150, 900)}`;
+} else if (m === "og") {
+  z.innerHTML = `${eqBars(90, 40, 560, 1120, 46)}
+    ${logo("logo", "left:30px;top:26px;width:96px;height:96px")}
+    <div class="box" style="left:40px;top:150px;width:520px"><div class="lab"><i></i>Notícias</div>${blade}
+      <h1>Uma décima separa <em>SIC e TVI</em></h1><div class="dt">Share de terça-feira, 27 de outubro</div></div>
+    ${duel(150, 600, 120, 560)}`;
+} else if (m === "g1" || m === "g1v") {
+  const W = S[0], max = 16, top = V ? 640 : 200, rowH = V ? 170 : 112, nmW = V ? 170 : 150;
+  const track = W - 112 - nmW - (V ? 40 : 190);
+  let r = "";
+  DIA.forEach(([n, v, col], i) => {
+    const w = track * v / max;
+    r += `<div class="row" style="grid-template-columns:${nmW}px 1fr;height:${rowH}px">
+      <div class="nm" style="color:var(${col})">${n}</div>
+      <div class="track" style="height:${V ? 84 : 58}px"><div class="bar" style="width:${w}px;background:var(${col})"></div>
+        <div class="val" style="position:absolute;left:${w + 18}px;top:50%;transform:translateY(-50%);${V ? "font-size:64px;" + (i < 3 ? "left:auto;right:" + (track - w + 58) + "px;color:#1c0a0e" : "") : ""}">${pct(v)}<i style="${V && i < 3 ? "color:rgba(28,10,14,.7);margin-right:6px" : ""}">%</i></div></div></div>`;
+  });
+  z.innerHTML = `<div class="hd">${logo()}<div class="kk">Audiências · share do dia</div>
+      <h2>${V ? "SIC e TVI separadas<br>por uma décima" : "SIC e TVI separadas por uma décima"}</h2><p>Terça-feira, 27 de outubro de 2026 · % de share, Live+VOSDAL</p></div>
+    <div class="rows" style="top:${top}px">${r}</div>
+    <div class="callout" style="left:${56 + nmW + track * 14 / max + (V ? -250 : 150)}px;top:${top + (V ? rowH * 2 - 10 : rowH - 4) - 22}px">
+      <svg width="26" height="${V ? 0 : 60}" viewBox="0 0 26 60"><path d="M4 2 H18 V58 H4" fill="none" stroke="#f2c14e" stroke-width="2"/></svg><span><b>0,1</b> ponto</span></div>
+    <div class="ft">${F1}</div>`;
+  if (V) document.querySelector(".callout").style.cssText += ";left:56px;top:" + (top + rowH * 4 + 30) + "px;font-size:34px";
+  if (V) document.querySelector(".callout span").innerHTML = "<b style='font-size:60px'>0,1</b> ponto separa a SIC da TVI";
+} else if (m === "g2") {
+  const W = S[0], max = 45, nmW = 290, track = W - 112 - nmW - 250, rowH = 96;
+  const row = ([n, v, col, d, sub]) => {
+    const w = track * v / max;
+    return `<div class="row" style="grid-template-columns:${nmW}px 1fr;height:${rowH}px">
+      <div class="nm" style="color:var(${col})">${n}${sub ? `<small>${sub}</small>` : ""}</div>
+      <div class="track" style="height:50px"><div class="bar" style="width:${w}px;background:var(${col})"></div>
+      <div class="val" style="position:absolute;left:${w + 18}px;top:50%;transform:translateY(-50%)">${pct(v)}<i>%</i>${d == null ? "" : `<span class="dv ${d > 0 ? "up" : "dn"}">${d > 0 ? "▲ +" : "▼ −"}${pct(Math.abs(d))}</span>`}</div></div></div>`;
+  };
+  z.innerHTML = `<div class="hd">${logo()}<div class="kk">Audiências · share semanal</div>
+      <h2>A SIC segura a liderança da semana</h2><p>Semana anterior a 27 de outubro de 2026 · % de share · ▲▼ variação face à semana antes</p></div>
+    <div class="rows" style="top:220px"><div class="sep">Canais generalistas</div>${SEM.map(row).join("")}
+      <div class="sep" style="margin-top:14px">Restante consumo</div>${SEM2.map(row).join("")}</div>
+    <div class="ft">${F2}</div>`;
+} else if (m === "g3" || m === "g3v") {
+  let r = "";
+  if (!V) {
+    const cols = "120px 1fr 150px 210px";
+    r = `<div class="row th" style="grid-template-columns:${cols};height:48px"><span>Canal</span><span>Programa · hora</span><span style="text-align:right">Rating</span><span style="text-align:right">Share</span></div>`;
+    MIN.forEach(([ch, col, p, h, rt, sh]) => {
+      r += `<div class="row" style="grid-template-columns:${cols};height:128px">
+        <span><span class="chip" style="background:var(${col})">${ch}</span></span>
+        <span class="pg">«${p}»<small>${h}</small></span>
+        <span class="num" style="color:var(--creme)">${pct(rt)}</span>
+        <span class="num" style="color:var(${col})">${pct(sh)}<i style="font:600 18px Inter;font-style:normal;color:var(--mute)">%</i>
+          <div class="sbar" style="margin-left:auto;width:180px"><span style="width:${sh / 25 * 100}%;background:var(${col})"></span></div></span></div>`;
+    });
+  } else {
+    MIN.forEach(([ch, col, p, h, rt, sh]) => {
+      r += `<div style="padding:20px 0 22px;border-bottom:1px solid rgba(246,234,210,.16)">
+        <div style="display:flex;align-items:center;gap:16px"><span class="chip" style="background:var(${col});font-size:22px">${ch}</span><span style="font:700 22px Inter;color:var(--mute)">${h}</span></div>
+        <div class="pg" style="font-size:42px;margin-top:10px">«${p}»</div>
+        <div style="display:flex;gap:48px;margin-top:16px;align-items:baseline">
+          <span style="font:600 18px Inter;color:var(--mute);letter-spacing:.14em">RATING <b class="num" style="font-size:54px;color:var(--creme);letter-spacing:0;margin-left:8px">${pct(rt)}</b></span>
+          <span style="font:600 18px Inter;color:var(--mute);letter-spacing:.14em">SHARE <b class="num" style="font-size:54px;color:var(${col});letter-spacing:0;margin-left:8px">${pct(sh)}%</b></span></div>
+        <div class="sbar" style="height:14px"><span style="width:${sh / 25 * 100}%;background:var(${col})"></span></div></div>`;
+    });
+  }
+  z.innerHTML = `<div class="hd">${logo()}<div class="kk">Audiências · minuto mais visto</div>
+      <h2>${V ? "O minuto mais visto<br>de cada canal" : "O minuto mais visto de cada canal"}</h2><p>Terça-feira, 27 de outubro de 2026 · rating e % de share</p></div>
+    <div class="rows tb" style="top:${V ? 530 : 214}px">${r}</div>
+    <div class="ft">${F3}</div>`;
+}
+
+</script></body></html>
