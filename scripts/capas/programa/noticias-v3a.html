@@ -1,0 +1,61 @@
+<!doctype html><html lang="pt-PT"><head><meta charset="utf-8">
+<link rel="stylesheet" href="_base.css">
+<style>
+/* V3a — "No ar": logo as the broadcast source, waveform runs through it, ON AIR lamp. */
+.c{background:var(--bordo-900);color:#f6ead2}
+.grid{position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 44px,rgba(201,153,63,.11) 44px 45px,transparent 45px 146px),
+             repeating-linear-gradient(180deg,transparent 0 23px,rgba(201,153,63,.05) 23px 24px)}
+/* studio light: warm red pool behind the logo, halftone */
+.tone{position:absolute;left:0;right:0;top:40px;height:640px;
+  background:radial-gradient(circle,var(--vermelho) 0 40%,transparent 42%) 0 0/14px 14px;
+  -webkit-mask:radial-gradient(48% 46% at 50% 50%,rgba(0,0,0,.8),transparent 75%);opacity:.6}
+.wave{position:absolute;left:0;top:242px;width:900px;height:260px}
+.logoXL{position:absolute;left:50%;top:92px;width:560px;height:560px;transform:translateX(-50%);z-index:3;
+  filter:drop-shadow(0 22px 40px rgba(0,0,0,.6))}
+.air{position:absolute;right:44px;top:44px;z-index:4;display:flex;align-items:center;gap:12px;
+  padding:12px 18px 12px 14px;border:2px solid var(--vermelho);border-radius:8px;background:rgba(200,36,27,.14);
+  font:900 20px/1 Inter;letter-spacing:.26em;text-transform:uppercase;color:#ffd9d4}
+.air i{width:18px;height:18px;border-radius:50%;background:#ff3b2e;box-shadow:0 0 0 4px rgba(255,59,46,.25),0 0 22px 6px rgba(255,59,46,.7)}
+.sec{position:absolute;left:44px;top:56px;font:700 15px/1 Inter;letter-spacing:.28em;text-transform:uppercase;color:var(--ouro)}
+.mast{position:absolute;left:44px;right:44px;top:720px}
+.mast h1{font:italic 900 290px/.86 Playfair;letter-spacing:-.04em;color:#fbf1dc;margin-left:14px;text-shadow:0 6px 0 rgba(0,0,0,.25)}
+.mast .r{margin-top:22px;height:4px;background:linear-gradient(90deg,var(--amarelo) 0 32%,rgba(246,234,210,.5) 32%)}
+.mast h2{margin-top:20px;font:600 66px/1 Playfair;letter-spacing:-.01em;color:var(--amarelo)}
+.mast h2 i{font-weight:500;color:#f6ead2}
+.foot{position:absolute;left:44px;right:44px;bottom:42px;display:flex;justify-content:space-between;
+  font:700 15px/1 Inter;letter-spacing:.24em;text-transform:uppercase;color:rgba(246,234,210,.75);
+  padding-top:16px;border-top:1.5px solid rgba(246,234,210,.35)}
+.foot b{color:var(--amarelo)}
+.grain{mix-blend-mode:screen;opacity:.16;filter:invert(1)}
+</style></head><body>
+<div class="c">
+  <div class="grid"></div>
+  <div class="tone"></div>
+  <svg class="wave" viewBox="0 0 900 260" id="wave"></svg>
+  <img class="logoXL" src="../assets/logo.webp" alt="Olha que Duas">
+  <div class="sec">Especiais</div>
+  <div class="air"><i></i>No ar</div>
+  <div class="mast">
+    <h1 data-fitw>Notícias</h1>
+    <div class="r"></div>
+    <h2>Olha que <i>Duas</i></h2>
+  </div>
+  <div class="foot"><b>Rádio · site · app</b><span>olhaqueduas.com</span></div>
+  <div class="grain"></div>
+</div>
+<script>
+// Deterministic voice-like waveform: rounded bars, louder near the logo.
+const svg = document.getElementById("wave"), n = 64, w = 900 / n;
+let out = "";
+for (let i = 0; i < n; i++) {
+  const x = i * w + w / 2, d = Math.abs(x - 450) / 450;
+  const env = 0.25 + 0.75 * Math.pow(1 - d, 1.4);
+  const a = Math.abs(Math.sin(i * 0.9) * 0.55 + Math.sin(i * 2.3 + 1) * 0.3 + Math.sin(i * 0.37) * 0.25);
+  const h = Math.max(10, 240 * env * (0.25 + a * 0.75));
+  const col = d < 0.62 ? "#f2c14e" : "#c9993f";
+  out += `<rect x="${x - 4.5}" y="${130 - h / 2}" width="9" height="${h}" rx="4.5" fill="${col}" opacity="${0.5 + 0.5 * (1 - d)}"/>`;
+}
+svg.innerHTML = out;
+</script>
+<script src="_fit.js"></script></body></html>

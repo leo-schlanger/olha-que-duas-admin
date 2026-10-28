@@ -1,0 +1,68 @@
+<!doctype html><html lang="pt-PT"><head><meta charset="utf-8">
+<link rel="stylesheet" href="_base.css">
+<style>
+/* V1 — "Primeira página": newspaper front page on newsprint. */
+.c{background:var(--papel);color:var(--tinta)}
+.frame{position:absolute;inset:22px;border:1.5px solid rgba(28,10,14,.55)}
+.logo{left:48px;top:44px}
+.folio{position:absolute;left:196px;right:48px;top:58px;display:flex;flex-direction:column;gap:10px}
+.folio .a{display:flex;justify-content:space-between;font:700 15px/1 Inter;letter-spacing:.22em;text-transform:uppercase;color:var(--bordo)}
+.folio .b{font:italic 500 25px/1.15 Playfair;color:var(--tinta)}
+.folio .r{height:1.5px;background:var(--tinta);opacity:.7}
+.mast{position:absolute;left:44px;right:44px;top:196px}
+.mast .rt{height:7px;background:var(--tinta)}
+.mast .rt2{height:1.5px;background:var(--tinta);margin-top:5px}
+.mast h1{font:900 260px/1 Playfair;letter-spacing:-.035em;color:var(--bordo);text-align:center;margin:6px 0 -8px;
+  font-variation-settings:"wght" 900}
+.mast .ln{display:flex;justify-content:space-between;align-items:center;padding:13px 4px;
+  border-top:1.5px solid var(--tinta);border-bottom:7px double var(--tinta);
+  font:700 15px/1 Inter;letter-spacing:.24em;text-transform:uppercase}
+.mast .ln i{font-style:normal;color:var(--vermelho)}
+.lead{position:absolute;left:44px;right:44px;top:532px;display:grid;grid-template-columns:1.32fr 1fr;gap:30px}
+.lead .k{display:inline-block;font:800 15px/1 Inter;letter-spacing:.22em;text-transform:uppercase;color:#fff;background:var(--vermelho);padding:9px 12px}
+.lead h2{margin-top:18px;font:800 64px/1.0 Playfair;letter-spacing:-.02em;color:var(--tinta)}
+.lead h2 em{font-style:italic;font-weight:600;color:var(--bordo)}
+.cols{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.cols .t{height:236px;background:repeating-linear-gradient(180deg,rgba(28,10,14,.22) 0 5px,transparent 5px 15px);
+  -webkit-mask:linear-gradient(180deg,#000 70%,transparent)}
+/* halftone "press photo": dots grow toward the bottom-right */
+.ph{position:relative;height:516px;background:var(--bordo);overflow:hidden}
+.ph::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 50%,var(--amarelo) 0 46%,transparent 48%) 0 0/14px 14px;
+  -webkit-mask:radial-gradient(120% 90% at 78% 22%,#000 0%,rgba(0,0,0,.55) 35%,transparent 70%);opacity:.95}
+.ph::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 50%,var(--vermelho) 0 40%,transparent 42%) 7px 7px/14px 14px;
+  -webkit-mask:radial-gradient(100% 80% at 20% 90%,#000 0%,transparent 65%)}
+.ph .cap{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:14px 16px;background:var(--bordo-900);
+  font:italic 600 24px/1.1 Playfair;color:#f6ead2}
+.ph .cap b{font-family:Inter;font-style:normal;color:var(--amarelo);font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:13px;display:block;margin-bottom:4px}
+.foot{position:absolute;left:22px;right:22px;bottom:22px;height:84px;background:var(--vermelho);display:flex;align-items:center;
+  padding:0 26px;gap:20px}
+.foot .tag{background:var(--amarelo);color:var(--tinta);font:900 20px/1 Inter;letter-spacing:.2em;text-transform:uppercase;padding:13px 16px}
+.foot .tx{font:italic 700 36px/1 Playfair;color:#fff}
+.foot .u{margin-left:auto;font:700 15px/1 Inter;letter-spacing:.2em;text-transform:uppercase;color:#ffe3a6}
+</style></head><body>
+<div class="c">
+  <div class="frame"></div>
+  <img class="logo" src="../assets/logo.webp" alt="">
+  <div class="folio">
+    <div class="a"><span>Especiais</span><span>Olha que Duas</span></div>
+    <div class="r"></div>
+    <div class="b">Cultura, televisão e o melhor de Portugal</div>
+  </div>
+  <div class="mast">
+    <div class="rt"></div><div class="rt2"></div>
+    <h1 data-fitw>Notícias</h1>
+    <div class="ln"><span>Cultura</span><i>✦</i><span>Televisão</span><i>✦</i><span>Portugal</span></div>
+  </div>
+  <div class="lead">
+    <div>
+      <span class="k">Em destaque</span>
+      <h2>As histórias de que <em>Portugal fala.</em></h2>
+      <div class="cols"><div class="t"></div><div class="t"></div></div>
+    </div>
+    <div class="ph"><div class="cap"><b>Especiais</b>Lê no site e na app</div></div>
+  </div>
+  <div class="foot"><span class="tag">Notícias</span><span class="tx">Olha que Duas</span><span class="u">olhaqueduas.com</span></div>
+  <div class="grain"></div>
+</div><script src="_fit.js"></script></body></html>

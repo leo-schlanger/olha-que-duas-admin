@@ -1,0 +1,69 @@
+<!doctype html><html lang="pt-PT"><head><meta charset="utf-8">
+<link rel="stylesheet" href="_base.css">
+<style>
+/* V2 — "Redação": section opener of a magazine, night newsroom, layout grid. */
+.c{background:var(--bordo-900);color:#f6ead2}
+/* layout grid: 6 columns + baseline, like a newsroom page template */
+.grid{position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 44px,rgba(201,153,63,.13) 44px 45px,transparent 45px 146px),
+    repeating-linear-gradient(180deg,transparent 0 23px,rgba(201,153,63,.06) 23px 24px);
+  -webkit-mask:linear-gradient(180deg,#000 0%,rgba(0,0,0,.35) 60%,#000 100%)}
+/* warm halftone glow behind the masthead */
+.tone{position:absolute;left:-80px;right:-80px;top:450px;height:640px;
+  background:radial-gradient(circle,var(--vermelho) 0 42%,transparent 44%) 0 0/16px 16px;
+  -webkit-mask:radial-gradient(55% 50% at 60% 50%,rgba(0,0,0,.85),transparent 72%);opacity:.75}
+.logo{left:44px;top:42px}
+.tab{position:absolute;right:0;top:0;width:96px;height:470px;background:var(--vermelho);display:flex;align-items:center;justify-content:center}
+.tab span{writing-mode:vertical-rl;transform:rotate(180deg);font:900 30px/1 Inter;letter-spacing:.32em;text-transform:uppercase;color:var(--amarelo)}
+.tab::after{content:"";position:absolute;left:0;right:0;bottom:-14px;height:14px;background:var(--amarelo)}
+.top{position:absolute;left:192px;right:136px;top:52px}
+.top .a{font:700 15px/1 Inter;letter-spacing:.24em;text-transform:uppercase;color:var(--amarelo)}
+.top .r{margin-top:14px;height:1.5px;background:rgba(246,234,210,.5)}
+.top .b{margin-top:12px;font:italic 500 26px/1.2 Playfair;color:#f6ead2}
+.num{position:absolute;left:44px;top:236px;font:italic 400 30px/1 Playfair;color:var(--ouro);letter-spacing:.02em}
+.num b{font:800 15px/1 Inter;letter-spacing:.24em;text-transform:uppercase;color:#f6ead2;margin-left:14px;vertical-align:4px}
+.mast{position:absolute;left:44px;right:44px;top:704px}
+.mast h1{font:italic 900 290px/.86 Playfair;letter-spacing:-.04em;color:#fbf1dc;margin-left:14px;
+  text-shadow:0 6px 0 rgba(0,0,0,.25)}
+.mast h1 .ac{color:var(--amarelo)}
+.mast .r{margin-top:22px;height:4px;background:linear-gradient(90deg,var(--amarelo) 0 32%,rgba(246,234,210,.55) 32%)}
+.mast h2{margin-top:20px;font:600 62px/1 Playfair;letter-spacing:-.01em;color:var(--amarelo)}
+.mast h2 i{font-weight:500;color:#f6ead2}
+/* table of contents, magazine style */
+.idx{position:absolute;left:44px;width:640px;top:236px}
+.idx .h{font:800 14px/1 Inter;letter-spacing:.28em;text-transform:uppercase;color:var(--ouro);padding-bottom:14px;border-bottom:1.5px solid rgba(246,234,210,.45)}
+.idx div{display:flex;align-items:baseline;gap:18px;padding:16px 0 14px;border-bottom:1px solid rgba(246,234,210,.18)}
+.idx em{font:italic 700 34px/1 Playfair;color:var(--amarelo);width:46px}
+.idx span{font:500 44px/1 Playfair;color:#f6ead2}
+.idx div::after{content:"";flex:1;margin:0 0 8px 10px;border-bottom:2px dotted rgba(201,153,63,.55)}
+.foot{position:absolute;left:44px;right:44px;bottom:42px;display:flex;justify-content:space-between;
+  font:700 15px/1 Inter;letter-spacing:.24em;text-transform:uppercase;color:rgba(246,234,210,.8);
+  padding-top:16px;border-top:1.5px solid rgba(246,234,210,.4)}
+.foot b{color:var(--amarelo)}
+.grain{mix-blend-mode:screen;opacity:.18;filter:invert(1)}
+</style></head><body>
+<div class="c">
+  <div class="grid"></div>
+  <div class="tone"></div>
+  <div class="tab"><span>Especiais</span></div>
+  <img class="logo" src="../assets/logo.webp" alt="">
+  <div class="top">
+    <div class="a">Olha que Duas · Secção</div>
+    <div class="r"></div>
+    <div class="b">As histórias de que Portugal fala</div>
+  </div>
+  <div class="mast">
+    <h1 data-fitw>Notícias</h1>
+    <div class="r"></div>
+    <h2>Olha que <i>Duas</i></h2>
+  </div>
+  <div class="idx">
+    <div class="h">Nesta secção</div>
+    <div><em>01</em><span>Cultura</span></div>
+    <div><em>02</em><span>Televisão</span></div>
+    <div><em>03</em><span>Portugal</span></div>
+  </div>
+  <div class="foot"><b>Lê no site e na app</b><span>olhaqueduas.com</span></div>
+  <div class="grain"></div>
+</div><script src="_fit.js"></script></body></html>
