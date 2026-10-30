@@ -1,0 +1,94 @@
+<!doctype html><html lang="pt-PT"><head><meta charset="utf-8">
+<!-- Cover + OG for the BB All Stars / CPCJ piece (v3a family: night burgundy, Playfair italic, gold).
+     The source is a diptych (Helena | Ana): each half goes in its own panel, split by a gold hairline.
+     Render: W=1600 H=1000 node ../programa/render.mjs "<this>#f=capa" out.jpg   (f=capa|og; og: W=1200 H=630) -->
+<link rel="stylesheet" href="../programa/_base.css">
+<style>
+html,body{width:auto;height:auto}
+.c{width:var(--w);height:var(--h);--u:calc(var(--h) / 630);background:var(--bordo-900);color:#f6ead2}
+.logo{left:calc(30*var(--u));top:calc(26*var(--u));width:calc(96*var(--u));height:calc(96*var(--u));filter:drop-shadow(0 calc(4*var(--u)) calc(10*var(--u)) rgba(0,0,0,.5))}
+.glow{position:absolute;inset:0;background:radial-gradient(60% 90% at 70% 40%,rgba(92,15,32,.95),transparent 70%)}
+.grid{position:absolute;inset:0;opacity:.6;
+  background:repeating-linear-gradient(90deg,transparent 0 calc(44*var(--u)),rgba(201,153,63,.08) calc(44*var(--u)) calc(45*var(--u)),transparent calc(45*var(--u)) calc(146*var(--u)))}
+.ph{position:absolute;top:0;bottom:0;background-repeat:no-repeat;filter:saturate(.8) contrast(1.06)}
+.ph.p1{-webkit-mask-image:linear-gradient(90deg,transparent 0,rgba(0,0,0,.6) 12%,#000 30%);mask-image:linear-gradient(90deg,transparent 0,rgba(0,0,0,.6) 12%,#000 30%)}
+.film{position:absolute;top:0;bottom:0;right:0;pointer-events:none;mix-blend-mode:multiply;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%);mask-image:linear-gradient(90deg,transparent 0,#000 16%);
+  background:linear-gradient(90deg,transparent 0%,rgba(92,15,32,.4) 20%,rgba(92,15,32,.12) 60%,rgba(36,7,14,.45) 100%),
+             linear-gradient(0deg,rgba(36,7,14,.85) 0%,transparent 34%)}
+/* signature: the gold split between the two women, with a red "on air" dot */
+.split{position:absolute;top:0;bottom:0;width:calc(2*var(--u));background:linear-gradient(180deg,transparent,#c9993f 12%,#f2c14e 50%,#c9993f 88%,transparent)}
+.split i{position:absolute;left:50%;top:50%;width:calc(12*var(--u));height:calc(12*var(--u));margin:calc(-6*var(--u)) 0 0 calc(-6*var(--u));border-radius:50%;background:#ff3b2e;box-shadow:0 0 0 calc(4*var(--u)) var(--bordo-900),0 0 calc(14*var(--u)) calc(4*var(--u)) rgba(255,59,46,.55)}
+.nm{position:absolute;bottom:calc(30*var(--u));font:700 calc(12*var(--u))/1 Inter;letter-spacing:.24em;text-transform:uppercase;color:rgba(246,234,210,.86);text-shadow:0 1px 6px rgba(0,0,0,.7)}
+.col{position:absolute;display:flex;flex-direction:column;justify-content:center}
+.lab{display:flex;align-items:center;gap:calc(10*var(--u));font:800 calc(13*var(--u))/1 Inter;letter-spacing:.3em;text-transform:uppercase;color:var(--amarelo)}
+.lab i{width:calc(9*var(--u));height:calc(9*var(--u));border-radius:50%;background:#ff3b2e;box-shadow:0 0 calc(10*var(--u)) calc(2*var(--u)) rgba(255,59,46,.6)}
+.rule{display:block;margin:calc(16*var(--u)) 0;height:calc(1.2*var(--u));width:88%;background:#c9993f}
+.mast{font:italic 900 calc(96*var(--u))/.9 Playfair;letter-spacing:-.035em;color:#fbf1dc}
+.sub{margin-top:calc(14*var(--u));font:italic 500 calc(22*var(--u))/1.15 Playfair;color:#f6ead2}
+.sub b{font-style:normal;font-weight:700;color:var(--amarelo)}
+h1{font:800 calc(50*var(--u))/1.02 Playfair;text-wrap:balance;letter-spacing:-.015em;color:#fbf1dc}
+h1 em{font-style:italic;font-weight:700;color:var(--amarelo)}
+.dt{margin-top:calc(14*var(--u));font:italic 500 calc(17*var(--u))/1 Playfair;color:rgba(246,234,210,.7)}
+.wave{position:absolute;height:calc(34*var(--u))}
+.grain{position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.35;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.og .lab{font-size:calc(15*var(--u))}
+.og .dt{font-size:calc(19*var(--u))}
+.og .nm{font-size:calc(13*var(--u))}
+</style></head><body>
+<div class="c" id="c">
+  <div class="glow"></div><div class="grid"></div>
+  <div class="ph p1" id="p1"></div><div class="ph p2" id="p2"></div><div class="film" id="film"></div>
+  <div class="split" id="split"><i></i></div>
+  <div class="nm" id="n1">Helena Isabel</div><div class="nm" id="n2">Ana Sousa</div>
+  <div class="col" id="col"></div>
+  <svg class="wave" id="wave"></svg>
+  <img class="logo" src="../assets/logo.webp" alt="">
+  <div class="grain"></div>
+</div>
+<script>
+const q = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
+const og = q.f === "og";
+const W = og ? 1200 : 1600, H = og ? 630 : 1000, u = H / 630;
+const c = document.getElementById("c");
+c.classList.add(og ? "og" : "capa");
+c.style.setProperty("--w", W + "px"); c.style.setProperty("--h", H + "px");
+document.body.style.width = W + "px";
+// source diptych 2048x1151: Helena x 0..1018, Ana x 1030..2048 (white divider in between)
+const SRC = "../../../supabase/rascunhos/bbas-cpcj-fotos/IMG-20261030-WA0014.jpg", IW = 2048, IH = 1151;
+const x0 = W * (og ? .40 : .39), pw = (W - x0) / 2, s = H / IH;
+function panel(el, left, from, to, cx) {
+  const bx = Math.min(-from * s, Math.max(-(to * s - pw), -(cx * s - pw / 2)));
+  Object.assign(el.style, { left: left + "px", width: pw + "px", backgroundImage: `url('${SRC}')`,
+    backgroundSize: `${IW * s}px ${H}px`, backgroundPosition: `${bx}px 0` });
+}
+panel(document.getElementById("p1"), x0, 0, 1018, +(q.c1 || 470));
+panel(document.getElementById("p2"), x0 + pw, 1030, 2048, +(q.c2 || 1440));
+document.getElementById("film").style.left = x0 + "px";
+document.getElementById("split").style.left = (x0 + pw - u) + "px";
+document.getElementById("n1").style.left = (x0 + pw * .22) + "px";
+document.getElementById("n2").style.left = (x0 + pw + 22 * u) + "px";
+const data = "30 de outubro de 2026";
+const col = document.getElementById("col");
+Object.assign(col.style, { left: 34 * u + "px", width: (x0 - 70 * u) + "px", top: 130 * u + "px", bottom: 70 * u + "px" });
+col.innerHTML = og
+  ? `<div class="lab"><i></i>Notícias</div><span class="rule"></span>
+     <h1>Helena Isabel invoca a <em>CPCJ</em> e Ana Sousa entra em pânico</h1>
+     <div class="dt">Big Brother All Stars · ${data}</div>`
+  : `<div class="lab"><i></i>Especiais Olha que Duas</div><span class="rule"></span>
+     <div class="mast">Notícias</div>
+     <div class="sub"><b>Big Brother</b> All Stars</div>
+     <div class="dt">${data}</div>`;
+// v3a signature: low voice waveform under the text column
+const w = document.getElementById("wave"), n = 40;
+w.setAttribute("viewBox", `0 0 ${n * 10} 34`);
+w.style.width = (n * 10 * u * .9) + "px"; w.style.left = 34 * u + "px"; w.style.bottom = 26 * u + "px";
+let svg = "";
+for (let i = 0; i < n; i++) {
+  const a = Math.abs(Math.sin(i * .9) * .55 + Math.sin(i * 2.3 + 1) * .3 + Math.sin(i * .37) * .25);
+  const h = Math.max(3, 32 * (.2 + a * .8) * (1 - i / n * .6));
+  svg += `<rect x="${i * 10 + 3}" y="${17 - h / 2}" width="4" height="${h}" rx="2" fill="#c9993f" opacity="${.75 - i / n * .5}"/>`;
+}
+w.innerHTML = svg;
+</script></body></html>
