@@ -9,6 +9,7 @@ node scripts/capas/programa/render.mjs scripts/capas/programa/noticias-v3a.html 
 | Ficheiro | Estado |
 |---|---|
 | `noticias-v3a.html` | **Em uso** desde 28/10/2026 (`media-library/programa-capa-noticias-olha-que-duas-v3.jpg`): logo grande atravessado por uma onda sonora, luz «No ar», «Notícias» em Playfair itálico |
+| `lendas-v1.html` | Lendas de Portugal (30/10/2026): aldeia de granito à noite tirada do kit dos reels (`assets/lendas-fundo.jpg`), logo no canto superior esquerdo, «Lendas» em IM Fell a 268 px |
 | `noticias-v1.html`, `noticias-v2.html`, `noticias-v3b.html` | Alternativas não escolhidas (primeira página de jornal, índice de redação, logo com auscultadores) |
 
 Para trocar a capa, sobe-a com um nome novo (o Storage fica em cache) e atualiza o `cover_url`; não apagues a antiga.

@@ -1,0 +1,25 @@
+<!doctype html><html lang="pt-PT"><head><meta charset="utf-8"><style>
+/* Lendas de Portugal — program card (900x1200): night village from the reels' kit, OQD logo top-left,
+   "Lendas" in IM Fell big enough to read at 96x128 on mobile. */
+@font-face{font-family:Fell;src:url("../fonts/IMFellEnglish-Regular.ttf")}
+@font-face{font-family:Fell;src:url("../fonts/IMFellEnglish-Italic.ttf");font-style:italic}
+@font-face{font-family:FellSC;src:url("../fonts/IMFellEnglishSC-Regular.ttf")}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:900px;height:1200px;overflow:hidden;background:#0a0c11}
+.bg{position:absolute;inset:0;background:url("../assets/lendas-fundo.jpg") center/cover}
+.shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,12,17,.92) 0%,rgba(10,12,17,.75) 34%,rgba(10,12,17,0) 56%),linear-gradient(0deg,rgba(10,12,17,.6) 0%,rgba(10,12,17,0) 22%)}
+.logo{position:absolute;left:40px;top:40px;width:190px;height:190px;filter:drop-shadow(0 6px 16px rgba(0,0,0,.6))}
+.tt{position:absolute;left:0;right:0;top:250px;text-align:center}
+h1{font:400 268px/.9 Fell;color:#ece3cc;letter-spacing:-.01em;text-shadow:0 4px 30px rgba(0,0,0,.85)}
+h2{margin-top:18px;font:400 82px/1 FellSC;letter-spacing:.1em;color:#f2b866;text-shadow:0 3px 18px rgba(0,0,0,.9)}
+.orn{margin:26px auto 0;display:flex;align-items:center;justify-content:center;gap:18px}
+.orn b{display:block;height:3px;width:150px;background:linear-gradient(90deg,transparent,#f2b866)}
+.orn b:last-child{background:linear-gradient(270deg,transparent,#f2b866)}
+.bar{position:absolute;left:0;right:0;bottom:0;height:10px;background:linear-gradient(90deg,#e0752d 0 22%,#f2b866 22%)}
+</style></head><body>
+<div class="bg"></div><div class="shade"></div>
+<img class="logo" src="../assets/logo.webp" alt="Olha que Duas">
+<div class="tt"><h1>Lendas</h1><h2>de Portugal</h2>
+<div class="orn"><b></b><svg width="26" height="26" viewBox="-10 -10 20 20"><path d="M0-9L2.2-2.2L9 0L2.2 2.2L0 9L-2.2 2.2L-9 0L-2.2-2.2Z" fill="#f2b866"/></svg><b></b></div></div>
+<div class="bar"></div>
+</body></html>

@@ -4,16 +4,12 @@
 -- Texto: redator, supabase/rascunhos/lendas-portugal.md (peça 2), 30/10. O marcador
 -- <!-- VIDEO --> do rascunho saiu: o site mostra o vídeo acima do texto (video_url).
 --
--- ENTRA COMO RASCUNHO (is_published=false). Não publicar sem o Leo dizer que o
--- vídeo foi aprovado pelo qa. O ON CONFLICT não mexe em is_published nem em
--- published_at: voltar a correr isto não esconde nem republica a peça.
---
--- Antes de publicar, no media-library (nomes fixos, já usados abaixo):
---   exclusivo-lenda-lobisomem.mp4         reel aprovado (Desktop/video/entregas/olha-que-duas/lendas-portugal/),
---                                versão web 720x1280 H.264 CRF ~26 +faststart, < 50 MB (limite do projeto)
---   exclusivo-lenda-lobisomem-poster.jpg  720x1280, 1.º plano com o título da lenda
---   exclusivo-lenda-lobisomem-capa.jpg    1600x1000 e exclusivo-lenda-lobisomem-og.jpg 1200x630 (designer, arte/site/)
--- e video_duration_seconds = duração do MP4 (ffprobe). O UPDATE de publicar exige-a.
+-- ENTRA COMO RASCUNHO (is_published=false, sem vídeo). Não publicar sem o Leo dizer
+-- que o vídeo foi aprovado pelo qa. O vídeo vai para o YouTube (carregado pelo Leo):
+-- o URL entra no UPDATE de publicar, no fim. O ON CONFLICT não mexe em is_published,
+-- published_at nem video_url: voltar a correr isto não esconde, não republica e não apaga o vídeo.
+-- Imagens do designer já no media-library (30/10): exclusivo-lenda-lobisomem-capa.jpg (1600x1000),
+-- -og.jpg (1200x630) e -poster.jpg (720x1280, miniatura antes do iframe do YouTube).
 
 BEGIN;
 
@@ -41,7 +37,7 @@ VALUES (
 <p><strong>De onde vem esta lenda.</strong> A encruzilhada à meia-noite e o espojar-se onde um animal se espojou estão nos <em>Opúsculos</em> de Alexandre Herculano. «Correr o fado» e o lobisomem que nem sempre é lobo vêm de <em>O Maravilhoso Popular</em> (2000), de Alexandre Parafita, e o sangue do «corredor» da <em>Revista Lusitana</em> de José Leite de Vasconcelos. O sétimo filho, os treze anos, os sete adros e a luz acesa foram recolhidos por Leite de Vasconcelos (<em>Contos Populares e Lendas</em>) e por J. C. Duarte Moura (<em>Histórias e Superstições na Beira Baixa</em>, 2008).</p>$lenda2$,
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-lenda-lobisomem-capa.jpg',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-lenda-lobisomem-og.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-lenda-lobisomem.mp4',
+  '',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-lenda-lobisomem-poster.jpg',
   NULL,
   false,
@@ -57,9 +53,7 @@ ON CONFLICT (slug) DO UPDATE SET
   content = EXCLUDED.content,
   cover_url = EXCLUDED.cover_url,
   og_image_url = EXCLUDED.og_image_url,
-  video_url = EXCLUDED.video_url,
   video_poster_url = EXCLUDED.video_poster_url,
-  video_duration_seconds = EXCLUDED.video_duration_seconds,
   program_id = EXCLUDED.program_id,
   author = EXCLUDED.author,
   seo_title = EXCLUDED.seo_title,
@@ -81,6 +75,12 @@ $guard$;
 COMMIT;
 
 -- Publicar (SÓ depois de o Leo dizer que o vídeo foi aprovado pelo qa).
--- Hora já passada: a leitura filtra published_at <= now(). Sem duração, não publica.
--- UPDATE vinagre_posts SET is_published = true, published_at = now() - interval '1 minute'
---   WHERE slug = 'lenda-lobisomem' AND video_url <> '' AND video_duration_seconds IS NOT NULL;
+-- Trocar <URL> pelo endereço do YouTube (youtube.com/shorts/ID, watch?v=ID ou youtu.be/ID).
+-- Hora já passada: a leitura filtra published_at <= now(). A duração é opcional
+-- (segundos; melhora o VideoObject): tirar o comentário se a souber.
+-- UPDATE vinagre_posts SET
+--   video_url = '<URL>',
+--   -- video_duration_seconds = 118,
+--   is_published = true,
+--   published_at = now() - interval '1 minute'
+-- WHERE slug = 'lenda-lobisomem';

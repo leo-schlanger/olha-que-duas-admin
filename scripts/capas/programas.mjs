@@ -198,4 +198,34 @@ export const programas = {
 .nt h1 em{font-style:normal;color:#f2c14e}
 .nt .tx p{margin-top:calc(10*var(--u));font:500 calc(19*var(--u))/1.35 Inter;color:#eadfd6}`,
   },
+
+  // Lendas de Portugal: folk-horror radio dramas. Shadow theatre by candlelight, granite night,
+  // IM Fell (old-print serif), candle amber accent. Art comes from the reels' vector kit.
+  "lendas-de-portugal": {
+    titulo: "Lendas de Portugal",
+    autor: "",
+    kicker: "Lendas de Portugal",
+    retrato: "",
+    classe: "ld",
+    // hyphenated place names (Tras-os-Montes) must not break at the hyphen
+    html: (d) => `
+      <div class="ph" style="background-image:url('${d.foto}');background-position:${d.foco}"></div>
+      <div class="shade"></div>
+      ${headline({ ...d, titulo: d.titulo.replace(/(\S*\p{L}-\p{L}\S*)/gu, '<span style="white-space:nowrap">$1</span>') })}
+      <div class="bar"></div>`,
+    css: `
+.ld{background:#0a0c11}
+.ld .shade{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(10,12,17,0) 55%,rgba(10,12,17,.55) 100%)}
+.ld.com-titulo .ph{left:30%}
+.ld.com-titulo .shade{background:
+  linear-gradient(90deg,#0a0c11 0%,#0a0c11 30%,rgba(10,12,17,.8) 42%,rgba(10,12,17,0) 64%),
+  linear-gradient(0deg,rgba(10,12,17,.7) 0%,rgba(10,12,17,0) 30%)}
+.ld .tx{position:absolute;left:calc(36*var(--u));top:calc(160*var(--u));width:50%;max-height:calc(330*var(--u));overflow:hidden}
+.ld .k{display:block;font:400 calc(22*var(--u))/1 FellSC;letter-spacing:.2em;color:#f2b866}
+.ld .k::after{content:"";display:block;width:calc(120*var(--u));height:calc(2*var(--u));margin-top:calc(14*var(--u));background:linear-gradient(90deg,#f2b866,rgba(242,184,102,0))}
+.ld h1{margin-top:calc(18*var(--u));font:400 calc(66*var(--u))/1.02 Fell;color:#ece3cc;text-shadow:0 calc(2*var(--u)) calc(16*var(--u)) rgba(0,0,0,.8)}
+.ld h1 em{font-style:italic;color:#f2b866}
+.ld .tx p{margin-top:calc(14*var(--u));font:italic 400 calc(24*var(--u))/1.25 Fell;color:#cfc4a8}
+.ld .bar{position:absolute;left:0;right:0;bottom:0;height:calc(5*var(--u));background:linear-gradient(90deg,#e0752d 0 22%,#f2b866 22%)}`,
+  },
 };

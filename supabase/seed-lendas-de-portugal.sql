@@ -2,12 +2,12 @@
 -- (~2 min), contadas pela Alexandra, com a réplica da Marluce. Uma peça por lenda:
 -- o reel (vinagre_posts.video_url) e o texto.
 -- Correr depois de exclusive-programs.sql e de vinagre-posts-video.sql.
--- Imagens no media-library, do designer
--- (Desktop/video/projetos/lendas-portugal-2026/arte/site/: capa-programa-3x4.jpg, retrato.jpg).
+-- Imagens do designer (arte/site/capa-programa-3x4.jpg, retrato.jpg) já no media-library (30/10).
 --
--- O programa entra ESCONDIDO (is_published=false). Fica visível no passo
--- «Publicar» de lendas-portugal-1-bruxas-tras-os-montes.sql, quando a 1.ª peça for publicada.
--- O ON CONFLICT não mexe em is_published: voltar a correr isto não esconde o programa.
+-- O programa entra ativo (is_published=true), mas o site só lista um programa com
+-- pelo menos 1 peça publicada e com a hora já passada (regra automática de 30/10:
+-- lista, abas, página e sitemap). Sem peças, a página do programa dá 404/noindex.
+-- O ON CONFLICT não mexe em is_published (não reativa um programa que se tenha tirado).
 -- Peças: lendas-portugal-1-bruxas-tras-os-montes.sql … lendas-portugal-4-almas-penadas.sql.
 -- Textos (autor, frase, descrição): redator, supabase/rascunhos/lendas-portugal.md, 30/10.
 
@@ -26,7 +26,7 @@ VALUES (
   'center',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-capa-lendas-de-portugal.jpg',
   6,
-  false
+  true
 )
 ON CONFLICT (slug) DO UPDATE SET
   title = EXCLUDED.title,

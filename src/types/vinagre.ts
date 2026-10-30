@@ -9,6 +9,8 @@ export interface VinagrePost {
   content: string;
   cover_url: string;
   og_image_url: string;
+  /** YouTube link or https MP4; empty = no video. */
+  video_url: string;
   is_published: boolean;
   published_at: string | null;
   created_at: string;
@@ -26,6 +28,7 @@ export interface VinagreDraft {
   content: string;
   cover_url: string;
   og_image_url: string;
+  video_url: string;
   is_published: boolean;
   published_at: string | null;
   program_id: string;
@@ -69,6 +72,7 @@ export function parseVinagrePost(value: unknown): VinagrePost | null {
     seo_description: str(value, 'seo_description') ?? '',
     cover_url: typeof cover === 'string' ? cover : '',
     og_image_url: typeof ogImage === 'string' ? ogImage : '',
+    video_url: str(value, 'video_url') ?? '',
     program_id: str(value, 'program_id') ?? '',
   };
 }

@@ -54,7 +54,10 @@ function fontFaces() {
 @font-face{font-family:Playfair;src:url("${f("PlayfairDisplay[wght].ttf")}");font-weight:400 900}
 @font-face{font-family:Playfair;src:url("${f("PlayfairDisplay-Italic[wght].ttf")}");font-weight:400 900;font-style:italic}
 @font-face{font-family:Fraunces;src:url("${f("Fraunces[SOFT,WONK,opsz,wght].ttf")}");font-weight:100 900}
-@font-face{font-family:Fraunces;src:url("${f("Fraunces-Italic[SOFT,WONK,opsz,wght].ttf")}");font-weight:100 900;font-style:italic}`;
+@font-face{font-family:Fraunces;src:url("${f("Fraunces-Italic[SOFT,WONK,opsz,wght].ttf")}");font-weight:100 900;font-style:italic}
+@font-face{font-family:Fell;src:url("${f("IMFellEnglish-Regular.ttf")}")}
+@font-face{font-family:Fell;src:url("${f("IMFellEnglish-Italic.ttf")}");font-style:italic}
+@font-face{font-family:FellSC;src:url("${f("IMFellEnglishSC-Regular.ttf")}")}`;
 }
 
 function page(peca, formato, base) {

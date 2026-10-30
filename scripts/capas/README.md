@@ -23,6 +23,7 @@ Sai sempre um par:
 | Pimenta na Língua (Alexandra Serra) | Papel creme, aspas grandes e vermelho malagueta, Playfair, selo «Opinião» |
 | Mente Aberta (Marluce Revorêdo) | Verde-salva suave, Fraunces, foto num arco, folha |
 | Notícias Olha que Duas | Rodapé de telejornal: etiqueta vermelha «Notícias» + data, título Inter |
+| Lendas de Portugal | Teatro de sombras à luz da vela: noite de granito, IM Fell (romana, itálica e versaletes), âmbar de vela. Foto = ilustração 16:10 do kit dos reels (`Desktop/video/projetos/lendas-portugal-2026/arte/site/_arte/`) |
 
 ## Ficha da peça (`pecas/<slug>.json`)
 

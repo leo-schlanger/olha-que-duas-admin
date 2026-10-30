@@ -9,7 +9,7 @@ import { RichTextEditor } from '../components/newsletter/RichTextEditor';
 import { useExclusivePrograms } from '../hooks/useExclusivePrograms';
 import { useVinagrePosts } from '../hooks/useVinagrePosts';
 import { supabase } from '../lib/supabase';
-import { fromLocalInput, publicMediaUrl, renderShareImage, slugify, toLocalInput } from '../lib/vinagre';
+import { fromLocalInput, publicMediaUrl, renderShareImage, slugify, toLocalInput, videoUrlProblem } from '../lib/vinagre';
 import type { ExclusiveProgram, ExclusiveProgramDraft } from '../types/exclusivo';
 import { publishState } from '../types/stories';
 import type { VinagreDraft, VinagrePost } from '../types/vinagre';
@@ -37,6 +37,7 @@ interface FormState {
   content: string;
   coverUrl: string;
   ogImageUrl: string;
+  videoUrl: string;
   published: boolean;
   publishedAt: string;
   slugTouched: boolean;
@@ -55,6 +56,7 @@ function emptyForm(): FormState {
     content: '<p></p>',
     coverUrl: '',
     ogImageUrl: '',
+    videoUrl: '',
     published: false,
     publishedAt: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`,
     slugTouched: false,
@@ -72,6 +74,7 @@ function fromPost(post: VinagrePost): FormState {
     content: post.content || '<p></p>',
     coverUrl: post.cover_url,
     ogImageUrl: post.og_image_url,
+    videoUrl: post.video_url,
     published: post.is_published,
     publishedAt: toLocalInput(post.published_at),
     slugTouched: true,
@@ -617,6 +620,11 @@ function Editor({
       setFormError('Escreve o texto da notícia.');
       return;
     }
+    const videoProblem = videoUrlProblem(form.videoUrl);
+    if (videoProblem) {
+      setFormError(videoProblem);
+      return;
+    }
 
     setSaving(true);
     setFormError(null);
@@ -669,6 +677,7 @@ function Editor({
       content: form.content,
       cover_url: publicMediaUrl(coverUrl),
       og_image_url: ogImageUrl ? publicMediaUrl(ogImageUrl) : '',
+      video_url: form.videoUrl.trim(),
       is_published: form.published,
       published_at: form.published ? publishedAt ?? new Date().toISOString() : publishedAt,
     });
@@ -830,6 +839,26 @@ function Editor({
                   event.target.value = '';
                 }}
               />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="space-y-2 p-4">
+              <Label htmlFor="vinagre-video">Vídeo (opcional)</Label>
+              <Input
+                id="vinagre-video"
+                type="url"
+                inputMode="url"
+                value={form.videoUrl}
+                onChange={(event) => setForm((current) => ({ ...current, videoUrl: event.target.value }))}
+                placeholder="https://youtube.com/shorts/…"
+              />
+              <p className={`text-xs ${videoUrlProblem(form.videoUrl) ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {videoUrlProblem(form.videoUrl) ??
+                  (form.videoUrl.trim()
+                    ? 'No site, o vídeo aparece no lugar da foto, em formato vertical.'
+                    : 'Link do YouTube (vídeo vertical). A foto continua nos cartões e na partilha.')}
+              </p>
             </CardContent>
           </Card>
 

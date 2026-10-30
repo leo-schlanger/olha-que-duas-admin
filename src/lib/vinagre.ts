@@ -71,3 +71,23 @@ export function fromLocalInput(value: string): string | null {
   if (Number.isNaN(date.getTime())) return null;
   return date.toISOString();
 }
+
+const YOUTUBE_ID = [
+  /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+  /[?&]v=([a-zA-Z0-9_-]{11})/,
+  /\/embed\/([a-zA-Z0-9_-]{11})/,
+  /\/shorts\/([a-zA-Z0-9_-]{11})/,
+];
+
+/** Video of a piece: '' (none), a YouTube link or an https MP4. Same rule as the site (articleVideo.ts). */
+export function videoUrlProblem(value: string): string | null {
+  const url = value.trim();
+  if (!url) return null;
+  if (!/^https:\/\/[^\s"'<>]+$/i.test(url)) return 'O vídeo tem de ser um endereço https (YouTube ou MP4).';
+  if (/^https:\/\/(www\.|m\.)?(youtube\.com|youtube-nocookie\.com|youtu\.be)\//i.test(url)) {
+    return YOUTUBE_ID.some((pattern) => pattern.test(url))
+      ? null
+      : 'Não encontro o vídeo neste endereço do YouTube. Usa o link de partilha do vídeo.';
+  }
+  return /\.mp4(\?|$)/i.test(url) ? null : 'O vídeo tem de ser um link do YouTube ou um ficheiro MP4.';
+}
