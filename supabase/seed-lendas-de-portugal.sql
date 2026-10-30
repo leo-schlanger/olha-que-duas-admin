@@ -1,14 +1,15 @@
 -- Lendas de Portugal (2026-10-30): quatro lendas do Norte em reels animados 9:16
--- (~2 min), com a voz da Alexandra e a réplica da Marluce. Uma peça por lenda:
+-- (~2 min), contadas pela Alexandra, com a réplica da Marluce. Uma peça por lenda:
 -- o reel (vinagre_posts.video_url) e o texto.
 -- Correr depois de exclusive-programs.sql e de vinagre-posts-video.sql.
 -- Imagens no media-library, do designer
 -- (Desktop/video/projetos/lendas-portugal-2026/arte/site/: capa-programa-3x4.jpg, retrato.jpg).
 --
 -- O programa entra ESCONDIDO (is_published=false). Fica visível no passo
--- «Publicar» de lendas-portugal-1-*.sql, quando a 1.ª peça for publicada.
+-- «Publicar» de lendas-portugal-1-bruxas-tras-os-montes.sql, quando a 1.ª peça for publicada.
 -- O ON CONFLICT não mexe em is_published: voltar a correr isto não esconde o programa.
--- Peças: lendas-portugal-1-as-bruxas-de-tras-os-montes.sql … lendas-portugal-4-*.sql.
+-- Peças: lendas-portugal-1-bruxas-tras-os-montes.sql … lendas-portugal-4-almas-penadas.sql.
+-- Textos (autor, frase, descrição): redator, supabase/rascunhos/lendas-portugal.md, 30/10.
 
 INSERT INTO exclusive_programs (
   id, slug, title, author, tagline, description,
@@ -18,9 +19,9 @@ VALUES (
   '36fc7e0c-174d-4821-b2fd-5d7a79eba4f5',
   'lendas-de-portugal',
   'Lendas de Portugal',
-  'Olha que Duas',
-  'Lendas do Norte contadas à luz da vela',
-  'Quatro lendas do Norte contadas à luz da vela, em reels animados com as vozes de Alexandra Serra e Marluce Revorêdo. Na rádio de 31/10 a 2/11.',
+  'Alexandra Serra',
+  'Lendas do folclore português, contadas à lareira',
+  'Bruxas, lobisomens e almas penadas: lendas do folclore português contadas à lareira por Alexandra Serra. Na rádio, de 31/10 a 2/11.',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-retrato-lendas-de-portugal.jpg',
   'center',
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-capa-lendas-de-portugal.jpg',
