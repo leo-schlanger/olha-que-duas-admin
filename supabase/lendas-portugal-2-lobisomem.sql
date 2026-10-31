@@ -74,6 +74,8 @@ $guard$;
 
 COMMIT;
 
+-- PUBLICADA a 31/10/2026 19:29 UTC: video_url = https://www.youtube.com/shorts/t3Z4Tsu1OFo, duração 108 s.
+-- (O short NIVYn2LSW8c do canal é o teaser de 16 s da Noite das Bruxas, não é uma lenda.)
 -- Publicar (SÓ depois de o Leo dizer que o vídeo foi aprovado pelo qa).
 -- Trocar <URL> pelo endereço do YouTube (youtube.com/shorts/ID, watch?v=ID ou youtu.be/ID).
 -- Hora já passada: a leitura filtra published_at <= now(). A duração é opcional
