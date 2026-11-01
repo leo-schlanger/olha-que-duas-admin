@@ -74,6 +74,7 @@ $guard$;
 
 COMMIT;
 
+-- PUBLICADA a 01/11/2026 17:25 UTC: video_url = https://www.youtube.com/shorts/YebvcC5g--c, duração 117 s.
 -- Publicar (SÓ depois de o Leo dizer que o vídeo foi aprovado pelo qa).
 -- Trocar <URL> pelo endereço do YouTube (youtube.com/shorts/ID, watch?v=ID ou youtu.be/ID).
 -- Hora já passada: a leitura filtra published_at <= now(). A duração é opcional
