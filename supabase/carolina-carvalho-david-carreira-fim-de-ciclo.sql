@@ -1,5 +1,6 @@
 -- Notícias Olha que Duas: Carolina Carvalho e David Carreira (2026-11-06).
 -- Texto da Alexandra Serra, na ordem em que o enviou; só revisão PT-PT (aspas «», ponto final).
+-- O lead fica só no excerpt (o site mostra-o por baixo do h1); o content começa na foto.
 -- A legenda de cada foto é só a identificação e o crédito.
 -- 1: retrato da Carolina recortado do cartão que a Alexandra enviou (sem o título nem o círculo).
 -- 2: David Carreira no «Júlia», SIC, 2024, Wikimedia Commons, CC BY 3.0.
@@ -14,8 +15,7 @@ VALUES (
   'carolina-carvalho-david-carreira-fim-de-ciclo',
   'Fim de ciclo? Carolina Carvalho sai de casa, mansão da Aroeira está à venda por 5,5 milhões e David Carreira refugia-se no silêncio',
   'Ao fim de oito anos de relação e com um filho em comum, tudo indica que o romance entre Carolina Carvalho e David Carreira chegou ao fim. A atriz já deixou a moradia familiar na Herdade da Aroeira — agora à venda por um valor milionário — e mudou-se para casa da mãe, enquanto o cantor prefere manter o silêncio sobre a vida privada.',
-  $cc$<p>Ao fim de oito anos de relação e com um filho em comum, tudo indica que o romance entre Carolina Carvalho e David Carreira chegou ao fim. A atriz já deixou a moradia familiar na Herdade da Aroeira — agora à venda por um valor milionário — e mudou-se para casa da mãe, enquanto o cantor prefere manter o silêncio sobre a vida privada.</p>
-<p><img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/noticias-carolina-carvalho-david-carreira-fim-de-ciclo-carolina.jpg" alt="Carolina Carvalho, de cabelo castanho ondulado, a olhar de frente"></p>
+  $cc$<p><img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/noticias-carolina-carvalho-david-carreira-fim-de-ciclo-carolina.jpg" alt="Carolina Carvalho, de cabelo castanho ondulado, a olhar de frente"></p>
 <p><em>Carolina Carvalho.</em></p>
 <p>Os rumores que pairavam nas últimas semanas ganharam contornos definitivos nos últimos dias. Carolina Carvalho, de 31 anos, e David Carreira, de 35, estão a fazer vidas separadas. Segundo fontes próximas do casal, a atriz já saiu da casa de sonho onde ambos viviam na Herdade da Aroeira, tendo-se instalado na residência da mãe, numa altura em que a prioridade absoluta de ambos passa pelo bem-estar do filho, o pequeno Lucas, de três anos.</p>
 <p>O sinal mais evidente da mudança de planos na vida do casal surgiu no mercado imobiliário: a mansão de luxo para a qual se mudaram no final de 2024, após um longo processo de obras pensado ao detalhe para a família, foi colocada à venda por 5,5 milhões de euros. Apesar de a casa estar no mercado e de a atriz já lá não residir, David Carreira ainda permanece no imóvel, onde se tem mostrado pontualmente através das redes sociais.</p>
