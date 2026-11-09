@@ -76,7 +76,7 @@ function page(peca, formato, base) {
     titulo: comTitulo ? marked(peca.titulo) : "",
     linha: comTitulo ? esc(peca.linha || "") : "",
     autor: esc(prog.autor),
-    retrato: prog.retrato ? pathToFileURL(join(here, "assets", prog.retrato)).href : "",
+    retrato: prog.retrato && !peca.semRetrato ? pathToFileURL(join(here, "assets", prog.retrato)).href : "",
     programa: esc(prog.titulo),
   };
   const logo = pathToFileURL(join(here, "assets/logo.webp")).href;

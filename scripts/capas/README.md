@@ -45,6 +45,7 @@ Sai sempre um par:
 - `data`: só o Notícias a mostra.
 - `kicker` (opcional) troca o selo: «Notícia» em vez de «Exclusivo», por exemplo.
 - `tituloNaCapa: true` (opcional) escreve também o título na capa do site.
+- `semRetrato: true` (opcional) tira o retrato pequeno da assinatura, quando não condiz com a foto da peça.
 
 O script avisa se o título não couber e falha se uma imagem não carregar.
 
