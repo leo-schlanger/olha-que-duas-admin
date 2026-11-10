@@ -65,7 +65,7 @@ VALUES (
 <p>«É importante as pessoas manterem-se atualizadas em relação à informação que vamos veiculando», pediu Bruno Café. Os avisos podem mudar a qualquer momento: consulte os <a href="https://www.ipma.pt/pt/otempo/prev-sam/">avisos meteorológicos do IPMA</a> e os <a href="https://prociv.gov.pt/pt/avisos-a-populacao/">avisos à população da Proteção Civil</a>.</p>
 <p><em>Avisos do IPMA em vigor às 10h23 de terça-feira, 10 de novembro.</em></p>$stj$,
   'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-sting-jet-lisboa-quarta-feira-capa.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-sting-jet-lisboa-quarta-feira-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-sting-jet-lisboa-quarta-feira-og-v2.jpg',
   true,
   '2026-11-10 10:21:00+00',
   (SELECT id FROM exclusive_programs WHERE slug = 'noticias-olha-que-duas'),

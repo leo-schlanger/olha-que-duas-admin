@@ -57,6 +57,6 @@ Licenças confirmadas na página de cada ficheiro no Wikimedia Commons (10/11/20
 ```
 
 ## Capa e OG
-- `exclusivo-sting-jet-lisboa-quarta-feira-capa.jpg` (1600×1000, sem título) e `exclusivo-sting-jet-lisboa-quarta-feira-og.jpg` (1200×630, «Sting jet: o aviso para Lisboa»).
+- `exclusivo-sting-jet-lisboa-quarta-feira-capa.jpg` (1600×1000, sem título) e `exclusivo-sting-jet-lisboa-quarta-feira-og-v2.jpg` (1200×630, «Sting jet possível: o aviso para Lisboa»).
 - Ficha: `scripts/capas/pecas/sting-jet-lisboa-quarta-feira.json`.
 - Derivam da foto 1 (CC BY-SA 2.0): o crédito dessa foto tem de ficar no corpo da peça.
