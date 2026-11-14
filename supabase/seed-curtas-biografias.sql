@@ -13,7 +13,7 @@ VALUES (
   'Curtas Biografias',
   'Alexandra Serra',
   'Histórias rápidas, vidas marcantes',
-  'Curtas biografias de figuras públicas de Portugal, por Alexandra Serra.',
+  'Curtas biografias de figuras marcantes, por Alexandra Serra.',
   'https://www.olhaqueduas.com/exclusivo/alexandra-serra.jpg',
   'center',
   'https://www.olhaqueduas.com/exclusivo/curtas-biografias.jpg',
