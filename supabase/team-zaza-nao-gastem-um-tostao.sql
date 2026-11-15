@@ -9,7 +9,8 @@
 -- (nomes novos: os antigos ficavam em cache no edge). A 1.ª versão, painel tipográfico
 -- (painel.html, scripts/capas/pecas/<slug>.json), ficou fora da peça.
 -- Corpo: corpo-1.jpg (comentário com nome, foto, hora e gostos tapados) como
--- exclusivo-<slug>-comentario.jpg, depois do parágrafo que o cita. O texto não mudou.
+-- exclusivo-<slug>-comentario.jpg, depois do parágrafo que o cita. Sem legenda em HTML:
+-- a frase já vem desenhada na imagem. O texto não mudou.
 --
 -- O ON CONFLICT não mexe em is_published nem published_at: voltar a correr isto não
 -- esconde nem republica.
@@ -32,7 +33,6 @@ VALUES (
 <h2>Nem nos comentários há unanimidade</h2>
 <p>Valha a verdade, nem todas as fãs alinham. Num dos comentários lê-se: <em>«Isto não é uma team....isto é puro ódio.»</em> Noutro, alguém com mais juízo do que a página: <em>«Eu sou a favor apoiar um concorrente, não cultivar o ódio e desperdiçar o meu dinheirinho com quem não gosto! Nem pensar!»</em> Assino por baixo.</p>
 <p><img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-team-zaza-nao-gastem-um-tostao-comentario.jpg" alt="Captura de um comentário na página de fãs do Zaza: «Era só o que me faltava!! Eu sou a favor apoiar um concorrente, não cultivar o ódio e desperdiçar o meu dinheirinho com quem não gosto! Nem pensar!»"></p>
-<p><em>Comentário na página de fãs. Nome, foto, hora e gostos tapados.</em></p>
 <h2>O pezinho de meia</h2>
 <p>O mais curioso é que o próprio Zaza já tinha pedido que parassem. Em setembro, no fim da segunda gala, com o microfone quase sem som, deixou escapar: «Não gastem um tostão.» E em fevereiro de 2024, quando um grupo de fãs juntou dinheiro para lhe oferecer uma prenda de anos, veio dizer que não sabia de nada, pediu que não gastassem mais dinheiro com ele e garantiu que nem sabe quem gere as páginas que falam dele.</p>
 <p>Pois. As fãs ouvem tudo o que ele diz, menos isto. Continuam a fazer pezinhos de meia em nome dele, como se o irmão do namorado da Cristina Ferreira, o «cunhado» mais famoso da TVI, fosse um coitadinho à espera de esmola. Há até quem o proponha preto no branco: <em>«É juntar o dinheiro que se gasta em votações para expulsar outros concorrentes e dar lhe, para ele não voltar ao limiar da pobreza.»</em> Calma. Saiu pelo próprio pé e, na manhã seguinte, já estava no «Dois às 10», com a Cristina Ferreira, a contar a versão dele.</p>
