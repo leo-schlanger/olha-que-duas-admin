@@ -31,9 +31,9 @@ Um episódio dos Simpsons, um teste de alertas nos Estados Unidos, um kit de eme
 O corpo começa na imagem, porque o site mostra o excerpt por baixo do título.
 
 <p><img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-apagao-mundial-17-novembro-boato-1.jpg" alt="Springfield do futuro, com a casa dos Simpsons entre edifícios futuristas, e o letreiro «Thanksgiving 60 years from now»"></p>
-<p><em>Springfield, no episódio “It's a Blunderful Life”, de Os Simpsons (2023).</em></p>
+<p><em>Springfield, no episódio «It's a Blunderful Life», de Os Simpsons (2023).</em></p>
 
-<p>Durante a primeira quinzena de novembro, uma mensagem correu as redes sociais e os grupos de WhatsApp: a 17 de novembro de 2026, o planeta ficaria sem eletricidade durante 90 dias. Nenhum governo, operador de energia ou agência internacional anunciou tal coisa. Agências de verificação de factos no Brasil classificaram-no como falso.</p>
+<p>Durante a primeira quinzena de novembro, uma mensagem correu as redes sociais e os grupos de WhatsApp: a 17 de novembro de 2026, o planeta ficaria sem eletricidade durante 90 dias. Nenhum governo, operador de energia ou agência internacional anunciou tal coisa. Agências de verificação de factos no Brasil classificaram-na como falsa.</p>
 
 <p>O Olha que Duas foi ver de onde vem cada pedaço da história. Há quatro factos verdadeiros lá dentro, e nenhum deles fala de um apagão mundial.</p>
 
@@ -43,9 +43,9 @@ O corpo começa na imagem, porque o site mostra o excerpt por baixo do título.
 
 <p>O boato do 17 de novembro usa a mesma receita, e um desses episódios é o mesmo.</p>
 
-<h2>O que acontece mesmo a 17 de novembro</h2>
+<h2>O que estava marcado para 17 de novembro</h2>
 
-<p>Nos Estados Unidos, a agência federal de emergências (FEMA) e o regulador das comunicações (FCC) marcaram para 17 de novembro de 2026 um teste nacional do Sistema de Alerta de Emergência. Começa às 14h20 da costa leste americana, 19h20 em Lisboa. As rádios e as televisões dos EUA transmitem durante cerca de um minuto uma mensagem a dizer que se trata de um teste e que ninguém tem de fazer nada. O teste não passa pelos telemóveis nem corta a eletricidade. A FCC fixou o dia 3 de dezembro como data alternativa, se o teste tiver de ser adiado.</p>
+<p>Nos Estados Unidos, a agência federal de emergências (FEMA) e o regulador das comunicações (FCC) marcaram para 17 de novembro de 2026 um teste nacional do Sistema de Alerta de Emergência. Estava marcado para as 14h20 da costa leste americana, 19h20 em Lisboa. As rádios e as televisões dos EUA transmitem durante cerca de um minuto uma mensagem a dizer que se trata de um teste e que ninguém tem de fazer nada. O teste não passa pelos telemóveis nem corta a eletricidade. A FCC fixou 3 de dezembro como data alternativa, caso o teste fosse adiado.</p>
 
 <p>É um exercício de rotina da rede de alertas americana. Em Portugal, não muda nada.</p>
 
@@ -53,7 +53,7 @@ O corpo começa na imagem, porque o site mostra o excerpt por baixo do título.
 
 <p><strong>A data.</strong> O episódio «It's a Blunderful Life», da 35.ª temporada dos Simpsons, estreou nos Estados Unidos em novembro de 2023. Springfield fica às escuras e o dia 17 de novembro aparece no episódio. Não há nele qualquer referência a um apagão mundial nem ao ano de 2026: o ano foi acrescentado nas redes.</p>
 
-<p><strong>O kit de emergência.</strong> A 7 de novembro, a Defesa Civil Nacional do Brasil recomendou nas redes sociais que cada família tivesse em casa água, comida, medicamentos e lanterna para 72 horas. Muita gente leu ali um aviso. No mesmo dia, o ministério que tutela a Defesa Civil esclareceu que a orientação «tem caráter estritamente preventivo e não está relacionada a qualquer alerta nacional». Segundo a Agência Brasil, publicações semelhantes já tinham saído em março e em abril. No fim de outubro, o Reino Unido lançou uma campanha do mesmo tipo, a «Be Ready», sobre fenómenos climáticos extremos, e também ela foi apresentada como prova.</p>
+<p><strong>O kit de emergência.</strong> A 7 de novembro, a Defesa Civil Nacional do Brasil recomendou nas redes sociais que cada família tivesse em casa água, comida, medicamentos e lanterna para 72 horas. Muita gente leu ali um aviso. No mesmo dia, o ministério que tutela a Defesa Civil esclareceu que a orientação «tem caráter estritamente preventivo e não está relacionada a qualquer alerta nacional». No fim de outubro, o Reino Unido lançou uma campanha do mesmo tipo, a «Be Ready», sobre fenómenos climáticos extremos, e também ela foi apresentada como prova.</p>
 
 <p><strong>Os 90 dias.</strong> O número vem de uma diretiva do Departamento de Defesa dos EUA anunciada a 30 de setembro de 2026, a Fortress. Pretende que cerca de 500 bases militares americanas consigam funcionar até 90 dias com eletricidade, água e combustível próprios, em caso de ataque informático ou de falha no abastecimento. Aplica-se a instalações militares e a mais nada.</p>
 
@@ -93,7 +93,7 @@ Consulta a 15/11/2026. «Publ.» é a data que a página declara.
 
 1. **Author.** Peça redigida por nós a partir de fontes, sem texto da Alexandra: campo vazio (cai para «Olha que Duas»). Se a Alexandra assinar, `'Alexandra Serra'`.
 2. **Origem da pesquisa.** Um vídeo viral no Facebook (14/11/2026) serviu só de pista. A peça é reportagem do OQD sobre as fontes da tabela: não cita, não credita nem segue o vídeo.
-3. **Posts de março e abril.** Só vi a referência à Agência Brasil em segunda mão (resumo de pesquisa e SBT). A frase está atribuída e sai sem afetar o resto se o Leo quiser cortar.
+3. **Posts de março e abril.** Frase retirada da peça a 15/11 (qa). Só vi a referência à Agência Brasil em segunda mão (resumo de pesquisa e SBT). A frase está atribuída e sai sem afetar o resto se o Leo quiser cortar.
 4. **Dia da semana.** 17/11/2026 é terça-feira (conferido por script). A SBT escreve «quarta-feira»: está errada. O corpo não usa o dia da semana.
 5. **Episódio.** As fontes descrevem a cena de forma diferente (a Lisa anota a data num diário, segundo um vídeo viral; um incêndio na central nuclear, segundo a SBT; a Lisa desenha uma tempestade, segundo a Aos Fatos). O corpo diz só que Springfield fica às escuras e que a data aparece no episódio, o que todas confirmam.
 6. **Post falso do Google.** Um resumo de pesquisa fala num post a imitar um perfil oficial do Google. Nenhuma das páginas abertas o confirma: ficou fora.
