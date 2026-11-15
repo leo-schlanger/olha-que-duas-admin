@@ -1,4 +1,5 @@
 {
+  "_nota": "Esta ficha gera a 1.ª versão (painel tipográfico), que NÃO está publicada. A capa e a og no ar (15/11, escolha do Leo) são a colagem do designer: supabase/rascunhos/team-zaza-nao-gastem-um-tostao/v2/capa-com-foto.jpg e og-com-foto.jpg (fonte/colagem.html + render.mjs), no media-library como exclusivo-team-zaza-nao-gastem-um-tostao-capa-v2.jpg e -og-v2.jpg.",
   "slug": "team-zaza-nao-gastem-um-tostao",
   "programa": "pimenta-na-lingua",
   "foto": "../../../supabase/rascunhos/team-zaza-nao-gastem-um-tostao/painel.jpg",

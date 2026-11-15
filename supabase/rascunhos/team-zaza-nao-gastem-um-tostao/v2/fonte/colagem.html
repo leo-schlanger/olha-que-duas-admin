@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="pt-PT"><head><meta charset="utf-8">
+<!-- Pimenta na Lingua v2 cover collage. ?f=capa|og|c1|c2  &z=1 (Zaza photo in the phone) | 0 -->
+<style>
+@font-face{font-family:Playfair;src:url("../../../../../scripts/capas/fonts/PlayfairDisplay[wght].ttf");font-weight:400 900}
+@font-face{font-family:Playfair;src:url("../../../../../scripts/capas/fonts/PlayfairDisplay-Italic[wght].ttf");font-weight:400 900;font-style:italic}
+@font-face{font-family:Inter;src:url("../../../../../scripts/capas/fonts/Inter[opsz,wght].ttf");font-weight:100 900}
+@font-face{font-family:Anton;src:url("../../../../../scripts/capas/fonts/Anton-Regular.ttf")}
+:root{--red:#c4271b;--red-d:#9c1c12;--ink:#2b1510;--paper:#f5ede0;--gold:#e2a93a}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{overflow:hidden;background:var(--paper)}
+.c{position:relative;overflow:hidden;background:var(--paper);font-family:Inter,sans-serif;-webkit-font-smoothing:antialiased}
+.abs{position:absolute}
+.grain{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.55}
+.logo{position:absolute;z-index:50;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4))}
+
+/* torn red panel */
+.panel{position:absolute;top:0;bottom:0;right:0}
+.panel svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+
+/* comment cut-outs: paper scrap with a torn bottom */
+.cm{position:absolute;background:#fff;padding:14px 18px 22px 10px;box-shadow:0 10px 22px rgba(43,21,16,.22),0 2px 4px rgba(43,21,16,.18);
+  -webkit-mask:var(--torn) bottom/100% 100% no-repeat}
+.cm img{display:block;width:100%}
+.tape{position:absolute;height:38px;width:150px;background:rgba(236,214,160,.82);box-shadow:0 1px 2px rgba(0,0,0,.08);
+  -webkit-mask:linear-gradient(90deg,transparent 0 3px,#000 3px calc(100% - 3px),transparent 0),
+    repeating-linear-gradient(0deg,#000 0 5px,transparent 5px 7px);-webkit-mask-composite:source-over}
+.tape::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0 2px,transparent 2px 9px)}
+
+/* rubber stamp */
+.stamp{position:absolute;color:var(--red);text-align:center;font-family:Anton;text-transform:uppercase;line-height:.92;
+  border:solid currentColor;mix-blend-mode:multiply;filter:url(#ink)}
+.stamp::before{content:"";position:absolute;border:solid currentColor;pointer-events:none}
+.stamp .l1{display:block}
+.stamp .l2{display:block}
+
+/* phone */
+.phone{position:absolute;background:#1d1412;box-shadow:0 22px 40px rgba(43,21,16,.42),inset 0 0 0 2px #3a2a26}
+.phone .scr{position:absolute;overflow:hidden;background:#fff6ef}
+.phone .notch{position:absolute;left:50%;transform:translateX(-50%);background:#1d1412;border-radius:20px;z-index:3}
+.scr .ph{position:absolute;left:0;right:0;top:0;overflow:hidden;background:#4d0a08}
+.scr .ph img{position:absolute;width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:url(#duo)}
+.scr .ph::after{content:"";position:absolute;inset:0;mix-blend-mode:multiply;opacity:.2;
+  background:radial-gradient(circle,#4d0a08 32%,transparent 36%) 0 0/7px 7px}
+.btn{position:absolute;left:8%;right:8%;background:var(--red);color:#fff;font:900 1em/1 Inter;letter-spacing:.14em;text-align:center;border-radius:999px;
+  box-shadow:0 4px 0 var(--red-d)}
+.row{position:absolute;left:8%;right:8%;display:flex;align-items:center;gap:6%;border-radius:12px;background:#f3e0d6}
+.row i{flex:0 0 auto;border-radius:50%;background:#e2c4b7}
+.row b{flex:1 1 auto;height:.42em;border-radius:6px;background:#e2c4b7}
+.row s{flex:0 0 auto;text-decoration:none;background:var(--red);color:#fff;font:900 .5em/1 Inter;letter-spacing:.12em;border-radius:999px;padding:.55em .9em}
+.plus{position:absolute;font:900 1em/1 Inter;color:#fff6ef;text-shadow:0 3px 0 #6e130c,0 0 10px rgba(60,8,4,.5)}
+.tap{position:absolute}
+
+.coin{position:absolute;filter:drop-shadow(0 6px 6px rgba(43,21,16,.35))}
+.alex{position:absolute;filter:drop-shadow(0 14px 22px rgba(30,6,4,.45))}
+.label{position:absolute;white-space:nowrap;background:var(--ink);color:var(--paper);font:800 italic 1em/1 Playfair;padding:.42em .7em .5em;
+  box-shadow:0 8px 16px rgba(0,0,0,.3)}
+.label small{display:block;font:700 .42em/1 Inter;font-style:normal;letter-spacing:.24em;text-transform:uppercase;color:#f2c9a0;margin-top:.55em}
+
+/* og headline */
+.og-t{position:absolute}
+.og-t .pre{font:700 italic 44px/1 Playfair;color:var(--ink)}
+.og-t .pos{font:900 50px/1.02 Playfair;color:var(--ink);letter-spacing:-.01em}
+.og-t .pos em{font-style:italic;color:var(--red)}
+.k{display:inline-block;background:var(--red);color:#fff;font:800 20px/1 Inter;letter-spacing:.2em;text-transform:uppercase;padding:9px 14px;border-radius:30px}
+.cap{position:absolute;font:600 22px/1.3 Inter;color:#6a4a40;letter-spacing:.01em}
+</style></head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <filter id="duo" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse" x="-50" y="-50" width="4000" height="4000">
+      <feColorMatrix type="matrix" values=".3 .59 .11 0 0  .3 .59 .11 0 0  .3 .59 .11 0 0  0 0 0 1 0"/>
+      <feComponentTransfer><feFuncR type="table" tableValues=".32 .80 1"/><feFuncG type="table" tableValues=".05 .50 .92"/><feFuncB type="table" tableValues=".04 .42 .84"/></feComponentTransfer>
+    </filter>
+    <filter id="ink" filterUnits="userSpaceOnUse" x="-200" y="-200" width="4000" height="4000">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.5 1.5" result="m"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="3" result="n2"/>
+      <feColorMatrix in="n2" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.8 1.9" result="m2"/>
+      <feComposite in="m" in2="m2" operator="arithmetic" k1="1" result="mm"/>
+      <feComposite in="SourceGraphic" in2="mm" operator="in"/>
+    </filter>
+    <filter id="paper" filterUnits="userSpaceOnUse" x="0" y="0" width="1600" height="1100">
+      <feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" seed="11"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 .55  0 0 0 0 .42  0 0 0 0 .32  0 0 0 .22 0"/>
+    </filter>
+    <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+      <circle cx="7" cy="7" r="3.1" fill="#a51d13"/>
+    </pattern>
+    <radialGradient id="cg" cx=".38" cy=".32" r=".75">
+      <stop offset="0" stop-color="#ffe7a3"/><stop offset=".45" stop-color="#e9b543"/><stop offset="1" stop-color="#a8721b"/>
+    </radialGradient>
+    <symbol id="coin" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="48" fill="#8f5f13"/>
+      <circle cx="50" cy="48" r="46" fill="url(#cg)"/>
+      <circle cx="50" cy="48" r="36" fill="none" stroke="#a8721b" stroke-width="3" stroke-dasharray="2 4"/>
+      <circle cx="50" cy="48" r="33" fill="none" stroke="#fff3c4" stroke-width="1.5" opacity=".7"/>
+      <text x="50" y="64" text-anchor="middle" font-family="Inter" font-weight="800" font-size="44" fill="#8f5f13">€</text>
+    </symbol>
+    <symbol id="hand" viewBox="0 0 100 130">
+      <path d="M38 8c0-9 14-9 14 0v52l4-3c0-8 13-8 13 1v4c1-8 13-7 13 2v4c2-7 12-6 12 3v24c0 16-10 30-26 32H52C38 128 30 118 22 104L6 78c-4-7 5-14 11-8l21 22z"
+        fill="#f6cdb3" stroke="#2b1510" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M56 61v20M69 66v16M82 72v12" stroke="#2b1510" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="root"></div>
+
+<script>
+const q = new URLSearchParams(location.search);
+const F = q.get("f") || "capa";
+const Z = q.get("z") !== "0";
+const IMG = "img/";
+const LOGO = "../../../../../scripts/capas/assets/logo.webp";
+const SIZES = { capa: [1600, 1000], og: [1200, 630], c1: [1200, 470], c2: [1200, 450] };
+const [W, H] = SIZES[F];
+document.documentElement.style.width = document.body.style.width = W + "px";
+document.documentElement.style.height = document.body.style.height = H + "px";
+
+// deterministic RNG so every render is identical
+let seed = 20261115;
+const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+
+// torn vertical edge: polygon from x0 (jagged) to the right side
+function tornPanel(x0, w, h, amp = 18) {
+  const pts = [];
+  for (let y = -10; y <= h + 10; y += 14 + rnd() * 16) pts.push([x0 + (rnd() - .5) * amp * 2 + Math.sin(y / 90) * amp, y]);
+  const inner = pts.map(([x, y]) => `${(x + 10 + rnd() * 8).toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const outer = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <polygon points="${outer} ${w + 20},${h + 20} ${w + 20},-20" fill="#fbf7f0"/>
+    <polygon points="${inner} ${w + 20},${h + 20} ${w + 20},-20" fill="#c4271b"/>
+    <polygon points="${inner} ${w + 20},${h + 20} ${w + 20},-20" fill="url(#dots)" opacity=".55"/>
+  </svg>`;
+}
+
+// torn bottom edge mask for paper scraps
+function tornMask() {
+  let p = "M0 0H1000V940";
+  for (let x = 1000; x >= 0; x -= 12 + rnd() * 18) p += `L${x.toFixed(0)} ${(930 + rnd() * 70).toFixed(0)}`;
+  p += "L0 960Z";
+  return `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1000' preserveAspectRatio='none'><path d='${p}'/></svg>`)}")`;
+}
+
+const css = (o) => Object.entries(o).map(([k, v]) => `${k}:${typeof v === "number" ? v + "px" : v}`).join(";");
+
+function comment(src, x, y, w, rot, tapes = []) {
+  const t = tapes.map(([tx, ty, tr, tw]) => `<div class="tape" style="${css({ left: tx, top: ty, width: tw || 150, transform: `rotate(${tr}deg)` })}"></div>`).join("");
+  return `<div class="abs" style="${css({ left: x, top: y, width: w, transform: `rotate(${rot}deg)` })}">
+    <div class="cm" style="--torn:${tornMask()};position:relative"><img src="${IMG + src}"></div>${t}</div>`;
+}
+
+function stamp(x, y, size, rot, l1 = "Não gastem", l2 = "um tostão") {
+  const b = Math.round(size * .075), pad = Math.round(size * .26);
+  return `<div class="stamp" style="${css({ left: x, top: y, "font-size": size, transform: `rotate(${rot}deg)`, "border-width": b,
+    "border-radius": Math.round(size * .16), padding: `${Math.round(size * .2)}px ${pad}px ${Math.round(size * .17)}px` })}">
+    <span class="l1">${l1}</span><span class="l2">${l2}</span></div>
+    <style>.stamp::before{inset:${Math.round(size * .07)}px;border-width:${Math.max(2, Math.round(size * .03))}px;border-radius:${Math.round(size * .1)}px}</style>`;
+}
+
+function coin(x, y, s, rot) {
+  return `<svg class="coin" style="${css({ left: x, top: y, width: s, height: s, transform: `rotate(${rot}deg)` })}" viewBox="0 0 100 100"><use href="#coin"/></svg>`;
+}
+
+// phone with the vote screen; scale = phone width
+function phone(x, y, w, rot, withPhoto) {
+  const h = Math.round(w * 2.02), bz = Math.round(w * .045), r = Math.round(w * .15);
+  const sw = w - 2 * bz, sh = h - 2 * bz, fs = Math.round(w * .085);
+  let inner;
+  if (withPhoto) {
+    const ph = Math.round(sh * .54);
+    inner = `<div class="ph" style="height:${ph}px"><img src="${IMG}zaza-ecra.jpg"></div>
+      <div class="abs" style="${css({ left: "8%", top: ph + sh * .045, font: `800 ${Math.round(fs * .62)}px/1 Inter`, "letter-spacing": ".22em", color: "#8a5a4e" })}">VOTAÇÃO</div>
+      <div class="row" style="${css({ top: ph + sh * .1, height: sh * .1, padding: "0 5%", "font-size": fs })}"><b></b><b style="flex:.6"></b></div>
+      <div class="btn" style="${css({ top: ph + sh * .25, "font-size": fs * 1.15, padding: `${fs * .62}px 0` })}">VOTAR</div>`;
+  } else {
+    let rows = "";
+    for (let i = 0; i < 3; i++) rows += `<div class="row" style="${css({ top: sh * (.18 + i * .175), height: sh * .135, padding: "0 6%", "font-size": fs })}"><i style="${css({ width: fs * 1.25, height: fs * 1.25 })}"></i><b></b><s>${i === 1 ? "VOTADO" : "VOTAR"}</s></div>`;
+    inner = `<div class="abs" style="${css({ left: "8%", top: sh * .075, font: `900 ${Math.round(fs * 1.05)}px/1 Inter`, "letter-spacing": ".16em", color: "#c4271b" })}">VOTAÇÃO</div>
+      ${rows}
+      <div class="btn" style="${css({ top: sh * .76, "font-size": fs * 1.15, padding: `${fs * .62}px 0` })}">VOTAR</div>`;
+  }
+  return `<div class="phone" style="${css({ left: x, top: y, width: w, height: h, "border-radius": r, transform: `rotate(${rot}deg)` })}">
+    <div class="scr" style="${css({ left: bz, top: bz, width: sw, height: sh, "border-radius": r - bz })}">${inner}</div>
+    <div class="notch" style="${css({ top: bz + 6, width: w * .3, height: w * .07 })}"></div></div>`;
+}
+
+const plus = (x, y, s, rot) => `<div class="plus" style="${css({ left: x, top: y, "font-size": s, transform: `rotate(${rot}deg)` })}">+1</div>`;
+const hand = (x, y, w, rot) => `<svg class="tap" style="${css({ left: x, top: y, width: w, height: w * 1.3, transform: `rotate(${rot}deg)` })}" viewBox="0 0 100 130"><use href="#hand"/></svg>`;
+const grain = () => `<svg class="grain" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" filter="url(#paper)"/></svg>`;
+const logo = (x, y, s) => `<img class="logo" src="${LOGO}" style="${css({ left: x, top: y, width: s, height: s })}">`;
+const alex = (x, y, w) => `<img class="alex" src="${IMG}alexandra-recorte.png" style="${css({ left: x, top: y, width: w })}">`;
+const label = (x, y, s, rot) => `<div class="label" style="${css({ left: x, top: y, "font-size": s, transform: `rotate(${rot}deg)` })}">Pimenta na Língua<small>Alexandra Serra</small></div>`;
+
+let html = "";
+if (F === "capa") {
+  html = `${grain()}
+  <div class="panel" style="width:640px">${tornPanel(30, 640, H, 14)}</div>
+  ${alex(1000, 262, 640)}
+  ${label(1112, 852, 44, -3)}
+  ${comment("comentario-1.png", 84, 392, 720, -2.2, [[-30, -14, -24], [600, -20, 18]])}
+  ${comment("comentario-2.png", 170, 662, 640, 1.8, [[250, -20, -4, 170]])}
+  ${stamp(250, 74, 112, -6)}
+  ${phone(812, 470, 238, 9, Z)}
+  ${hand(940, 790, 120, -22)}
+  ${plus(1010, 418, 54, 12)}${plus(1086, 520, 40, -8)}
+  ${coin(760, 360, 92, -18)}${coin(1050, 360, 70, 24)}${coin(60, 880, 84, 14)}${coin(150, 930, 60, -30)}${coin(920, 250, 58, 8)}
+  ${logo(48, 41, 152)}`;
+} else if (F === "og") {
+  html = `${grain()}
+  <div class="panel" style="width:470px">${tornPanel(24, 470, H, 11)}</div>
+  ${alex(752, 140, 470)}
+  ${label(858, 560, 28, -3)}
+  ${phone(632, 300, 150, 9, Z)}
+  ${hand(718, 492, 76, -22)}
+  ${plus(756, 250, 38, 12)}
+  ${coin(586, 228, 64, -18)}${coin(560, 560, 56, 20)}${coin(1110, 120, 50, 18)}
+  <div class="og-t" style="left:46px;top:168px;width:560px">
+    <div class="pre">O Zaza pediu:</div>
+  </div>
+  ${stamp(36, 222, 82, -4)}
+  <div class="og-t" style="left:46px;top:452px;width:600px;white-space:nowrap"><div class="pos">A Team Zaza <em>não ouviu.</em></div></div>
+  <div class="abs" style="left:150px;top:62px"><span class="k">Opinião</span></div>
+  ${logo(30, 26, 96)}`;
+} else {
+  const src = F === "c1" ? "comentario-1.png" : "comentario-2.png";
+  html = `${grain()}
+  ${comment(src, 90, 74, 1000, F === "c1" ? -1.4 : 1.2, [[-34, -12, -22], [860, -18, 16]])}
+  ${coin(1072, H - 128, 92, 16)}
+  <div class="cap" style="left:90px;bottom:34px;width:900px">Comentário na página de fãs. Nome, foto, hora e gostos tapados.</div>`;
+}
+document.getElementById("root").innerHTML = `<div class="c" style="width:${W}px;height:${H}px">${html}</div>`;
+window.__ready = true;
+</script>
+</body></html>

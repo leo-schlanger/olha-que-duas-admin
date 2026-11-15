@@ -3,10 +3,13 @@
 -- All Stars (12/11). Texto: supabase/rascunhos/pimenta-zaza.md §4 (fora do git), aprovado
 -- pelo Leo a 15/11; factos com fonte no §3. Copiado sem alterações. Sem vídeo: o reel
 -- está a ser feito à parte e não entra embebido.
--- Capa e og: scripts/capas/pecas/team-zaza-nao-gastem-um-tostao.json, painel tipográfico
--- (rascunhos/team-zaza-nao-gastem-um-tostao/painel.html, frases do texto). Sem foto: não há
--- foto livre do Francisco Monteiro (a da peça de Notícias de 13/11 veio do WhatsApp, sem
--- origem nem licença registadas); nada da página de fãs, de agências nem da TVI.
+-- Capa e og (v2, 15/11, escolha do Leo «capa com foto»): colagem do designer em
+-- rascunhos/team-zaza-nao-gastem-um-tostao/v2/ (capa-com-foto.jpg, og-com-foto.jpg; fonte/
+-- tem o HTML e o script). No media-library como exclusivo-<slug>-capa-v2.jpg e -og-v2.jpg
+-- (nomes novos: os antigos ficavam em cache no edge). A 1.ª versão, painel tipográfico
+-- (painel.html, scripts/capas/pecas/<slug>.json), ficou fora da peça.
+-- Corpo: corpo-1.jpg (comentário com nome, foto, hora e gostos tapados) como
+-- exclusivo-<slug>-comentario.jpg, depois do parágrafo que o cita. O texto não mudou.
 --
 -- O ON CONFLICT não mexe em is_published nem published_at: voltar a correr isto não
 -- esconde nem republica.
@@ -28,12 +31,14 @@ VALUES (
 <p>E não é força de expressão. Em outubro, uma investigação da TV Guia, citada pelo A Televisão, explicou como funcionam as equipas de fãs do Zaza: angariam fundos, compram pacotes de votos e uma delas faz rifas com estadias em hotéis como prémio. Uma das responsáveis falou num «núcleo duro de 40 a 50 pessoas» que confirmaram ter contribuído para os packs. A TVI, imagino, está toda contente. O concorrente favorito saiu, mas os votos das fãs dele continuam a entrar.</p>
 <h2>Nem nos comentários há unanimidade</h2>
 <p>Valha a verdade, nem todas as fãs alinham. Num dos comentários lê-se: <em>«Isto não é uma team....isto é puro ódio.»</em> Noutro, alguém com mais juízo do que a página: <em>«Eu sou a favor apoiar um concorrente, não cultivar o ódio e desperdiçar o meu dinheirinho com quem não gosto! Nem pensar!»</em> Assino por baixo.</p>
+<p><img src="https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-team-zaza-nao-gastem-um-tostao-comentario.jpg" alt="Captura de um comentário na página de fãs do Zaza: «Era só o que me faltava!! Eu sou a favor apoiar um concorrente, não cultivar o ódio e desperdiçar o meu dinheirinho com quem não gosto! Nem pensar!»"></p>
+<p><em>Comentário na página de fãs. Nome, foto, hora e gostos tapados.</em></p>
 <h2>O pezinho de meia</h2>
 <p>O mais curioso é que o próprio Zaza já tinha pedido que parassem. Em setembro, no fim da segunda gala, com o microfone quase sem som, deixou escapar: «Não gastem um tostão.» E em fevereiro de 2024, quando um grupo de fãs juntou dinheiro para lhe oferecer uma prenda de anos, veio dizer que não sabia de nada, pediu que não gastassem mais dinheiro com ele e garantiu que nem sabe quem gere as páginas que falam dele.</p>
 <p>Pois. As fãs ouvem tudo o que ele diz, menos isto. Continuam a fazer pezinhos de meia em nome dele, como se o irmão do namorado da Cristina Ferreira, o «cunhado» mais famoso da TVI, fosse um coitadinho à espera de esmola. Há até quem o proponha preto no branco: <em>«É juntar o dinheiro que se gasta em votações para expulsar outros concorrentes e dar lhe, para ele não voltar ao limiar da pobreza.»</em> Calma. Saiu pelo próprio pé e, na manhã seguinte, já estava no «Dois às 10», com a Cristina Ferreira, a contar a versão dele.</p>
 <p>Por isso, digo-o com carinho às fãs da Team Zaza: arranjem outro passatempo. Façam voluntariado, ponham esse dinheiro no Banco Alimentar, vão passear. Votar para vingar um concorrente que já saiu da casa? Isto tornou-se uma loucura. As pessoas estão doidas!</p>$pim$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-team-zaza-nao-gastem-um-tostao-capa.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-team-zaza-nao-gastem-um-tostao-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-team-zaza-nao-gastem-um-tostao-capa-v2.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-team-zaza-nao-gastem-um-tostao-og-v2.jpg',
   false,
   NULL,
   (SELECT id FROM exclusive_programs WHERE slug = 'pimenta-na-lingua'),
