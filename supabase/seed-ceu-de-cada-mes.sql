@@ -3,8 +3,9 @@
 -- ceu-novembro-2026.sql) passada a texto: quatro leituras do baralho cigano.
 -- Textos: supabase/rascunhos/ceu-de-cada-mes/textos.md (redator; corpo markdown → HTML,
 -- sem outras alterações). Abril: tirada a frase «Amanhã trazemos então as previsões para o
--- signo de Caranguejo, Leão e Virgem.» (a 2.ª parte não existe). Maio/Balança como está.
--- Imagens do designer no media-library: capa 3:4 e retrato (portrait_focus center) do
+-- signo de Caranguejo, Leão e Virgem.» (a 2.ª parte não existe) e o «até amanhã»
+-- final (fica «Um beijinho.»). Maio/Balança como está.
+-- Imagens do designer no media-library (v2, 16/11): capa 3:4 e retrato (portrait_focus center) do
 -- programa; capa e og por episódio (scripts/capas/pecas/ceu-de-cada-mes-2026-MM.json).
 -- published_at às 10:30 de Lisboa (AT TIME ZONE trata da hora de verão).
 -- Ordem na lista: 7.º (exclusive-programs-order.sql). Idempotente (ON CONFLICT).
@@ -22,9 +23,9 @@ VALUES (
   'Teresa',
   'As energias de cada mês, lidas nas cartas',
   'Às 10:30, na rádio, a taróloga Teresa tira as cartas do baralho cigano e lê as energias do mês, para todos nós e, em alguns meses, signo a signo.',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-retrato-ceu-de-cada-mes.png',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-retrato-ceu-de-cada-mes-v2.png',
   'center',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-capa-ceu-de-cada-mes.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/programa-capa-ceu-de-cada-mes-v2.jpg',
   7,
   true
 )
@@ -62,10 +63,10 @@ VALUES (
 <p>Gémeos, Gémeos traz com ele a energia da carta dos Lírios. E o que os Lírios trarão no mês de abril aos geminianos? Tranquilidade, paz nas escolhas. O geminiano vai estar seguro das decisões que está a tomar, vai estar contente com o caminho que está a levar e há aqui uma certa tranquilidade que até pode assustá-los.</p>
 <p>É um signo de muito movimento, é um signo que também tem alguma inconsistência: hoje quer uma coisa, amanhã poderá não querer. E este mês vai sentir que está parado demais para ele, ele próprio, nos pensamentos.</p>
 <p>E esse pode ser um ponto contra Gémeos, porque Gémeos é um signo que precisa de andamento e que está habituado a ter esse aflorar de todas as emoções. E ao sentir-se muito parado, pode-se sentir frustrado.</p>
-<p>Um beijinho e até amanhã.</p>
+<p>Um beijinho.</p>
 <p><em>Esta é a primeira parte da leitura de abril de 2026, com Carneiro, Touro e Gémeos. A Teresa é taróloga e lê o baralho cigano no Céu de Cada Mês, às 10:30, na rádio Olha que Duas.</em></p>$ceu202604$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-04-capa.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-04-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-04-capa-v2.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-04-og-v2.jpg',
   true,
   TIMESTAMP '2026-04-01 10:30' AT TIME ZONE 'Europe/Lisbon',
   (SELECT id FROM exclusive_programs WHERE slug = 'ceu-de-cada-mes'),
@@ -138,8 +139,8 @@ VALUES (
 <p>Como aspeto negativo, é uma carta que por vezes tem tendência a magoar os outros em sua própria defesa. E o alerta que dão ao signo de Peixes é: não é necessário magoarmos os outros para nos defendermos a nós próprios, temos que nos fazer validar sem atacar.</p>
 <p>E foram as previsões para o mês de maio, sendo que inicialmente já foi abordado a energia do mês: é o Despertar, que eu aconselho a que oiçam também, para fazer a junção com o signo individualmente.</p>
 <p><em>A Teresa é taróloga e lê o baralho cigano no Céu de Cada Mês, às 10:30, na rádio Olha que Duas.</em></p>$ceu202605$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-05-capa.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-05-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-05-capa-v2.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-05-og-v2.jpg',
   true,
   TIMESTAMP '2026-05-01 10:30' AT TIME ZONE 'Europe/Lisbon',
   (SELECT id FROM exclusive_programs WHERE slug = 'ceu-de-cada-mes'),
@@ -176,8 +177,8 @@ VALUES (
 <p>Fazendo então a conjugação das duas, temos aqui a hipótese de: se eu for atrás da minha verdade, ela será então revelada; se eu for atrás de um amor, ele também surgirá no meu caminho. São duas cartas muito boas, que nos permitem, além de sonhar, realizar e concretizar também.</p>
 <p>Espero que todos tenham um excelente outubro, e qualquer questão já sabem como podem contactar.</p>
 <p><em>A Teresa é taróloga e lê o baralho cigano no Céu de Cada Mês, às 10:30, na rádio Olha que Duas.</em></p>$ceu202610$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-10-capa.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-10-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-10-capa-v2.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-10-og-v2.jpg',
   true,
   TIMESTAMP '2026-10-05 10:30' AT TIME ZONE 'Europe/Lisbon',
   (SELECT id FROM exclusive_programs WHERE slug = 'ceu-de-cada-mes'),
@@ -219,8 +220,8 @@ VALUES (
 <p>É uma carta também, a Torre juntamente com a Chave, que nos fala aqui da nossa força. A nossa força de conseguirmos decidir as decisões que temos que tomar. Nem tudo depende dos outros, quer seja o não tomarmos certas decisões, quer seja o estado em que a nossa vida se encontra. Depende de nós e de nossas escolhas.</p>
 <p>Um resto de bom novembro para todos.</p>
 <p><em>A Teresa é taróloga e lê o baralho cigano no Céu de Cada Mês, às 10:30, na rádio Olha que Duas.</em></p>$ceu202611$,
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-11-capa.jpg',
-  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-11-og.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-11-capa-v2.jpg',
+  'https://jjifjbdfpvgeseqbjpkg.supabase.co/storage/v1/object/public/media-library/exclusivo-ceu-de-cada-mes-2026-11-og-v2.jpg',
   true,
   TIMESTAMP '2026-11-16 10:30' AT TIME ZONE 'Europe/Lisbon',
   (SELECT id FROM exclusive_programs WHERE slug = 'ceu-de-cada-mes'),
