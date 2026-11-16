@@ -1,0 +1,19 @@
+# Céu de Cada Mês — Abril 2026, parte 1 (Carneiro, Touro, Gémeos)
+
+- **Fonte:** `PodcastCeuDeCadaMes/0401_(1).mp3` no AzuraCast (cópia no scratchpad `az/az1.mp3`; ficheiro de 19/Mai/2026, não está em /mnt/d)
+- **Duração:** 323,8 s (5:24); transcrição após o jingle de abertura (~56 s)
+- **Emissão:** abril 2026 (datas não documentadas)
+- **Transcrição:** faster-whisper large-v3 (pt), conferida em trechos com medium; só pontuação e parágrafos. [?] = trecho duvidoso do reconhecimento, a confirmar de ouvido.
+- **Contacto citado:** nenhum. Termina «Amanhã trazemos então as previsões para o signo de caranguejo, leão e virgem»: só existe esta parte 1, as outras não estão no AzuraCast.
+
+Antes de iniciarmos com os três primeiros signos do zodíaco, irei deixar também a energia geral do mês de abril para todos nós. Para qualquer que seja o signo, será a energia que irá reger o mês de abril. E a carta que está com a energia para este mês é a carta da libertação. E o que é que esta carta nos pede? Pede-nos isso mesmo, que consigamos nos libertar de amarras que temos tido até o momento, é chegada a altura de deixar para trás o que não nos pertence, o que já não é nosso, e seguirmos o nosso caminho. É uma altura também, o mês de Abril, que a primavera já se está aqui a firmar, já existe aqui a necessidade de termos atenção ao caminho que estamos a trilhar.
+
+Há sol, há luz e é isso que o Universo nos pede, que prossigamos nesse caminho de luz para conseguirmos alcançar o tão esperado sucesso, que é o que todos queremos. O mês de Abril para Carneiro traz-nos então a Carta da Torre. A Carta da Torre o que é que nos ajuda a compreender aqui para os carneiros? Tem que ter atenção. Pede aqui um bocadinho de se resguardarem, de se fecharem com eles próprios, porque está na altura e juntamente com a Carta da Libertação de serem tomadas decisões que poderão ser a base para o futuro. Há necessidade de se fecharem em si próprios, compreenderem o que já não querem levar, o que não querem manter de pé e deixarem então que caia o que é para ficar,
+
+para conseguirem estar seguros neles próprios e se manterem fortes para o que virá a seguir. Seguir, temos o signo de touro e o signo de touro no mês de abril será regido pela carta da chave e a chave traz aqui a touro mudanças no sentido de que está na altura de se colher, está na altura de recuperar aqui algumas situações que se julgavam fechadas. É um mês em que o virar da chave vai trazer aqui alternativas que não se estavam a ver até o momento, ideias novas que podem surgir para negócios, para avançar projetos, até mesmo algo que até agora o Torino não tinha pensado pode começar a vislumbrar o sucesso de uma outra forma e é isso mesmo que pede, a coragem de virar a chave.
+
+Como alerta para este mês, esta carta para os taurinos traz a necessidade também de terem atenção a quem entra no mundo deles. A chave aqui também pode significar que é a altura de fechar a porta para determinadas pessoas ou situações que já não me fazem crescer, não me agregam nada e só me estão a atrapalhar. Gémeos, Gémeos traz com ele a energia da carta dos lírios e o que os lírios trarão no mês de Abril aos Geminianos? Tranquilidade, paz nas escolhas o Geminiano vai estar seguro das decisões que está a tomar vai estar contente com o caminho que está a levar e há aqui uma certa tranquilidade que até pode assustá-los É um signo de muito movimento, é um signo que também tem alguma inconsistência, hoje quer uma coisa, amanhã poderá não querer e este mês vai sentir que está parado demais para ele, ele próprio nos pensamentos.
+
+E esse pode ser um ponto contra Gémeos, porque Gémeos é um signo que precisa de andamento e que está habituado a ter esse aflorar de todas as emoções. E ao sentir-se muito parado, pode-se sentir frustrado.
+
+Amanhã trazemos então as previsões para o signo de caranguejo, leão e virgem. Um beijinho e até amanhã.
