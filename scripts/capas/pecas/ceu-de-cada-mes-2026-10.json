@@ -1,8 +1,10 @@
 {
   "slug": "ceu-de-cada-mes-2026-10",
   "programa": "ceu-de-cada-mes",
-  "foto": "../assets/ceu-medalhao.png",
+  "foto": "../assets/ceu/2026-10-capa.jpg",
   "mes": "2026-10",
   "titulo": "Céu de Cada Mês, *Outubro de 2026*",
-  "tema": "A Lua e o Cavaleiro"
+  "tema": "A Lua e o Cavaleiro",
+  "fotoOg": "../assets/ceu/2026-10-og.jpg",
+  "arte": true
 }

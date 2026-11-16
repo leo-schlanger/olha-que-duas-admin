@@ -1,0 +1,19 @@
+<!doctype html><html lang="pt-PT"><head><meta charset="utf-8"><style>
+/* Céu de Cada Mês v2 — program card (900x1200): Grok night-sky art with Teresa's medallion in the gold frame
+   (assets/ceu/programa-900x1200.jpg from ceu-compor.py), OQD logo top-left, "Céu" in Cinzel. */
+@font-face{font-family:Cinzel;src:url("../fonts/Cinzel[wght].ttf");font-weight:400 900}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:900px;height:1200px;overflow:hidden;background:#120d30}
+.bg{position:absolute;inset:0;background:url("../assets/ceu/programa-900x1200.jpg") center/cover}
+.logo{position:absolute;left:40px;top:40px;width:190px;height:190px;filter:drop-shadow(0 6px 16px rgba(0,0,0,.6))}
+.tt{position:absolute;left:0;right:0;top:215px;text-align:center}
+h1,h2{text-shadow:0 0 40px rgba(120,90,230,.55),0 4px 24px rgba(0,0,0,.75)}
+h1{font:600 236px/.9 Cinzel;color:#f3eeff;letter-spacing:.01em}
+h2{margin-top:10px;font:500 66px/1 Cinzel;letter-spacing:.06em;color:#e3c27e}
+.bar{position:absolute;left:0;right:0;bottom:0;height:10px;background:linear-gradient(90deg,#8a6fe0 0 24%,#e3c27e 24%)}
+</style></head><body>
+<div class="bg"></div>
+<img class="logo" src="../assets/logo.webp" alt="Olha que Duas">
+<div class="tt"><h1>Céu</h1><h2>de Cada Mês</h2></div>
+<div class="bar"></div>
+</body></html>

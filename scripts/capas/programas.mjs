@@ -235,6 +235,8 @@ export const programas = {
   // "mes": "aaaa-mm" puts the month on the site cover and lights its two signs on the wheel.
   // "signos" (optional): ["Carneiro","Touro"] or "todos", when the episode is not about the month's pair.
   // "tema" (optional): the month's card(s), under the month on the cover and under the og headline.
+  // "arte": true (v2, 16/11/2026): "foto"/"fotoOg" are the composed Grok artworks with the medallion already
+  // in the gold frame (scripts/capas/ceu-compor.py -> assets/ceu/<aaaa-mm>-capa.jpg / -og.jpg); no SVG wheel.
   "ceu-de-cada-mes": {
     titulo: "Céu de Cada Mês",
     autor: "com Teresa",
@@ -245,10 +247,16 @@ export const programas = {
       const { roda, estrelas, MESES } = globalThis.ceuRoda;
       const [ano, m] = String(d.mes || "").split("-").map(Number);
       const tema = String(d.tema || "").replace(/[&<>"]/g, "");
-      return `
-      <div class="sky">${estrelas(1600, 1000, 170, 11)}</div>
+      const { SIGNOS, signosDoMes } = globalThis.ceuRoda;
+      const sg = d.signos === "todos" ? "Os 12 signos"
+        : (Array.isArray(d.signos) ? d.signos : m ? signosDoMes(m).map((i) => SIGNOS[i]) : []).join(" · ");
+      const fundo = d.arte
+        ? `<div class="ph" style="background-image:url('${d.formato === "og" && d.fotoOg ? d.fotoOg : d.foto}');background-position:center"></div>`
+        : `<div class="sky">${estrelas(1600, 1000, 170, 11)}</div>
       <div class="roda">${roda({ mes: m || 0, signos: d.signos, id: "w" })}
-        <div class="med"><img src="${d.foto}" alt=""></div></div>
+        <div class="med"><img src="${d.foto}" alt=""></div></div>`;
+      return `
+      ${fundo}
       <div class="shade"></div>
       ${
         d.titulo
@@ -257,6 +265,7 @@ export const programas = {
               <span class="k">${d.programa}</span>
               ${m ? `<h2>${MESES[m - 1]}</h2><span class="yr">de ${ano}</span>` : ""}
               ${tema ? `<p class="tema">${tema}</p>` : ""}
+              ${d.arte && sg ? `<p class="sg">${sg}</p>` : ""}
             </div>`
       }
       <div class="by"><b>${d.autor}</b>${d.titulo ? "" : `<span>${d.kickerPrograma}</span>`}</div>
@@ -271,15 +280,16 @@ export const programas = {
 .ceu .med{position:absolute;left:50%;top:50%;width:calc(74*var(--u));height:calc(74*var(--u));transform:translate(-50%,-50%);border-radius:50%;overflow:hidden;
   box-shadow:0 0 0 calc(2*var(--u)) #e3c27e,0 0 calc(30*var(--u)) rgba(150,120,255,.45)}
 .ceu .med img{width:100%;height:100%;object-fit:cover;transform:scale(1.07)}
-.ceu .shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,10,32,.9) 0%,rgba(11,10,32,.55) 34%,rgba(11,10,32,0) 52%)}
+.ceu .shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,10,32,.9) 0%,rgba(11,10,32,.6) 38%,rgba(11,10,32,0) 56%)}
 .ceu .k{display:flex;align-items:center;gap:calc(14*var(--u));font:600 calc(14*var(--u))/1 Inter;letter-spacing:.3em;text-transform:uppercase;color:#e3c27e}
 .ceu .k::after{content:"";flex:0 0 calc(64*var(--u));height:1px;background:linear-gradient(90deg,#e3c27e,rgba(227,194,126,0))}
 .ceu .mo{position:absolute;left:calc(40*var(--u));top:calc(206*var(--u));width:calc(380*var(--u))}
 .ceu .mo h2{margin-top:calc(22*var(--u));font:600 calc(62*var(--u))/1 Cinzel;color:#f3eeff;letter-spacing:.01em;text-shadow:0 0 calc(24*var(--u)) rgba(120,90,230,.45)}
 .ceu .mo .yr{display:block;margin-top:calc(10*var(--u));font:500 calc(30*var(--u))/1 Cinzel;letter-spacing:.12em;color:#e3c27e}
 .ceu .mo .tema{margin-top:calc(26*var(--u));font:italic 500 calc(30*var(--u))/1.15 Cormorant;color:#d9d1f2}
+.ceu .mo .sg{margin-top:calc(22*var(--u));font:600 calc(14*var(--u))/1.4 Cinzel;letter-spacing:.24em;text-transform:uppercase;color:#e3c27e}
 .ceu .tx{position:absolute;left:calc(40*var(--u));top:calc(180*var(--u));padding:calc(6*var(--u)) 0 calc(10*var(--u));width:48%;max-height:calc(330*var(--u));overflow:hidden}
-.ceu h1{margin-top:calc(20*var(--u));font:600 calc(54*var(--u))/1.1 Cinzel;color:#f3eeff;letter-spacing:.005em;text-shadow:0 0 calc(24*var(--u)) rgba(120,90,230,.45)}
+.ceu h1{margin-top:calc(20*var(--u));font:600 calc(50*var(--u))/1.1 Cinzel;color:#f3eeff;letter-spacing:.005em;text-shadow:0 0 calc(24*var(--u)) rgba(120,90,230,.45)}
 .ceu h1 em{font-style:normal;color:#e3c27e}
 .ceu .tx p{margin-top:calc(14*var(--u));font:italic 500 calc(25*var(--u))/1.25 Cormorant;color:#d9d1f2}
 .ceu .by{position:absolute;left:calc(40*var(--u));bottom:calc(38*var(--u));display:flex;flex-direction:column;gap:calc(10*var(--u))}

@@ -24,7 +24,7 @@ Sai sempre um par:
 | Mente Aberta (Marluce Revorêdo) | Verde-salva suave, Fraunces, foto num arco, folha |
 | Notícias Olha que Duas | Rodapé de telejornal: etiqueta vermelha «Notícias» + data, título Inter |
 | Lendas de Portugal | Teatro de sombras à luz da vela: noite de granito, IM Fell (romana, itálica e versaletes), âmbar de vela. Foto = ilustração 16:10 do kit dos reels (`Desktop/video/projetos/lendas-portugal-2026/arte/site/_arte/`) |
-| Céu de Cada Mês (Teresa) | Céu noturno índigo/violeta, roda zodiacal em traço fino (`ceu-roda.js`) rodada para os signos do episódio, Cinzel, dourado champanhe. Sem foto: `foto` = medalhão do programa (`assets/ceu-medalhao.png`, só existe a 128 px; nunca acima de 128 px renderizados). Campos próprios: `mes` (`aaaa-mm`, põe o mês na capa e acende os 2 signos do mês), `signos` (lista de nomes ou `"todos"`), `tema` (carta do mês, por baixo do mês e do título) |
+| Céu de Cada Mês (Teresa) | v2 (16/11/2026): arte do Grok (céu índigo/violeta, roda zodiacal, cartas Lenormand do tema, moldura dourada) com o medalhão da Teresa a preencher a moldura, Cinzel, dourado champanhe. `python3 scripts/capas/ceu-compor.py` compõe `assets/ceu/<aaaa-mm>-capa.jpg`/`-og.jpg` (medalhão ESRGAN x4 limpo `assets/ceu/medalhao-esrgan.png`; scripts de limpeza em `assets/ceu/fonte/`); a ficha usa `foto`, `fotoOg`, `"arte": true`, `mes`, `signos` (lista ou `"todos"`) e `tema`. Sem `arte`, cai na v1 em SVG (`ceu-roda.js`) |
 
 ## Ficha da peça (`pecas/<slug>.json`)
 

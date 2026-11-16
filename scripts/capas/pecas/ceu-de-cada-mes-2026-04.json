@@ -1,7 +1,7 @@
 {
   "slug": "ceu-de-cada-mes-2026-04",
   "programa": "ceu-de-cada-mes",
-  "foto": "../assets/ceu-medalhao.png",
+  "foto": "../assets/ceu/2026-04-capa.jpg",
   "mes": "2026-04",
   "titulo": "Céu de Cada Mês, *Abril de 2026*",
   "tema": "Libertação",
@@ -9,5 +9,7 @@
     "Carneiro",
     "Touro",
     "Gémeos"
-  ]
+  ],
+  "fotoOg": "../assets/ceu/2026-04-og.jpg",
+  "arte": true
 }

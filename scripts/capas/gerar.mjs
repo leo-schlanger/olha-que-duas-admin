@@ -70,6 +70,9 @@ function page(peca, formato, base) {
   const data = {
     ...peca,
     foto: asUrl(peca.foto, base),
+    // optional separate background for the og crop (art made per format)
+    fotoOg: peca.fotoOg ? asUrl(peca.fotoOg, base) : "",
+    formato,
     foco: peca.foco || "50% 35%",
     // "inteira": whole photo over a blurred copy, for portrait or small photos.
     inteira: peca.encaixe === "inteira",

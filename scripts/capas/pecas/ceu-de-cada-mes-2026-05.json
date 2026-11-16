@@ -1,9 +1,11 @@
 {
   "slug": "ceu-de-cada-mes-2026-05",
   "programa": "ceu-de-cada-mes",
-  "foto": "../assets/ceu-medalhao.png",
+  "foto": "../assets/ceu/2026-05-capa.jpg",
   "mes": "2026-05",
   "titulo": "Céu de Cada Mês, *Maio de 2026*",
   "tema": "Despertar",
-  "signos": "todos"
+  "signos": "todos",
+  "fotoOg": "../assets/ceu/2026-05-og.jpg",
+  "arte": true
 }

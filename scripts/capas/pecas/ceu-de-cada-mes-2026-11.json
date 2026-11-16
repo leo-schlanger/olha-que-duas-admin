@@ -1,8 +1,10 @@
 {
   "slug": "ceu-de-cada-mes-2026-11",
   "programa": "ceu-de-cada-mes",
-  "foto": "../assets/ceu-medalhao.png",
+  "foto": "../assets/ceu/2026-11-capa.jpg",
   "mes": "2026-11",
   "titulo": "Céu de Cada Mês, *Novembro de 2026*",
-  "tema": "A Torre e a Chave"
+  "tema": "A Torre e a Chave",
+  "fotoOg": "../assets/ceu/2026-11-og.jpg",
+  "arte": true
 }
