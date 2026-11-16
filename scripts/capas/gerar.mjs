@@ -57,7 +57,8 @@ function fontFaces() {
 @font-face{font-family:Fraunces;src:url("${f("Fraunces-Italic[SOFT,WONK,opsz,wght].ttf")}");font-weight:100 900;font-style:italic}
 @font-face{font-family:Fell;src:url("${f("IMFellEnglish-Regular.ttf")}")}
 @font-face{font-family:Fell;src:url("${f("IMFellEnglish-Italic.ttf")}");font-style:italic}
-@font-face{font-family:FellSC;src:url("${f("IMFellEnglishSC-Regular.ttf")}")}`;
+@font-face{font-family:FellSC;src:url("${f("IMFellEnglishSC-Regular.ttf")}")}
+@font-face{font-family:Cinzel;src:url("${f("Cinzel[wght].ttf")}");font-weight:400 900}`;
 }
 
 function page(peca, formato, base) {
@@ -73,6 +74,7 @@ function page(peca, formato, base) {
     // "inteira": whole photo over a blurred copy, for portrait or small photos.
     inteira: peca.encaixe === "inteira",
     kicker: esc(peca.kicker || prog.kicker),
+    kickerPrograma: esc(prog.kicker),
     titulo: comTitulo ? marked(peca.titulo) : "",
     linha: comTitulo ? esc(peca.linha || "") : "",
     autor: esc(prog.autor),

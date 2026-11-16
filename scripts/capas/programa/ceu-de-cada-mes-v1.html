@@ -1,0 +1,36 @@
+<!doctype html><html lang="pt-PT"><head><meta charset="utf-8"><style>
+/* Céu de Cada Mês — program card (900x1200): night sky, zodiac wheel with Teresa's medallion
+   at its centre (native 128 px, 1:1, cropped to a 120 px circle), OQD logo top-left, "Céu" in Cinzel. */
+@font-face{font-family:Cinzel;src:url("../fonts/Cinzel[wght].ttf");font-weight:400 900}
+@font-face{font-family:Cormorant;src:url("../fonts/CormorantGaramond-Italic[wght].ttf");font-weight:300 700;font-style:italic}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:900px;height:1200px;overflow:hidden}
+body{position:relative;background:radial-gradient(120% 90% at 50% 78%,#3a2878 0%,#1d1548 45%,#0b0a20 100%)}
+.sky,.sky svg{position:absolute;inset:0;width:100%;height:100%}
+.roda{position:absolute;left:50%;top:955px;width:630px;height:630px;transform:translate(-50%,-50%)}
+.roda svg{width:100%;height:100%;display:block}
+.med{position:absolute;left:50%;top:50%;width:120px;height:120px;transform:translate(-50%,-50%);border-radius:50%;overflow:hidden;
+  box-shadow:0 0 0 3px #e3c27e,0 0 46px rgba(150,120,255,.55)}
+.med img{position:absolute;left:-4px;top:-4px;width:128px;height:128px}
+.logo{position:absolute;left:40px;top:40px;width:190px;height:190px;filter:drop-shadow(0 6px 16px rgba(0,0,0,.6))}
+.tt{position:absolute;left:0;right:0;top:250px;text-align:center}
+h1{font:600 250px/.9 Cinzel;color:#f3eeff;letter-spacing:.01em;text-shadow:0 0 50px rgba(120,90,230,.55),0 4px 24px rgba(0,0,0,.6)}
+h2{margin-top:14px;font:500 70px/1 Cinzel;letter-spacing:.06em;color:#e3c27e;text-shadow:0 3px 18px rgba(0,0,0,.8)}
+.orn{margin:22px auto 0;display:flex;align-items:center;justify-content:center;gap:18px}
+.orn b{display:block;height:2px;width:120px;background:linear-gradient(90deg,transparent,#e3c27e)}
+.orn b:last-child{background:linear-gradient(270deg,transparent,#e3c27e)}
+.orn span{font:italic 500 46px/1 Cormorant;color:#e6defc}
+.bar{position:absolute;left:0;right:0;bottom:0;height:10px;background:linear-gradient(90deg,#8a6fe0 0 24%,#e3c27e 24%)}
+</style><script src="../ceu-roda.js"></script></head><body>
+<div class="sky" id="sky"></div>
+<div class="roda" id="roda"><div class="med"><img src="../assets/ceu-medalhao.png" alt=""></div></div>
+<img class="logo" src="../assets/logo.webp" alt="Olha que Duas">
+<div class="tt"><h1>Céu</h1><h2>de Cada Mês</h2>
+<div class="orn"><b></b><span>com Teresa</span><b></b></div></div>
+<div class="bar"></div>
+<script>
+  const { roda, estrelas } = globalThis.ceuRoda;
+  document.getElementById("sky").innerHTML = estrelas(900, 1200, 150, 5);
+  document.getElementById("roda").insertAdjacentHTML("afterbegin", roda({ id: "p" }));
+</script>
+</body></html>

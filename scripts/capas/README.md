@@ -24,6 +24,7 @@ Sai sempre um par:
 | Mente Aberta (Marluce Revorêdo) | Verde-salva suave, Fraunces, foto num arco, folha |
 | Notícias Olha que Duas | Rodapé de telejornal: etiqueta vermelha «Notícias» + data, título Inter |
 | Lendas de Portugal | Teatro de sombras à luz da vela: noite de granito, IM Fell (romana, itálica e versaletes), âmbar de vela. Foto = ilustração 16:10 do kit dos reels (`Desktop/video/projetos/lendas-portugal-2026/arte/site/_arte/`) |
+| Céu de Cada Mês (Teresa) | Céu noturno índigo/violeta, roda zodiacal em traço fino (`ceu-roda.js`) rodada para os signos do episódio, Cinzel, dourado champanhe. Sem foto: `foto` = medalhão do programa (`assets/ceu-medalhao.png`, só existe a 128 px; nunca acima de 128 px renderizados). Campos próprios: `mes` (`aaaa-mm`, põe o mês na capa e acende os 2 signos do mês), `signos` (lista de nomes ou `"todos"`), `tema` (carta do mês, por baixo do mês e do título) |
 
 ## Ficha da peça (`pecas/<slug>.json`)
 

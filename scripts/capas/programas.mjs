@@ -1,5 +1,6 @@
 // One visual identity per Exclusivo program. Sizes use --u (1px at 630 tall).
 // Colours come from each program's poster on /exclusivo.
+import "./ceu-roda.js";
 
 const byline = (d, extra = "") => `
   <div class="by ${extra}">
@@ -227,5 +228,63 @@ export const programas = {
 .ld h1 em{font-style:italic;color:#f2b866}
 .ld .tx p{margin-top:calc(14*var(--u));font:italic 400 calc(24*var(--u))/1.25 Fell;color:#cfc4a8}
 .ld .bar{position:absolute;left:0;right:0;bottom:0;height:calc(5*var(--u));background:linear-gradient(90deg,#e0752d 0 22%,#f2b866 22%)}`,
+  },
+  // Céu de Cada Mês (Teresa, tarot and the month's energies): night sky in indigo and violet,
+  // a fine-line zodiac wheel turned to the month's signs, Cinzel, champagne gold.
+  // "foto" is the program medallion (only 128 px exists): shown at 74u (<= 128 px rendered), never as a hero image.
+  // "mes": "aaaa-mm" puts the month on the site cover and lights its two signs on the wheel.
+  // "signos" (optional): ["Carneiro","Touro"] or "todos", when the episode is not about the month's pair.
+  // "tema" (optional): the month's card(s), under the month on the cover and under the og headline.
+  "ceu-de-cada-mes": {
+    titulo: "Céu de Cada Mês",
+    autor: "com Teresa",
+    kicker: "Tarot e energias do mês",
+    retrato: "",
+    classe: "ceu",
+    html: (d) => {
+      const { roda, estrelas, MESES } = globalThis.ceuRoda;
+      const [ano, m] = String(d.mes || "").split("-").map(Number);
+      const tema = String(d.tema || "").replace(/[&<>"]/g, "");
+      return `
+      <div class="sky">${estrelas(1600, 1000, 170, 11)}</div>
+      <div class="roda">${roda({ mes: m || 0, signos: d.signos, id: "w" })}
+        <div class="med"><img src="${d.foto}" alt=""></div></div>
+      <div class="shade"></div>
+      ${
+        d.titulo
+          ? headline({ ...d, linha: d.linha || tema })
+          : `<div class="mo">
+              <span class="k">${d.programa}</span>
+              ${m ? `<h2>${MESES[m - 1]}</h2><span class="yr">de ${ano}</span>` : ""}
+              ${tema ? `<p class="tema">${tema}</p>` : ""}
+            </div>`
+      }
+      <div class="by"><b>${d.autor}</b>${d.titulo ? "" : `<span>${d.kickerPrograma}</span>`}</div>
+      <div class="bar"></div>`;
+    },
+    css: `
+.ceu{background:radial-gradient(110% 130% at 75% 45%,#33226a 0%,#1b1443 42%,#0b0a20 100%)}
+.ceu .sky{position:absolute;inset:0}
+.ceu .sky svg{width:100%;height:100%;display:block}
+.ceu .roda{position:absolute;right:calc(-14*var(--u));top:calc(15*var(--u));width:calc(600*var(--u));height:calc(600*var(--u))}
+.ceu .roda svg{width:100%;height:100%;display:block}
+.ceu .med{position:absolute;left:50%;top:50%;width:calc(74*var(--u));height:calc(74*var(--u));transform:translate(-50%,-50%);border-radius:50%;overflow:hidden;
+  box-shadow:0 0 0 calc(2*var(--u)) #e3c27e,0 0 calc(30*var(--u)) rgba(150,120,255,.45)}
+.ceu .med img{width:100%;height:100%;object-fit:cover;transform:scale(1.07)}
+.ceu .shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,10,32,.9) 0%,rgba(11,10,32,.55) 34%,rgba(11,10,32,0) 52%)}
+.ceu .k{display:flex;align-items:center;gap:calc(14*var(--u));font:600 calc(14*var(--u))/1 Inter;letter-spacing:.3em;text-transform:uppercase;color:#e3c27e}
+.ceu .k::after{content:"";flex:0 0 calc(64*var(--u));height:1px;background:linear-gradient(90deg,#e3c27e,rgba(227,194,126,0))}
+.ceu .mo{position:absolute;left:calc(40*var(--u));top:calc(206*var(--u));width:calc(380*var(--u))}
+.ceu .mo h2{margin-top:calc(22*var(--u));font:600 calc(62*var(--u))/1 Cinzel;color:#f3eeff;letter-spacing:.01em;text-shadow:0 0 calc(24*var(--u)) rgba(120,90,230,.45)}
+.ceu .mo .yr{display:block;margin-top:calc(10*var(--u));font:500 calc(30*var(--u))/1 Cinzel;letter-spacing:.12em;color:#e3c27e}
+.ceu .mo .tema{margin-top:calc(26*var(--u));font:italic 500 calc(30*var(--u))/1.15 Cormorant;color:#d9d1f2}
+.ceu .tx{position:absolute;left:calc(40*var(--u));top:calc(180*var(--u));padding:calc(6*var(--u)) 0 calc(10*var(--u));width:48%;max-height:calc(330*var(--u));overflow:hidden}
+.ceu h1{margin-top:calc(20*var(--u));font:600 calc(54*var(--u))/1.1 Cinzel;color:#f3eeff;letter-spacing:.005em;text-shadow:0 0 calc(24*var(--u)) rgba(120,90,230,.45)}
+.ceu h1 em{font-style:normal;color:#e3c27e}
+.ceu .tx p{margin-top:calc(14*var(--u));font:italic 500 calc(25*var(--u))/1.25 Cormorant;color:#d9d1f2}
+.ceu .by{position:absolute;left:calc(40*var(--u));bottom:calc(38*var(--u));display:flex;flex-direction:column;gap:calc(10*var(--u))}
+.ceu .by b{font:500 calc(26*var(--u))/1 Cinzel;letter-spacing:.06em;color:#f3eeff}
+.ceu .by span{font:600 calc(13*var(--u))/1 Inter;letter-spacing:.26em;text-transform:uppercase;color:#b9a8ec}
+.ceu .bar{position:absolute;left:0;right:0;bottom:0;height:calc(5*var(--u));background:linear-gradient(90deg,#8a6fe0 0 24%,#e3c27e 24%)}`,
   },
 };
