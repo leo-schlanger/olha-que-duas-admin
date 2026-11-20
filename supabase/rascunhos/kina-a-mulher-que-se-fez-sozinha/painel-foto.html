@@ -1,0 +1,123 @@
+<!doctype html><html lang="pt-PT"><head><meta charset="utf-8">
+<!-- Kina cover panel with the real photo (sent by Leo, 20/11/2026: direct permission from the subject).
+     The face stays untouched: no element crosses it (face box drawn with #dbg=1).
+     #f=capa -> painel-foto-capa.jpg (1600x1000, foto of the cover); #f=og -> painel-foto-og.jpg (fotoOg).
+     Render: W=1600 H=1000 node scripts/capas/programa/render.mjs "painel-foto.html#f=capa" painel-foto-capa.jpg -->
+<style>
+@font-face{font-family:Cormorant;src:url("../../../scripts/capas/fonts/CormorantGaramond[wght].ttf");font-weight:300 700}
+@font-face{font-family:Cormorant;src:url("../../../scripts/capas/fonts/CormorantGaramond-Italic[wght].ttf");font-weight:300 700;font-style:italic}
+@font-face{font-family:Inter;src:url("../../../scripts/capas/fonts/Inter[opsz,wght].ttf");font-weight:100 900}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1600px;height:1000px;overflow:hidden;background:#0a101c}
+svg{display:block}
+</style></head><body>
+<svg id="s" width="1600" height="1000" viewBox="0 0 1600 1000" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+  <radialGradient id="glow" cx="360" cy="420" r="820" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#1d2a45"/><stop offset=".55" stop-color="#101a2d"/><stop offset="1" stop-color="#0a101c"/>
+  </radialGradient>
+  <linearGradient id="cone" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff3dc" stop-opacity=".30"/><stop offset=".7" stop-color="#fff3dc" stop-opacity=".07"/><stop offset="1" stop-color="#fff3dc" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2a3550"/><stop offset="1" stop-color="#121b2e"/>
+  </linearGradient>
+  <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff3dc" stop-opacity=".0"/><stop offset=".35" stop-color="#fff3dc" stop-opacity=".16"/><stop offset="1" stop-color="#fff3dc" stop-opacity="0"/>
+  </linearGradient>
+  <!-- tulle net: fine diamond mesh -->
+  <pattern id="net" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(28)">
+    <path d="M0 4.5 L4.5 0 L9 4.5 L4.5 9 Z" fill="none" stroke="#fbe6ea" stroke-width=".7" stroke-opacity=".55"/>
+  </pattern>
+  <linearGradient id="tulA" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#f3c6cf" stop-opacity=".0"/><stop offset=".35" stop-color="#f3c6cf" stop-opacity=".42"/><stop offset="1" stop-color="#e59aab" stop-opacity=".18"/>
+  </linearGradient>
+  <linearGradient id="tulB" x1="1" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fbf6ec" stop-opacity=".05"/><stop offset=".5" stop-color="#fbf6ec" stop-opacity=".32"/><stop offset="1" stop-color="#f3c6cf" stop-opacity=".05"/>
+  </linearGradient>
+  <filter id="veil" filterUnits="userSpaceOnUse" x="0" y="0" width="1600" height="1000"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <filter id="soft" filterUnits="userSpaceOnUse" x="0" y="0" width="1600" height="1000">
+    <feTurbulence type="fractalNoise" baseFrequency=".008 .02" numOctaves="2" seed="7"/>
+    <feDisplacementMap in="SourceGraphic" scale="12"/>
+  </filter>
+  <linearGradient id="tape" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#f3dc9a"/><stop offset=".5" stop-color="#fae9b6"/><stop offset="1" stop-color="#e9c98a"/>
+  </linearGradient>
+  <linearGradient id="gold" x1="0" y1="-14" x2="40" y2="48" gradientUnits="userSpaceOnUse" spreadMethod="reflect">
+    <stop offset="0" stop-color="#f6e3b0"/><stop offset=".45" stop-color="#d8b980"/><stop offset="1" stop-color="#9c7a3e"/>
+  </linearGradient>
+  <path id="tapePath" d=""/>
+  <!-- safety pin, drawn pointing right, 260 long -->
+  <g id="pin">
+    <path d="M18 0 C-6 0 -6 30 18 30 L232 30" fill="none" stroke="url(#gold)" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M18 0 L210 0" fill="none" stroke="url(#gold)" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M200 -12 h46 a16 16 0 0 1 16 16 v22 a16 16 0 0 1 -16 16 h-46 z" fill="url(#gold)" stroke="#7d5f2c" stroke-width="1.5"/>
+    <path d="M206 -4 h36" stroke="#fff6dc" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="18" cy="15" r="9" fill="none" stroke="url(#gold)" stroke-width="4"/>
+  </g>
+</defs>
+
+<g id="z"></g>
+</svg>
+<script>
+const P = new URLSearchParams(location.hash.slice(1)), f = P.get("f") || "capa";
+const PHOTO = "kina-foto-leo-2011.png";
+// photo square placed full height; face box in photo px (1440): x 500-880, y 250-660
+const L = {
+  capa: { px: 600, fade: [[600, 880]], G: [700, 640], name: true, run: [300, 380], tape: "M -20 700 C 300 640, 520 770, 820 770 S 1300 850, 1640 810",
+          beja: 0.12, madrid: 0.86, pins: [[700, 640, -70, 1], [1300, 900, -24, .85], [470, 110, 14, .7]], fan: [168, 282] },
+  og:   { px: 300, fade: [[300, 470], [1300, 1130]], G: [1150, 640], name: false, run: [1240, 1310], tape: "M -20 820 C 300 760, 520 860, 820 850 S 1200 880, 1640 830",
+          beja: 0.3, madrid: 0.72, pins: [[1150, 640, -110, 1], [1080, 920, -24, .85]], fan: [272, 372] },
+}[f];
+const s = 1000 / 1440, face = [L.px + 500 * s, 250 * s, L.px + 880 * s, 660 * s];
+document.getElementById("tapePath").setAttribute("d", L.tape);
+let h = `<rect width="1600" height="1000" fill="url(#glow)"/>`;
+// runway with spotlight, behind everything
+const [r0, r1] = L.run;
+h += `<path d="M${r0 - 60} -20 L${r1 + 60} -20 L${r1 + 420} 1000 L${r0 - 420} 1000 Z" fill="url(#cone)"/>
+  <path d="M${r0} 470 L${r1} 470 L${r1 + 420} 1000 L${r0 - 420} 1000 Z" fill="url(#floor)"/><path d="M${r0} 470 L${r1} 470 L${r1 + 420} 1000 L${r0 - 420} 1000 Z" fill="url(#sheen)"/>`;
+for (let i = 0; i <= 12; i++) { const e = (i / 12) ** 2, y = 470 + 530 * e, r = 1.5 + 6 * e;
+  h += `<circle cx="${r0 + (-420) * e}" cy="${y}" r="${r}" fill="#f2c97a"/><circle cx="${r1 + 420 * e}" cy="${y}" r="${r}" fill="#f2c97a"/>`; }
+// photo with soft edges into the night blue
+let stops = "";
+h += `<defs><linearGradient id="fadeG" gradientUnits="userSpaceOnUse" x1="${L.px}" y1="0" x2="${L.px + 1000}" y2="0">
+  <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="${(L.fade[0][1] - L.px) / 1000}" stop-color="#fff"/>
+  ${L.fade[1] ? `<stop offset="${(L.fade[1][1] - L.px) / 1000}" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>` : `<stop offset="1" stop-color="#fff"/>`}
+  </linearGradient><mask id="fadeM" maskUnits="userSpaceOnUse" x="0" y="0" width="1600" height="1000"><rect x="${L.px}" y="0" width="1000" height="1000" fill="url(#fadeG)"/></mask></defs>
+  <image href="${PHOTO}" x="${L.px}" y="0" width="1000" height="1000" mask="url(#fadeM)" preserveAspectRatio="xMidYMid slice"/>`;
+// tulle fan gathered under the first pin, kept left of the face
+const rnd = (i) => (Math.sin(i * 12.9898) * 43758.5453) % 1, G = L.G;
+let tul = "";
+for (let i = 0; i < 12; i++) {
+  const a0 = (L.fan[0] + i * (L.fan[1] - L.fan[0] - 18) / 11 + rnd(i) * 5) * Math.PI / 180, span = (14 + Math.abs(rnd(i + 3)) * 7) * Math.PI / 180;
+  const R = 380 + Math.abs(rnd(i + 7)) * 300, st = 7;
+  let d = `M${G[0]} ${G[1]}`;
+  for (let j = 0; j <= st; j++) {
+    const a = a0 + span * j / st, r = R * (1 + (j % 2 ? .05 : -.03)), x = G[0] + Math.cos(a) * r, y = G[1] + Math.sin(a) * r * .8;
+    if (!j) d += ` Q${G[0] + Math.cos(a - .25) * r * .5} ${G[1] + Math.sin(a - .25) * r * .4} ${x} ${y}`;
+    else { const am = a - span / st / 2, rm = r * 1.07; d += ` Q${G[0] + Math.cos(am) * rm} ${G[1] + Math.sin(am) * rm * .8} ${x} ${y}`; }
+  }
+  const a1 = a0 + span; d += ` Q${G[0] + Math.cos(a1 + .25) * R * .5} ${G[1] + Math.sin(a1 + .25) * R * .4} ${G[0]} ${G[1]} Z`;
+  const col = i % 3 === 1 ? "#fbf6ec" : "#f1bfcb";
+  tul += `<path d="${d}" fill="${col}" fill-opacity="${(.08 + Math.abs(rnd(i + 11)) * .07).toFixed(3)}" filter="url(#veil)"/><path d="${d}" fill="url(#net)" opacity=".32"/><path d="${d}" fill="none" stroke="${col}" stroke-opacity=".28" stroke-width="1.2"/>`;
+}
+h += `<g filter="url(#soft)">${tul}</g>`;
+if (L.name) h += `<text x="70" y="470" font-family="Cormorant" font-style="italic" font-weight="600" font-size="250" fill="#fbf6ec" letter-spacing="-3">Kina</text>`;
+// tailor's tape Beja -> Madrid
+h += `<use href="#tapePath" fill="none" stroke="#000" stroke-opacity=".4" stroke-width="58" transform="translate(6 12)"/>
+  <use href="#tapePath" fill="none" stroke="url(#tape)" stroke-width="52"/>
+  <use href="#tapePath" fill="none" stroke="#3b2a12" stroke-width="16" stroke-dasharray="2 10.6" transform="translate(0 -15)" opacity=".85"/>
+  <use href="#tapePath" fill="none" stroke="#3b2a12" stroke-width="26" stroke-dasharray="2.4 50.6" transform="translate(0 -11)" opacity=".9"/>
+  <text font-family="Inter" font-weight="700" font-size="17" fill="#3b2a12"><textPath href="#tapePath" id="nums"></textPath></text><g id="route"></g>`;
+for (const [x, y, r, k] of L.pins) h += `<use href="#pin" transform="translate(${x} ${y}) rotate(${r}) scale(${k})"/>`;
+if (P.get("dbg")) h += `<rect x="${face[0]}" y="${face[1]}" width="${face[2] - face[0]}" height="${face[3] - face[1]}" fill="none" stroke="#0f0" stroke-width="3"/>`;
+document.getElementById("z").innerHTML = h;
+let n = ""; for (let i = 1; i < 34; i++) n += String(i).padStart(2, "\u2007") + "\u2003\u2003\u2003\u2003\u2003";
+document.getElementById("nums").textContent = n;
+const tp = document.getElementById("tapePath"), len = tp.getTotalLength(), R = document.getElementById("route");
+for (const [t, lab] of [[L.beja, "BEJA"], [L.madrid, "MADRID"]]) {
+  const p = tp.getPointAtLength(len * t);
+  R.insertAdjacentHTML("beforeend", `<circle cx="${p.x}" cy="${p.y}" r="11" fill="#c8313f" stroke="#fbf6ec" stroke-width="3"/>
+    <text x="${p.x}" y="${p.y - 44}" text-anchor="middle" font-family="Inter" font-weight="800" font-size="24" letter-spacing="7" fill="#fff" stroke="#0a101c" stroke-width="5" paint-order="stroke">${lab}</text>`);
+}
+</script></body></html>

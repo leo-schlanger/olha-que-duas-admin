@@ -60,7 +60,7 @@ export const programas = {
     retrato: "",
     classe: "cb",
     html: (d) => `
-      <div class="ph" style="background-image:url('${d.foto}');background-position:${d.foco}"></div>
+      <div class="ph" style="background-image:url('${d.formato === "og" && d.fotoOg ? d.fotoOg : d.foto}');background-position:${d.foco}"></div>
       <div class="shade"></div>
       <div class="frame"></div>
       ${headline(d)}

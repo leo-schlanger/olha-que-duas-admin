@@ -1,8 +1,9 @@
 {
   "slug": "kina-a-mulher-que-se-fez-sozinha",
   "programa": "curtas-biografias",
-  "foto": "../../../supabase/rascunhos/kina-a-mulher-que-se-fez-sozinha/painel.jpg",
-  "foco": "85% 50%",
+  "foto": "../../../supabase/rascunhos/kina-a-mulher-que-se-fez-sozinha/painel-foto-capa.jpg",
+  "fotoOg": "../../../supabase/rascunhos/kina-a-mulher-que-se-fez-sozinha/painel-foto-og.jpg",
+  "foco": "50% 50%",
   "titulo": "Kina, *a mulher que se fez sozinha*",
   "linha": "De Beja a Madrid"
 }
