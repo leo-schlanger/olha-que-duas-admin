@@ -10,8 +10,8 @@ INSERT INTO vinagre_posts (
   is_published, published_at, program_id, author, seo_title, seo_description
 )
 VALUES (
-  'lendas-de-portugal` (não muda)',
-  $t$Lendas de Portugal (não muda)$t$,
+  'lenda-encoberto-d-sebastiao',
+  $t$O Encoberto: D. Sebastião e a manhã de nevoeiro$t$,
   $t$A 4 de agosto de 1578, D. Sebastião foi visto pela última vez em Alcácer-Quibir. Portugal ficou à espera de que voltasse numa manhã de nevoeiro.$t$,
   $lenda6$<p>Antes da Restauração, houve um rei no nevoeiro. Perdeu-se numa batalha em Marrocos, e Portugal passou séculos à espera dele.</p>
 <h2>D. Sebastião, o Desejado</h2>
