@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 function postUrl(programSlug: string, postSlug: string): string {
-  return `https://www.olhaqueduas.com/exclusivo/${programSlug}/${postSlug}`;
+  return `https://www.olhaqueduas.com/programas/${programSlug}/${postSlug}`;
 }
 
 interface FormState {
@@ -166,7 +166,7 @@ export function Vinagre() {
       )}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="font-display text-lg font-bold text-charcoal">Especiais Olha que Duas</h2>
+          <h2 className="font-display text-lg font-bold text-charcoal">Programas</h2>
           <p className="text-sm text-muted-foreground">
             Cada programa tem as suas notícias. O que publicares aparece no separador do site.
           </p>
@@ -507,7 +507,7 @@ function ProgramEditor({
               }}
             />
             <p className="break-all text-xs text-muted-foreground">
-              olhaqueduas.com/exclusivo/{slugify(slug || title) || '…'}
+              olhaqueduas.com/programas/{slugify(slug || title) || '…'}
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -718,7 +718,7 @@ function Editor({
           <Card>
             <CardContent className="space-y-4 p-5">
               <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7a5b16]">
-                Especiais Olha que Duas
+                Programas
               </p>
               <div className="space-y-2">
                 <Label htmlFor="vinagre-title" className="sr-only">Título</Label>
