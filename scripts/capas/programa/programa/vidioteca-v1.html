@@ -1,0 +1,91 @@
+<!doctype html><html lang="pt"><head><meta charset="utf-8">
+<!-- Vidioteca Olha que Duas — program card (900x1200): home cinema at night. Projector beam over two
+     viewers on a sofa onto a wall screen that shows the Vidioteca clapperboard. Plum/gold of the radio cover. -->
+<link rel="stylesheet" href="_base.css">
+<style>
+:root{--plum:#2b1035;--plum-9:#110716;--gold:#ebc247;--red:#db3c24;--cream:#fff6e4}
+.c{background:radial-gradient(120% 80% at 40% 30%,#3a1645,#1a0a22 55%,#0b040e)}
+/* wall texture: faint vertical panels */
+.wall{position:absolute;inset:0 0 360px 0;opacity:.35;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 2px,transparent 2px 150px)}
+/* screen on the wall, lit by the projector */
+.screen{position:absolute;left:96px;top:236px;width:620px;height:372px;border-radius:6px;
+  background:radial-gradient(90% 90% at 70% 40%,#fff3d6,#f2d9a8 45%,#c99a5c 100%);
+  box-shadow:0 0 0 10px #140818,0 0 120px 40px rgba(255,214,140,.30),0 0 260px 90px rgba(235,194,71,.14)}
+.screen::after{content:"";position:absolute;inset:0;border-radius:6px;box-shadow:inset 0 0 70px rgba(80,30,10,.45)}
+.screen img{position:absolute;left:50%;top:50%;width:400px;transform:translate(-50%,-52%);filter:drop-shadow(0 14px 18px rgba(60,20,10,.35))}
+/* light spill on the wall around the screen */
+.spill{position:absolute;left:-60px;top:110px;width:960px;height:640px;
+  background:radial-gradient(50% 50% at 46% 52%,rgba(255,214,150,.18),transparent 70%);mix-blend-mode:screen}
+/* projector beam: from top right towards the screen */
+.beam{position:absolute;inset:0;mix-blend-mode:screen;filter:blur(10px);
+  background:linear-gradient(200deg,rgba(255,236,190,.55),rgba(255,226,170,.10) 60%,rgba(255,226,170,0));
+  clip-path:polygon(842px 196px,866px 214px,716px 608px,96px 608px,96px 236px,716px 236px)}
+.beam2{position:absolute;inset:0;mix-blend-mode:screen;filter:blur(3px);opacity:.7;
+  background:linear-gradient(200deg,rgba(255,240,205,.5),rgba(255,240,205,0) 55%);
+  clip-path:polygon(846px 200px,862px 210px,560px 470px,520px 430px)}
+.dust{position:absolute;inset:0;mix-blend-mode:screen;clip-path:polygon(842px 196px,866px 214px,716px 608px,96px 608px,96px 236px,716px 236px)}
+.dust i{position:absolute;border-radius:50%;background:#fff1cf}
+.proj{position:absolute;left:820px;top:170px;width:120px;height:70px;border-radius:14px;background:#0e0610;box-shadow:inset 0 2px 0 rgba(255,255,255,.08)}
+.proj::before{content:"";position:absolute;left:12px;top:22px;width:30px;height:30px;border-radius:50%;
+  background:radial-gradient(circle,#fff 0 20%,#ffe6a6 40%,rgba(255,200,90,.0) 72%);box-shadow:0 0 40px 18px rgba(255,226,160,.6)}
+/* sofa + two viewers, silhouettes rim-lit by the screen */
+.sofa{position:absolute;left:0;top:560px;width:900px;height:420px}
+.floor{position:absolute;left:0;right:0;top:860px;bottom:0;background:linear-gradient(rgba(13,5,16,0),#0b040e 110px,#060208)}
+.tx{position:absolute;left:0;right:0;top:948px;text-align:center}
+.kick{font:600 22px/1 Inter;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);opacity:.95}
+h1{font:700 150px/1 Playfair;color:var(--cream);letter-spacing:-.01em;margin-top:0;text-shadow:0 6px 30px rgba(0,0,0,.6)}
+.sub{font:italic 500 46px/1 Playfair;color:var(--gold);margin-top:16px}
+.bar{position:absolute;left:0;bottom:0;height:10px;width:100%;background:linear-gradient(90deg,var(--red) 0 34%,var(--gold) 34%)}
+.logo{left:40px;top:40px;width:150px;height:150px;filter:drop-shadow(0 6px 16px rgba(0,0,0,.6))}
+.grain{mix-blend-mode:overlay;opacity:.5}
+</style></head><body>
+<div class="c">
+  <div class="wall"></div>
+  <div class="spill"></div>
+  <div class="screen"><img src="../assets/programas/vidioteca-claquete-transp.svg" alt=""></div>
+  <div class="beam"></div><div class="beam2"></div>
+  <div class="dust" id="dust"></div>
+  <div class="proj"></div>
+  <svg class="sofa" viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0c27a" stop-opacity=".55"/><stop offset=".12" stop-color="#f0c27a" stop-opacity="0"/></linearGradient>
+    </defs>
+    <!-- two heads + shoulders, leaning in -->
+    <g fill="#08030a">
+      <ellipse cx="318" cy="150" rx="58" ry="68"/>
+      <path d="M196 330 C206 250 252 214 318 214 C384 214 426 252 438 330Z"/>
+      <rect x="296" y="200" width="44" height="40" rx="10"/>
+      <ellipse cx="536" cy="160" rx="54" ry="64"/><path d="M478 170 C470 110 520 92 548 96 C600 104 606 160 598 200 C596 236 610 262 620 280 L452 280 C470 256 482 220 478 170Z"/>
+      <path d="M424 330 C436 258 478 222 536 222 C596 222 640 258 650 330Z"/>
+    </g>
+    <!-- rim light on heads -->
+    <g fill="none" stroke="#f3cf8a" stroke-width="3" opacity=".55">
+      <path d="M266 118 C272 74 366 68 376 126"/>
+      <path d="M480 160 C482 112 520 94 548 96 C588 100 602 136 600 172"/>
+    </g>
+    <g transform="translate(0 70)">
+    <!-- sofa back + arms -->
+    <path d="M60 262 C60 236 80 224 110 224 L790 224 C820 224 840 236 840 262 L840 420 L60 420Z" fill="#1c0b22"/>
+    <path d="M60 262 C60 236 80 224 110 224 L790 224 C820 224 840 236 840 262" fill="none" stroke="#e7b86a" stroke-opacity=".35" stroke-width="3"/>
+    <path d="M20 300 C20 274 40 262 70 262 L120 262 C140 262 150 276 150 296 L150 420 L20 420Z" fill="#14081a"/>
+    <path d="M750 296 C750 276 760 262 780 262 L830 262 C860 262 880 274 880 300 L880 420 L750 420Z" fill="#14081a"/>
+    <path d="M20 300 C20 274 40 262 70 262 L120 262 M780 262 L830 262 C860 262 880 274 880 300" fill="none" stroke="#e7b86a" stroke-opacity=".3" stroke-width="3"/>
+    </g>
+    <!-- popcorn bowl on the arm -->
+    <path d="M770 252 L862 252 L850 296 C846 306 786 306 782 296Z" fill="#db3c24"/>
+    <path d="M778 262 L854 262" stroke="#ebc247" stroke-width="5"/>
+    <g fill="#fff3d6"><circle cx="784" cy="246" r="12"/><circle cx="804" cy="238" r="14"/><circle cx="826" cy="240" r="13"/><circle cx="846" cy="247" r="11"/><circle cx="815" cy="226" r="10"/></g>
+  </svg>
+  <div class="floor"></div>
+  <img class="logo" src="../assets/logo.webp" alt="Olha que Duas">
+  <div class="tx"><h1>Vidioteca</h1><div class="sub">Filmes para ver em casa</div></div>
+  <div class="bar"></div>
+  <div class="grain"></div>
+</div>
+<script>
+// deterministic dust specks inside the beam
+let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;const d=document.getElementById("dust");
+for(let i=0;i<90;i++){const e=document.createElement("i");const z=r()*3+1;Object.assign(e.style,{left:(96+r()*780)+"px",top:(200+r()*410)+"px",width:z+"px",height:z+"px",opacity:(.15+r()*.55).toFixed(2)});d.appendChild(e);}
+</script>
+</body></html>

@@ -1,0 +1,71 @@
+<!doctype html><html lang="pt"><head><meta charset="utf-8">
+<!-- Entrevistas — program card (900x1200): editorial, cream paper. Two studio broadcast mics on boom arms
+     face each other from both sides; the gap between them is the conversation (two sound arcs + "ON AIR"
+     light in OQD red). Playfair title, no guest names (they would date the cover). -->
+<link rel="stylesheet" href="_base.css">
+<style>
+.c{background:radial-gradient(110% 70% at 50% 30%,#f6eedc,#efe5d0 55%,#e2d3b2)}
+.rule{position:absolute;left:60px;right:60px;height:0;border-top:2px solid var(--tinta)}
+.rule.thin{border-top-width:1px;opacity:.6}
+.eyebrow{position:absolute;left:60px;right:60px;top:210px;display:flex;justify-content:space-between;
+  font:600 21px/1 Inter;letter-spacing:.28em;text-transform:uppercase;color:var(--tinta)}
+.eyebrow b{color:var(--vermelho);font-weight:700}
+.mics{position:absolute;left:0;top:200px;width:900px;height:520px}
+.tx{position:absolute;left:60px;right:60px;top:790px}
+h1{font:italic 800 150px/.9 Playfair;color:var(--bordo);letter-spacing:-.025em;margin-left:-6px}
+.deck{margin-top:26px;font:500 38px/1.2 Playfair;color:var(--tinta)}
+.deck i{color:var(--vermelho)}
+.foot{position:absolute;left:60px;right:60px;bottom:52px;display:flex;justify-content:space-between;align-items:center;
+  font:600 19px/1 Inter;letter-spacing:.22em;text-transform:uppercase;color:var(--tinta);opacity:.85}
+.onair{display:inline-flex;align-items:center;gap:10px;color:var(--vermelho)}
+.onair::before{content:"";width:14px;height:14px;border-radius:50%;background:var(--vermelho);box-shadow:0 0 12px rgba(200,36,27,.7)}
+.logo{left:60px;top:44px;width:140px;height:140px;filter:drop-shadow(0 6px 14px rgba(60,20,10,.25))}
+.mast{position:absolute;right:60px;top:92px;text-align:right;font:italic 500 30px/1.1 Playfair;color:var(--tinta)}
+.mast small{display:block;font:600 16px/1 Inter;font-style:normal;letter-spacing:.26em;text-transform:uppercase;margin-top:10px;opacity:.7}
+.grain{opacity:.5}
+</style></head><body>
+<div class="c">
+  <img class="logo" src="../assets/logo.webp" alt="Olha que Duas">
+  <div class="mast">Conversas<br>Olha que Duas</div>
+  <div class="rule" style="top:196px"></div>
+  <div class="eyebrow"><span>Em vídeo</span><b>Na íntegra</b></div>
+  <svg class="mics" viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2a2c"/><stop offset=".45" stop-color="#1c0a0e"/><stop offset="1" stop-color="#0e0507"/></linearGradient>
+      <linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9cfc0"/><stop offset=".5" stop-color="#8d8172"/><stop offset="1" stop-color="#4a4038"/></linearGradient>
+      <pattern id="mesh" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#1c0a0e"/><circle cx="5" cy="5" r="2.6" fill="#4b3a3c"/></pattern>
+      <!-- one mic pointing right, capsule tip at the origin side -->
+      <g id="mic">
+        <!-- boom arm from the edge -->
+        <path d="M-40 360 L120 300 L170 210" fill="none" stroke="#1c0a0e" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M-40 380 L120 318" fill="none" stroke="#1c0a0e" stroke-width="6" stroke-linecap="round" opacity=".7"/>
+        <circle cx="120" cy="306" r="13" fill="#c8241b"/>
+        <!-- shock mount ring -->
+        <ellipse cx="200" cy="200" rx="26" ry="88" fill="none" stroke="url(#chrome)" stroke-width="10"/>
+        <!-- body + mesh head -->
+        <rect x="120" y="160" width="140" height="80" rx="16" fill="url(#body)"/>
+        <rect x="250" y="146" width="150" height="108" rx="54" fill="url(#mesh)" stroke="url(#chrome)" stroke-width="7"/>
+        <rect x="300" y="146" width="10" height="108" fill="url(#chrome)"/>
+        <rect x="128" y="172" width="120" height="8" rx="4" fill="#fff" opacity=".12"/>
+        <rect x="140" y="214" width="48" height="12" rx="3" fill="#c8241b"/>
+      </g>
+    </defs>
+    <g transform="translate(450 260) scale(1.14) translate(-450 -230)">
+    <use href="#mic" transform="translate(0 40) rotate(-6 200 200)"/>
+    <use href="#mic" transform="translate(900 40) scale(-1 1) rotate(-6 200 200)"/>
+    <!-- conversation: arcs from each capsule meeting in the middle -->
+    <g fill="none" stroke-linecap="round">
+      <path d="M432 190 Q446 240 432 290" stroke="#c8241b" stroke-width="7"/>
+      <path d="M408 168 Q432 240 408 312" stroke="#c8241b" stroke-width="5" opacity=".55"/>
+      <path d="M468 190 Q454 240 468 290" stroke="#5c0f20" stroke-width="7"/>
+      <path d="M492 168 Q468 240 492 312" stroke="#5c0f20" stroke-width="5" opacity=".55"/>
+    </g>
+    </g>
+  </svg>
+  <div class="rule thin" style="top:766px"></div>
+  <div class="tx"><h1>Entrevistas</h1><div class="deck">Frente a frente, <i>sem pressa</i>.</div></div>
+  <div class="rule" style="top:1110px"></div>
+  <div class="foot"><span>Rádio Olha que Duas</span><span style="color:var(--vermelho)">olhaqueduas.com</span></div>
+  <div class="grain"></div>
+</div>
+</body></html>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%"><defs>
+  <radialGradient id="ibg" cx="50%" cy="42%" r="72%"><stop offset="0" stop-color="#45194F"/><stop offset=".5" stop-color="#2B1035"/><stop offset="1" stop-color="#110716"/></radialGradient>
+  <radialGradient id="ispot" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#EBC247" stop-opacity=".30"/><stop offset=".55" stop-color="#EBC247" stop-opacity=".08"/><stop offset="1" stop-color="#EBC247" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="512" height="512" fill="url(#ibg)"/>
+<ellipse cx="256" cy="300" rx="250" ry="210" fill="url(#ispot)"/><g transform="translate(256 262) scale(1.06) translate(-256 -262)">
+<defs>
+  <pattern id="ist" patternUnits="userSpaceOnUse" width="92" height="92" patternTransform="rotate(-35)"><rect width="92" height="92" fill="#1A0B1F"/><rect width="46" height="92" fill="#DB3C24"/></pattern>
+  <linearGradient id="ibody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFBF2"/><stop offset="1" stop-color="#E9DFCD"/></linearGradient>
+  <radialGradient id="ish" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+</defs>
+<ellipse cx="262" cy="450" rx="210" ry="28" fill="url(#ish)"/>
+<g>
+  <rect x="68" y="268" width="376" height="172" rx="16" fill="url(#ibody)" stroke="#EBC247" stroke-width="7"/>
+  <rect x="68" y="268" width="376" height="58" rx="10" fill="url(#ist)" stroke="#EBC247" stroke-width="7"/>
+  <g stroke="#5B3A63" stroke-width="7" stroke-linecap="round" opacity=".55"><path d="M100 372H412M100 410H412M256 340V372"/></g>
+</g>
+<g transform="rotate(-17 76 262)">
+  <rect x="68" y="204" width="376" height="58" rx="10" fill="url(#ist)" stroke="#EBC247" stroke-width="7"/>
+</g>
+<circle cx="86" cy="264" r="17" fill="#EBC247" stroke="#B88A26" stroke-width="4"/>
+<circle cx="86" cy="264" r="6" fill="#B88A26"/></g></svg>

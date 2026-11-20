@@ -1,0 +1,48 @@
+<!doctype html><html lang="pt"><head><meta charset="utf-8">
+<!-- Cantinho da Pequenada — program card (900x1200): the real Cantinho sticker (cut out from
+     src/assets/kids/cantinho-da-pequena.jpg of the site) as the protagonist, on a soft sky with sun rays,
+     confetti and a turquoise wave (the hoodie colour) carrying the tagline. -->
+<link rel="stylesheet" href="_base.css">
+<style>
+@font-face{font-family:Fraunces;src:url("../fonts/Fraunces[SOFT,WONK,opsz,wght].ttf");font-weight:100 900}
+:root{--tq:#16a8a6;--tq-9:#0b6f73;--or:#f7941d;--ye:#ffc93c;--pk:#ff6f91;--bl:#3a8dde;--cream:#fff8ea}
+.c{background:linear-gradient(#bfe6f6 0%,#dff2f8 38%,#fff4dc 70%)}
+.rays{position:absolute;left:450px;top:430px;width:1800px;height:1800px;margin:-900px 0 0 -900px;opacity:.45;
+  background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.75) 0 6deg,rgba(255,255,255,0) 6deg 15deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0 18%,transparent 55%)}
+.sun{position:absolute;left:450px;top:430px;width:640px;height:640px;margin:-320px 0 0 -320px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,236,170,.95),rgba(255,214,110,.35) 45%,rgba(255,214,110,0) 70%)}
+.conf{position:absolute;inset:0}
+.conf i{position:absolute;font-style:normal;font-family:Fraunces;font-weight:900}
+.selo{position:absolute;left:12px;top:236px;width:876px;filter:drop-shadow(0 18px 24px rgba(11,60,80,.28));transform:rotate(-2deg)}
+.wave{position:absolute;left:0;right:0;top:816px;bottom:0}
+.tx{position:absolute;left:0;right:0;top:888px;text-align:center;color:var(--cream)}
+.tx b{display:block;font:900 104px/.96 Fraunces;font-variation-settings:"SOFT" 100,"WONK" 1,"opsz" 96;letter-spacing:-.01em;
+  text-shadow:0 4px 0 var(--tq-9)}
+.tx span{display:block;margin-top:14px;font:700 32px/1 Fraunces;font-variation-settings:"SOFT" 100,"opsz" 36;color:#fff3c4}
+.dots{position:absolute;left:0;right:0;bottom:40px;display:flex;justify-content:center;gap:14px}
+.dots u{width:18px;height:18px;border-radius:50%}
+.logo{left:40px;top:40px;width:150px;height:150px;filter:drop-shadow(0 6px 14px rgba(11,60,80,.35))}
+</style></head><body>
+<div class="c">
+  <div class="rays"></div><div class="sun"></div>
+  <div class="conf" id="conf"></div>
+  <img class="selo" src="../assets/programas/cantinho-selo.png" alt="O Cantinho da Pequenada com a Leonor">
+  <svg class="wave" viewBox="0 0 900 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 22 C120 0 230 0 340 14 C460 30 560 30 680 12 C770 0 840 2 900 10 L900 380 L0 380Z" fill="#ffc93c"/>
+    <path d="M0 46 C120 24 230 24 340 38 C460 54 560 54 680 36 C770 24 840 26 900 34 L900 380 L0 380Z" fill="#0f8f92"/>
+    <g fill="#ffffff" opacity=".14"><circle cx="90" cy="250" r="40"/><circle cx="800" cy="300" r="60"/><circle cx="640" cy="210" r="18"/><circle cx="240" cy="330" r="22"/></g>
+  </svg>
+  <div class="tx"><b>Cantinho<br>da Pequenada</b><span>Música, histórias e dedicatórias</span></div>
+  <div class="dots"><u style="background:#f7941d"></u><u style="background:#ffc93c"></u><u style="background:#ff6f91"></u><u style="background:#3a8dde"></u><u style="background:#fff8ea"></u></div>
+  <img class="logo" src="../assets/logo.webp" alt="Olha que Duas">
+</div>
+<script>
+// deterministic confetti: stars and notes in the kid palette, kept out of the logo corner
+const cols=["#f7941d","#ffc93c","#ff6f91","#3a8dde","#16a8a6"],gl=["★","♪","●","★","♫"];
+let s=11;const r=()=>(s=(s*16807)%2147483647)/2147483647;const c=document.getElementById("conf");
+for(let i=0;i<34;i++){const x=r()*860+10,y=r()*800+10;if(x<230&&y<230)continue;const e=document.createElement("i");
+ const g=gl[i%gl.length];e.textContent=g;Object.assign(e.style,{left:x+"px",top:y+"px",color:cols[i%5],
+ fontSize:(g==="●"?10+r()*10:22+r()*26)+"px",transform:`rotate(${(r()*60-30).toFixed(0)}deg)`,opacity:(.55+r()*.4).toFixed(2)});c.appendChild(e);}
+</script>
+</body></html>

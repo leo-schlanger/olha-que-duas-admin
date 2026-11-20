@@ -1,0 +1,57 @@
+<!doctype html><html lang="pt"><head><meta charset="utf-8">
+<!-- Top 10 — program card (900x1200): concert stage, the real Top 10 medallion intact (slogan covered by a
+     neutral arc band, same geometry as Ep.10), countdown 10→1. ?dbg=1 shows the band at 35 %. -->
+<link rel="stylesheet" href="_base.css">
+<style>
+@font-face{font-family:Oswald;src:url("../fonts/Oswald[wght].ttf");font-weight:200 700}
+.c{background:#0a0203}
+.glow{position:absolute;inset:0;background:
+  radial-gradient(60% 42% at 50% 40%,rgba(216,18,10,.55),rgba(216,18,10,0) 70%),
+  radial-gradient(90% 60% at 50% 105%,rgba(255,214,24,.20),rgba(255,214,24,0) 60%),
+  linear-gradient(#170406,#0a0203 60%,#120304)}
+.beam{position:absolute;top:-80px;width:300px;height:1000px;transform-origin:50% 0;
+  background:linear-gradient(rgba(255,226,120,.30),rgba(255,226,120,0) 85%);filter:blur(14px);mix-blend-mode:screen}
+.lamp{position:absolute;top:-28px;width:70px;height:46px;border-radius:0 0 30px 30px;background:#1a1a1a;box-shadow:0 10px 30px rgba(255,220,120,.7)}
+.badge{position:absolute;left:50px;top:96px;width:800px;height:800px}
+.badge img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;
+  object-position:0 0;clip-path:circle(49.6% at 50% 50%);filter:drop-shadow(0 20px 40px rgba(0,0,0,.8))}
+.badge .ring{position:absolute;inset:-14px;border-radius:50%;box-shadow:0 0 0 6px rgba(255,214,24,.9),0 0 60px 10px rgba(255,214,24,.35)}
+.arc{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.count{position:absolute;left:0;right:0;top:985px;display:flex;justify-content:center;align-items:center;gap:10px}
+.count b{font:700 36px/1 Oswald;color:#ffd618;width:66px;height:66px;border-radius:50%;display:grid;place-items:center;
+  border:3px solid rgba(255,214,24,.55);background:rgba(0,0,0,.35)}
+.count b.one{background:#ffd618;color:#d8120a;border-color:#ffd618;width:104px;height:104px;font-size:64px;box-shadow:0 0 30px rgba(255,214,24,.6)}
+.tag{position:absolute;left:0;right:0;top:1018px;text-align:center;font:700 66px/1 Oswald;letter-spacing:.06em;color:#fff;text-transform:uppercase;
+  text-shadow:0 4px 0 #d8120a,0 8px 24px rgba(0,0,0,.6)}
+.tag i{font-style:normal;color:#ffd618}
+.lights{position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(transparent,rgba(216,18,10,.35));}
+.lights::before{content:"";position:absolute;left:0;right:0;bottom:26px;height:12px;
+  background:radial-gradient(circle,#ffe27a 0 5px,rgba(255,226,122,.35) 6px,transparent 9px) 0 0/45px 12px repeat-x;filter:drop-shadow(0 0 6px #ffd618)}
+</style></head><body>
+<div class="c">
+  <div class="glow"></div>
+  <div class="beam" style="left:40px;transform:rotate(-22deg)"></div>
+  <div class="beam" style="left:560px;transform:rotate(22deg)"></div>
+  <div class="lamp" style="left:150px"></div><div class="lamp" style="left:680px"></div>
+  <div class="badge">
+    <div class="ring"></div>
+    <!-- medallion bbox in the 1024 JPG: x109–922, y75–886 -->
+    <div style="position:absolute;inset:0;overflow:hidden;border-radius:50%">
+      <img src="../assets/programas/top10-medalhao.jpg" alt="" style="position:absolute;width:126.11%;height:126.11%;left:-13.43%;top:-9.24%;clip-path:none;filter:none">
+    </div>
+    <svg class="arc" id="arc" viewBox="109 75 812 812" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+  <div class="count"><b>10</b><b>9</b><b>8</b><b>7</b><b>6</b><b>5</b><b>4</b><b>3</b><b>2</b><b class="one">1</b></div>
+    <div class="lights"></div>
+</div>
+<script>
+const q=new URLSearchParams(location.search);
+{ const cx=515.5, cy=431, ri=342, ro=389, a0=38, a1=142, rb=377;
+  const P=(r,a)=>[(cx+r*Math.cos(a*Math.PI/180)).toFixed(1),(cy+r*Math.sin(a*Math.PI/180)).toFixed(1)].join(" ");
+  const band=`M${P(ro,a0)} A${ro} ${ro} 0 0 1 ${P(ro,a1)} L${P(ri,a1)} A${ri} ${ri} 0 0 0 ${P(ri,a0)} Z`;
+  const tp=`M${P(rb,150)} A${rb} ${rb} 0 0 0 ${P(rb,30)}`;
+  document.getElementById("arc").innerHTML=`<defs><path id="tp" d="${tp}"/></defs>
+   <path d="${band}" fill="#FFD618" fill-opacity="${q.get("dbg")?.35:1}" stroke="#050101" stroke-width="5" stroke-linejoin="round"/>
+   <text font-family="Oswald" font-weight="700" font-size="37" letter-spacing="2" fill="#D8120A"><textPath href="#tp" startOffset="50%" text-anchor="middle">★ A CONTAGEM DA SEMANA ★</textPath></text>`; }
+</script>
+</body></html>
