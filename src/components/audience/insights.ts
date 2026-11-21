@@ -163,13 +163,20 @@ export function retentionReading(days: number, o: InsightsOverview, x: InsightsE
   const sentences: string[] = [];
   if (o.median_session_minutes != null && total > 0) {
     sentences.push(
-      `Metade das vezes que alguém liga a rádio fica mais de ${hoursText(o.median_session_minutes / 60)} a ouvir.`,
+      `Metade das escutas de pelo menos 1 minuto dura mais de ${hoursText(o.median_session_minutes / 60)}.`,
     );
   }
   if (x && total > 0) {
-    sentences.push(
-      `${countWord(x.sessions_over_60, 'escuta passou', 'escutas passaram')} de 1 hora e ${countWord(x.sessions_under_5, 'durou', 'duraram')} menos de 5 minutos (em ${countWord(total, 'escuta', 'escutas')}).`,
-    );
+    const parts: string[] = [];
+    if (x.sessions_over_60 > 0) parts.push(`${countWord(x.sessions_over_60, 'escuta passou', 'escutas passaram')} de 1 hora`);
+    if (x.sessions_under_5 > 0) {
+      parts.push(
+        parts.length > 0
+          ? `${nf(x.sessions_under_5)} ${x.sessions_under_5 === 1 ? 'durou' : 'duraram'} menos de 5 minutos`
+          : `${countWord(x.sessions_under_5, 'escuta durou', 'escutas duraram')} menos de 5 minutos`,
+      );
+    }
+    if (parts.length > 0) sentences.push(`${parts.join(' e ')} (em ${countWord(total, 'escuta', 'escutas')}).`);
   }
   if (x && o.listeners > 0) {
     if (days > 1) {
@@ -179,7 +186,9 @@ export function retentionReading(days: number, o: InsightsOverview, x: InsightsE
     }
     if (x.prev_complete) {
       sentences.push(
-        `${nf(x.returning_listeners)} de ${countWord(o.listeners, 'ouvinte', 'ouvintes')} ${x.returning_listeners === 1 ? 'já tinha' : 'já tinham'} ouvido ${previousPhrase(days)}.`,
+        x.returning_listeners === 0
+          ? `${o.listeners === 1 ? 'Este ouvinte não tinha' : 'Nenhum destes ouvintes tinha'} ouvido ${previousPhrase(days)}.`
+          : `${nf(x.returning_listeners)} de ${countWord(o.listeners, 'ouvinte', 'ouvintes')} ${x.returning_listeners === 1 ? 'já tinha' : 'já tinham'} ouvido ${previousPhrase(days)}.`,
       );
     }
   }
@@ -220,7 +229,8 @@ export function summarySentences(
 ): string[] {
   const out: string[] = [];
   const when = periodPhrase(days);
-  const prevComplete = x?.prev_complete ?? true;
+  // Without the extras we cannot tell if the previous period is complete: no comparison.
+  const prevComplete = x?.prev_complete ?? false;
 
   if (o.listeners === 0) {
     out.push(`${when}, ainda ninguém ouviu a rádio durante pelo menos 1 minuto.`);
@@ -245,7 +255,7 @@ export function summarySentences(
     const ties = x?.peak_snapshots ?? 1;
     out.push(
       `O momento com mais gente a ouvir ao mesmo tempo foi ${lisbonMoment(o.peak_at)}, com ${countWord(o.peak_concurrent, 'pessoa', 'pessoas')}` +
-        (ties > 1 ? ` (aconteceu ${nf(ties)} vezes; esta é a mais recente).` : '.'),
+        (ties > 1 ? ` (chegou a esse número em ${nf(ties)} momentos diferentes; este é o mais recente).` : '.'),
     );
   }
 
@@ -267,7 +277,7 @@ export function summarySentences(
     out.push(`${text}.`);
   }
 
-  if (!prevComplete) {
+  if (x && !prevComplete) {
     out.push(
       `Não há comparação com o período anterior: o histórico de ligações só começa a ${x?.history_start ? lisbonDate(x.history_start) : '—'}.`,
     );

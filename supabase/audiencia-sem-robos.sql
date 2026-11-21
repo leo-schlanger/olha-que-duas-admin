@@ -23,17 +23,25 @@
 CREATE OR REPLACE FUNCTION radio_human_snapshots(p_start TIMESTAMPTZ, p_end TIMESTAMPTZ)
 RETURNS TABLE(recorded_at TIMESTAMPTZ, listeners INTEGER, bots INTEGER)
 LANGUAGE sql STABLE AS $$
+  -- The few bot connections of the range first; a lateral straight on
+  -- listener_connections rescans the table for every snapshot (3 s at 90 days).
+  WITH bots AS MATERIALIZED (
+    SELECT c.listener_hash, c.connected_on, c.connected_until
+    FROM listener_connections c
+    WHERE c.source = 'bot'
+      AND c.connected_on <= p_end + INTERVAL '30 seconds'
+      AND c.connected_until >= p_start - INTERVAL '30 seconds'
+  )
   SELECT
     r.recorded_at,
     GREATEST(0, r.listeners_current - COALESCE(bt.n, 0))::INTEGER,
     COALESCE(bt.n, 0)::INTEGER
   FROM radio_listener_snapshots r
   LEFT JOIN LATERAL (
-    SELECT COUNT(DISTINCT c.listener_hash) AS n
-    FROM listener_connections c
-    WHERE c.source = 'bot'
-      AND c.connected_on <= r.recorded_at + INTERVAL '30 seconds'
-      AND c.connected_until >= r.recorded_at - INTERVAL '30 seconds'
+    SELECT COUNT(DISTINCT b.listener_hash) AS n
+    FROM bots b
+    WHERE b.connected_on <= r.recorded_at + INTERVAL '30 seconds'
+      AND b.connected_until >= r.recorded_at - INTERVAL '30 seconds'
   ) bt ON true
   WHERE r.recorded_at >= p_start AND r.recorded_at < p_end
 $$;
@@ -213,7 +221,8 @@ $function$;
 --   sessions_*          : sessões >= 1 min iniciadas no período, por duração
 --   returning_listeners : ouvintes do período que também ouviram (>= 1 min) no anterior
 --   multi_day_listeners : ouvintes com escuta em 2 ou mais dias (Lisboa)
---   peak_snapshots      : fotografias com o valor do pico (empates)
+--   peak_snapshots      : momentos distintos com o valor do pico (fotografias
+--                         seguidas no pico contam como um só momento)
 --   prev_complete       : o período anterior está todo dentro do histórico de ligações
 CREATE OR REPLACE FUNCTION radio_audience_insights(days_back INTEGER DEFAULT 30)
 RETURNS TABLE(
@@ -239,7 +248,10 @@ LANGUAGE sql STABLE AS $$
     SELECT cur.listener_hash, COUNT(DISTINCT (cur.connected_on AT TIME ZONE 'Europe/Lisbon')::DATE) AS n
     FROM cur WHERE cur.seconds_in_range >= 60 GROUP BY 1
   ),
-  snaps AS (SELECT h.listeners FROM b CROSS JOIN LATERAL radio_human_snapshots(b.period_start, b.period_end) h),
+  snaps AS (
+    SELECT h.listeners, LAG(h.listeners) OVER (ORDER BY h.recorded_at) AS prev
+    FROM b CROSS JOIN LATERAL radio_human_snapshots(b.period_start, b.period_end) h
+  ),
   hist AS (SELECT MIN(connected_on) AS s FROM listener_connections)
   SELECT
     (SELECT COUNT(*) FROM sess WHERE full_seconds < 300),
@@ -248,7 +260,9 @@ LANGUAGE sql STABLE AS $$
     (SELECT COUNT(*) FROM sess WHERE full_seconds >= 3600),
     (SELECT COUNT(*) FROM cur_l WHERE listener_hash IN (SELECT listener_hash FROM prev_l)),
     (SELECT COUNT(*) FROM days WHERE n >= 2),
-    (SELECT COUNT(*) FROM snaps WHERE listeners > 0 AND listeners = (SELECT MAX(listeners) FROM snaps)),
+    (SELECT COUNT(*) FROM snaps
+      WHERE listeners > 0 AND listeners = (SELECT MAX(listeners) FROM snaps)
+        AND prev IS DISTINCT FROM listeners),
     (SELECT s FROM hist),
     COALESCE((SELECT s FROM hist) <= (SELECT period_start FROM pb), false)
 $$;

@@ -5,7 +5,15 @@ import { roundedShares, type RetentionReading } from './insights';
 const BAR_COLORS = ['#e7cfa0', '#D4A843', '#d9713a', '#C4302B'];
 
 // How long people stay: session length buckets + plain sentences.
-export function RetentionCard({ reading }: { reading: RetentionReading }) {
+export function RetentionCard({
+  reading,
+  failed = false,
+  detail = null,
+}: {
+  reading: RetentionReading;
+  failed?: boolean;
+  detail?: string | null;
+}) {
   const shares = roundedShares(reading.buckets.map((b) => b.count));
   return (
     <Card className="bg-cream border-beige-medium">
@@ -17,7 +25,12 @@ export function RetentionCard({ reading }: { reading: RetentionReading }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {reading.total === 0 ? (
+        {failed ? (
+          <p className="text-sm text-destructive text-center py-8">
+            Não foi possível carregar este bloco. Carrega em «Atualizar»; se continuar, avisa o Leo.
+            {detail && <span className="block text-xs opacity-75 mt-1 break-words">Detalhe técnico: {detail}</span>}
+          </p>
+        ) : reading.total === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">Ainda não há escutas de pelo menos 1 minuto neste período</p>
         ) : (
           <div className="space-y-4">

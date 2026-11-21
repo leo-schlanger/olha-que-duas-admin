@@ -392,8 +392,10 @@ function ProgramsCard({ data }: { data: ProgramPerformance[] }) {
       ) : (
         <div className="overflow-x-auto">
           <p className="text-xs text-muted-foreground mb-2">
-            «Média» = quantas pessoas estavam a ouvir, em média, durante o programa. Com tão poucos ouvintes, uma pessoa a
-            mais muda a ordem. Programas que se sobrepõem (um evento dentro de um bloco) contam as mesmas horas.
+            «Média» = quantas pessoas estavam a ouvir, em média, durante o programa; conta também ligações de segundos que
+            as fotografias de 5 em 5 minutos não apanham, por isso pode ficar um pouco acima do «Máximo». Com tão poucos
+            ouvintes, uma pessoa a mais muda a ordem. Programas que se sobrepõem (um evento dentro de um bloco) contam as
+            mesmas horas.
           </p>
           <table className="w-full text-sm min-w-[640px]">
             <thead>
@@ -417,7 +419,7 @@ function ProgramsCard({ data }: { data: ProgramPerformance[] }) {
                     <span className="block text-[11px] text-muted-foreground">{plural(p.occurrences, 'emissão', 'emissões')}</span>
                   </td>
                   <td className="py-2 px-2 text-muted-foreground whitespace-nowrap">{p.schedule_label}</td>
-                  <td className="py-2 px-2 text-right tabular-nums">{p.avg_listeners == null ? '—' : nf(p.avg_listeners, 2)}</td>
+                  <td className="py-2 px-2 text-right tabular-nums">{p.avg_listeners == null ? '—' : nf(p.avg_listeners, 1)}</td>
                   <td className="py-2 px-2 text-right tabular-nums">{nf(p.peak_listeners)}</td>
                   <td className="py-2 px-2 text-right tabular-nums">{nf(p.listeners)}</td>
                   <td className="py-2 pl-2 text-right tabular-nums">{nf(p.hours_per_occurrence, 2)} h</td>
@@ -752,7 +754,7 @@ function generateAudiencePDF(data: AudienceData, periodLabel: string, summary: s
       th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #e5ddd0; }
       th { background: #f9f6f0; font-weight: 600; color: #555; }
       .note { font-size: 11px; color: #777; margin-top: 30px; }
-      .summary { background: #f9f6f0; border-left: 4px solid #C4302B; padding: 12px 18px; margin: 20px 0; }
+      .summary { background: #f9f6f0; border-left: 4px solid #C4302B; padding: 12px 18px 12px 36px; margin: 20px 0; }
       .summary li { margin: 4px 0; line-height: 1.45; }
       .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #999; border-top: 1px solid #e5ddd0; padding-top: 15px; }
     </style>
@@ -803,7 +805,7 @@ function generateAudiencePDF(data: AudienceData, periodLabel: string, summary: s
     <h2>Audiência por programa</h2>
     <table>
       <tr><th>Programa</th><th>Horário</th><th>Emissões</th><th>Média</th><th>Máximo</th><th>Ouvintes</th><th>Horas/emissão</th></tr>
-      ${data.programs.map((p) => `<tr><td>${escapeHtml(p.program)}</td><td>${escapeHtml(p.schedule_label)}</td><td>${nf(p.occurrences)}</td><td>${p.avg_listeners == null ? '—' : nf(p.avg_listeners, 2)}</td><td>${nf(p.peak_listeners)}</td><td>${nf(p.listeners)}</td><td>${nf(p.hours_per_occurrence, 2)}</td></tr>`).join('')}
+      ${data.programs.map((p) => `<tr><td>${escapeHtml(p.program)}</td><td>${escapeHtml(p.schedule_label)}</td><td>${nf(p.occurrences)}</td><td>${p.avg_listeners == null ? '—' : nf(p.avg_listeners, 1)}</td><td>${nf(p.peak_listeners)}</td><td>${nf(p.listeners)}</td><td>${nf(p.hours_per_occurrence, 2)}</td></tr>`).join('')}
     </table>
     ` : ''}
 
@@ -834,11 +836,12 @@ export function Audience() {
   const [period, setPeriod] = useState<PeriodRange>(30);
   const [refreshKey, setRefreshKey] = useState(0);
   const { data, loading, error, refresh } = useAudienceStats(period);
-  const { insights, insightsLoading } = useAudienceInsights(period, refreshKey);
+  const { insights, insightsLoading, insightsError } = useAudienceInsights(period, refreshKey);
   const o = data.overview;
   const periodLabel = periodLabels[period];
   const ready = !loading && !insightsLoading;
-  const prevComplete = insights?.prev_complete ?? true;
+  // Fail closed: without the extras we do not know if the previous period is complete
+  const prevComplete = insights?.prev_complete ?? false;
 
   const summary = useMemo(
     () => (ready && o ? summarySentences(period, o, insights, data.heatmap, data.programs) : []),
@@ -1004,7 +1007,7 @@ export function Audience() {
 
           <HeatmapChart data={data.heatmap} />
 
-          <RetentionCard reading={retention} />
+          <RetentionCard reading={retention} failed={!insightsLoading && !insights && !!o} detail={insightsError} />
 
           <ProgramsCard data={data.programs} />
 

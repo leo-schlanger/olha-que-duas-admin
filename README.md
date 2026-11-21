@@ -185,6 +185,8 @@ ouvintes simultaneos a cada 5 minutos. Tudo em hora de Lisboa.
   a media de simultaneos aparecia 1,1 em vez de 0,12, o "tempo com alguem a ouvir" 100 % e o mapa de horas todo preenchido.
   `audiencia-sem-robos.sql` desconta os robos ligados em cada fotografia (hash distinto, folga de 30 s); reconciliacao em prod:
   99,8 % das 17 276 fotografias de 60 dias batem com a contagem de ligacoes nao-robo. Quem e o curl ainda esta por saber.
+  Os robos sao lidos primeiro numa CTE MATERIALIZED (lateral direto na tabela: overview de 90 dias 3,1 s; agora 1,2 s; limite do papel authenticated = 8 s).
+- O separador Radio (`useRecentSnapshots`, ultimas 2 h) ainda le `listeners_current` em bruto e conta o curl.
 - O historico de ligacoes comeca a 15/06/2026: a comparacao dos 90 dias fica escondida (`prev_complete = false`).
 - As RPCs de audiencia nao correm com `db query --read-only` (EXECUTE so para authenticated/service_role): para conferir
   numeros usa `db query --linked --yes` com SELECT puro, ou o truque `DO ... RAISE EXCEPTION` para testar SQL novo sem gravar.

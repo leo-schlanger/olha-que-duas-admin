@@ -46,7 +46,7 @@ test('real 7-day summary reads correctly', () => {
   assert.equal(s[1], 'Ao todo, ouviram 19 h 25 min, mais 2 h 52 min do que nos 7 dias anteriores (16 h 33 min; +17%).');
   assert.equal(
     s[2],
-    'O momento com mais gente a ouvir ao mesmo tempo foi sexta-feira, 20/11, às 18:40, com 2 pessoas (aconteceu 2 vezes; esta é a mais recente).',
+    'O momento com mais gente a ouvir ao mesmo tempo foi sexta-feira, 20/11, às 18:40, com 2 pessoas (chegou a esse número em 2 momentos diferentes; este é o mais recente).',
   );
   assert.equal(s[3], 'A hora com mais gente costuma ser à segunda-feira, das 19:00 às 20:00, e o dia da semana mais forte é a segunda-feira.');
 });
@@ -105,7 +105,7 @@ test('summary family: no broken text, singular/plural right, comparison hidden w
             assert.equal(/anteriores|ontem/.test(s[0]), prevComplete);
             assert.equal(/histórico de ligações só começa a 15\/06\/2026/.test(all), !prevComplete);
             assert.equal(/momento com mais gente/.test(all), (peak ?? 0) > 0);
-            if ((peak ?? 0) > 0) assert.equal(/aconteceu 3 vezes/.test(all), ties === 3);
+            if ((peak ?? 0) > 0) assert.equal(/em 3 momentos diferentes/.test(all), ties === 3);
             if (peak === 1) assert.match(all, /com 1 pessoa\b/);
           }
         }
@@ -136,12 +136,12 @@ test('retentionReading sums and plurals', () => {
   const r = retentionReading(7, ov7, ins7);
   assert.equal(r.total, 19);
   assert.deepEqual(r.buckets.map((b) => b.count), [6, 1, 5, 7]);
-  assert.equal(r.sentences[0], 'Metade das vezes que alguém liga a rádio fica mais de 24 min a ouvir.');
+  assert.equal(r.sentences[0], 'Metade das escutas de pelo menos 1 minuto dura mais de 24 min.');
   assert.equal(r.sentences[1], '7 escutas passaram de 1 hora e 6 duraram menos de 5 minutos (em 19 escutas).');
   assert.equal(r.sentences[2], '2 de 12 ouvintes ouviram em 2 ou mais dias diferentes.');
   assert.equal(r.sentences[3], '2 de 12 ouvintes já tinham ouvido nos 7 dias anteriores.');
   const one = retentionReading(1, { ...ov7, listeners: 1 }, { ...ins7, sessions_under_5: 0, sessions_5_15: 0, sessions_15_60: 0, sessions_over_60: 1, returning_listeners: 1 });
-  assert.equal(one.sentences[1], '1 escuta passou de 1 hora e 0 duraram menos de 5 minutos (em 1 escuta).');
+  assert.equal(one.sentences[1], '1 escuta passou de 1 hora (em 1 escuta).');
   assert.ok(!one.sentences.some((t) => t.includes('dias diferentes')));
   assert.equal(one.sentences[2], '1 de 1 ouvinte já tinha ouvido ontem à mesma hora.');
   assert.deepEqual(retentionReading(7, ov7, null).sentences, []);
@@ -190,4 +190,41 @@ test('program sentence: average leader and widest reach', () => {
   );
   const only = summarySentences(7, ov7, ins7, [], [progs[1]]).find((t) => t.startsWith('O programa'))!;
   assert.ok(!only.includes('diferentes'));
+});
+
+test('without the extras (RPC failed) there is no comparison and no history note', () => {
+  for (const days of [1, 7, 30, 90]) {
+    const s = summarySentences(days, ov7, null, [], []);
+    const all = s.join(' ');
+    assert.ok(!/anteriores|ontem|histórico/.test(all), all);
+    assert.ok(!BAD.test(all), all);
+    assert.match(s[0], /12 ouvintes\.$/);
+  }
+});
+
+test('retention family: every split of sessions and returning listeners reads cleanly', () => {
+  for (const days of [1, 7, 30, 90]) {
+    for (const listeners of [1, 2, 12]) {
+      for (const under5 of [0, 1, 6]) {
+        for (const over60 of [0, 1, 7]) {
+          for (const mid of [0, 1]) {
+            for (const returning of [0, 1, 2]) {
+              if (returning > listeners) continue;
+              const x = { ...ins7, sessions_under_5: under5, sessions_over_60: over60, sessions_5_15: mid, sessions_15_60: 0, returning_listeners: returning };
+              const r = retentionReading(days, { ...ov7, listeners }, x);
+              const all = r.sentences.join(' ');
+              assert.ok(!BAD.test(all), all);
+              assert.ok(!/\b0 (escuta|de|duraram)/.test(all), all);
+              assert.equal(r.total, under5 + over60 + mid);
+              if (r.total > 0) {
+                assert.equal(/de 1 hora/.test(all), over60 > 0);
+                assert.equal(/menos de 5 minutos/.test(all), under5 > 0);
+              }
+              if (returning === 0) assert.match(all, listeners === 1 ? /Este ouvinte não tinha/ : /Nenhum destes ouvintes tinha/);
+            }
+          }
+        }
+      }
+    }
+  }
 });
