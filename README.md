@@ -190,6 +190,7 @@ ouvintes simultaneos a cada 5 minutos. Tudo em hora de Lisboa.
   99,8 % das 17 276 fotografias de 60 dias batem com a contagem de ligacoes nao-robo. Quem e o curl ainda esta por saber.
   Os robos sao lidos primeiro numa CTE MATERIALIZED (lateral direto na tabela: overview de 90 dias 3,1 s; agora 1,2 s; limite do papel authenticated = 8 s).
 - O separador Radio (`useRecentSnapshots`, ultimas 2 h) le `radio_human_snapshots` desde 21/11 (antes contava o curl).
+- Contagens ao vivo do separador Radio (Ouvintes Agora, Unicos, Total Conexoes, paises) descontam os robos (`src/lib/liveListeners.ts`, mesma regra do SQL; sem lista detalhada usa `bots` da ultima fotografia).
 - qa 21/11: sem comparacao (90 dias) nenhum export leva valores do periodo anterior (`kpiRows`); a % das frases e dos
   cartoes sai de uma so funcao (`pctChange`, valores sem arredondar); cada bloco que falha mostra o seu erro (nunca
   "sem dados"); `/api/gsc` com corpo inesperado (`{}`) passa a erro em vez de deixar o painel em branco.

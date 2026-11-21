@@ -122,7 +122,10 @@ function StatCard({
             <Icon className="w-5 h-5 text-vermelho" />
           </div>
         </div>
-        {prevValue > 0 && (
+        {prevValue > 0 && Math.abs(change) < 0.05 && (
+          <p className="text-sm text-muted-foreground mt-3">= igual ao período anterior</p>
+        )}
+        {prevValue > 0 && Math.abs(change) >= 0.05 && (
           <div className="flex items-center gap-1 mt-3">
             {isPositive ? (
               <TrendingUp className="w-4 h-4 text-green-600" />

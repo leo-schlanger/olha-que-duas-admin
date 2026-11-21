@@ -174,7 +174,10 @@ function Delta({
 
   // Same rounding as the summary sentences (pctChange on unrounded values)
   const change = pctChange(current, previous) ?? 0;
-  const up = change >= 0;
+  if (change === 0) {
+    return <p className="text-xs text-muted-foreground mt-1">= {periodLabel === 'Hoje' ? 'igual a ontem' : 'igual ao período anterior'}</p>;
+  }
+  const up = change > 0;
   return (
     <p className={cn('text-xs mt-1', up ? 'text-green-600' : 'text-red-500')}>
       {up ? '▲' : '▼'} {Math.abs(change)}% {label}

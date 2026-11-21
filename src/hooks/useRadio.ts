@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { RadioNowPlaying, ListenerInfo, ListenersByCountry, RadioData } from '../types/radio';
 import { authHeaders } from '../lib/auth';
+import { supabase } from '../lib/supabase';
+import { humanLiveCounts, isBotListener } from '../lib/liveListeners';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -59,13 +61,34 @@ export function useRadio() {
       // Try to fetch detailed listeners (may fail if no admin access)
       let listeners: ListenerInfo[] = [];
       let listenersByCountry: ListenersByCountry[] = [];
+      let detailed: ListenerInfo[] | null = null;
 
       try {
-        listeners = await fetchFromProxy('listeners');
-        listenersByCountry = aggregateListenersByCountry(listeners);
+        const raw = await fetchFromProxy('listeners');
+        detailed = Array.isArray(raw) ? (raw as ListenerInfo[]) : null;
       } catch (listenerError) {
         // Listeners endpoint might require admin privileges
         console.warn('Could not fetch detailed listeners:', listenerError);
+      }
+
+      // Live numbers without bots (a curl tied to the stream 24 h since 01/11/2026)
+      let fallbackBots: number | null = null;
+      if (!detailed) {
+        const { data: snaps } = await supabase.rpc('radio_human_snapshots', {
+          p_start: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+          p_end: new Date(Date.now() + 60 * 1000).toISOString(),
+        });
+        const rows = (Array.isArray(snaps) ? snaps : []) as Array<{ recorded_at: string; bots: number }>;
+        const last = [...rows].sort((a, b) => a.recorded_at.localeCompare(b.recorded_at)).pop();
+        fallbackBots = last ? Number(last.bots) : null;
+      }
+      if (detailed) {
+        listeners = detailed.filter((l) => !isBotListener(l));
+        listenersByCountry = aggregateListenersByCountry(listeners);
+      }
+      if (nowPlaying?.listeners) {
+        const { total, unique, current } = humanLiveCounts(nowPlaying.listeners, detailed, fallbackBots);
+        nowPlaying.listeners = { ...nowPlaying.listeners, total, unique, current };
       }
 
       setData({

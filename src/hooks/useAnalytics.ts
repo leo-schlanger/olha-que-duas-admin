@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { isUmamiStats } from '../lib/liveListeners';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -274,6 +275,10 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
       ]);
 
       if (id !== requestId.current) return;
+      // A `{}` (or any body without the counters) is an error, not zeros on the cards
+      if (!isUmamiStats(stats) || !isUmamiStats(prevStats)) {
+        throw new Error('O Umami devolveu uma resposta vazia ou inesperada');
+      }
       const series = (pageviewsData && typeof pageviewsData === 'object')
         ? pageviewsData as { pageviews?: PageviewData[]; sessions?: PageviewData[] }
         : {};
