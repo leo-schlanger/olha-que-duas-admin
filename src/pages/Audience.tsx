@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Users,
   Clock,
@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   MonitorSmartphone,
   ListTree,
+  FileSpreadsheet,
 } from 'lucide-react';
 import {
   ComposedChart,
@@ -54,6 +55,16 @@ import {
 } from '../hooks/useAudienceStats';
 import { getCountryName } from '../lib/countries';
 import { cn } from '../lib/utils';
+import { SummaryCard } from '../components/audience/SummaryCard';
+import { RetentionCard } from '../components/audience/RetentionCard';
+import { useAudienceInsights } from '../components/audience/useAudienceInsights';
+import {
+  retentionReading,
+  strongestSlots,
+  summarySentences,
+  onWeekday,
+  type RetentionReading,
+} from '../components/audience/insights';
 
 const CHART_COLORS = {
   vermelho: '#C4302B',
@@ -141,8 +152,18 @@ function escapeHtml(value: string): string {
 
 // --- Componentes ---
 
-function Delta({ current, previous, periodLabel }: { current: number; previous: number | null; periodLabel: string }) {
-  if (previous == null || (current === 0 && previous === 0)) return null;
+function Delta({
+  current,
+  previous,
+  periodLabel,
+  prevComplete = true,
+}: {
+  current: number;
+  previous: number | null;
+  periodLabel: string;
+  prevComplete?: boolean;
+}) {
+  if (!prevComplete || previous == null || (current === 0 && previous === 0)) return null;
   const label = periodLabel === 'Hoje' ? 'vs ontem' : 'vs período anterior';
 
   if (previous === 0) {
@@ -312,8 +333,19 @@ function HeatmapChart({ data }: { data: HeatmapCell[] }) {
     return 'bg-yellow-100 text-charcoal';
   };
 
+  const best = strongestSlots(data);
+
   return (
-    <SectionCard title="Quando ouvem" icon={Clock} aside="Média de ouvintes simultâneos · hora de Lisboa">
+    <SectionCard title="Quando ouvem" icon={Clock} aside="Hora de Lisboa">
+      <p className="text-xs text-muted-foreground mb-3">
+        Cada quadrado mostra quantas pessoas estavam a ouvir ao mesmo tempo, em média, naquele dia da semana e hora.
+        Quanto mais escuro, mais gente.
+        {best && (
+          <>
+            {' '}A hora mais forte é <strong className="text-charcoal">{onWeekday(best.hourDay)}, às {String(best.hour).padStart(2, '0')}h</strong>.
+          </>
+        )}
+      </p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead>
@@ -336,7 +368,7 @@ function HeatmapChart({ data }: { data: HeatmapCell[] }) {
                     <td key={hour} className="py-0.5 px-0.5">
                       <div
                         className={cn('w-full h-6 rounded-sm flex items-center justify-center text-[9px] font-medium', getHeatColor(val))}
-                        title={`${DAY_NAMES[dow]} ${hour}h: ${nf(val, 2)} ouvintes em média`}
+                        title={`${DAY_NAMES[dow]} ${hour}h: ${nf(val, 2)} pessoas a ouvir em média`}
                       >
                         {val >= 0.05 ? nf(val, 1) : ''}
                       </div>
@@ -359,13 +391,17 @@ function ProgramsCard({ data }: { data: ProgramPerformance[] }) {
         <EmptyState message="Sem blocos na grelha para este período" />
       ) : (
         <div className="overflow-x-auto">
+          <p className="text-xs text-muted-foreground mb-2">
+            «Média» = quantas pessoas estavam a ouvir, em média, durante o programa. Com tão poucos ouvintes, uma pessoa a
+            mais muda a ordem. Programas que se sobrepõem (um evento dentro de um bloco) contam as mesmas horas.
+          </p>
           <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="text-xs text-muted-foreground border-b border-beige-medium">
                 <th className="text-left py-2 pr-2 font-medium">Programa</th>
                 <th className="text-left py-2 px-2 font-medium">Horário</th>
-                <th className="text-right py-2 px-2 font-medium" title="Segundos ouvidos a dividir pela duração do bloco">Média</th>
-                <th className="text-right py-2 px-2 font-medium" title="Máximo de ouvintes em simultâneo">Pico</th>
+                <th className="text-right py-2 px-2 font-medium" title="Pessoas a ouvir em média durante o programa">Média</th>
+                <th className="text-right py-2 px-2 font-medium" title="Máximo de pessoas a ouvir ao mesmo tempo">Máximo</th>
                 <th className="text-right py-2 px-2 font-medium" title="Ouvintes distintos com pelo menos 1 minuto">Ouvintes</th>
                 <th className="text-right py-2 pl-2 font-medium" title="Horas ouvidas por emissão">Horas/emissão</th>
               </tr>
@@ -574,6 +610,29 @@ function ClientsCard({ data }: { data: AudienceByClient[] }) {
   );
 }
 
+// Plain-language error with the technical detail kept small for the Leo.
+function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const expired = /jwt|token|401|PGRST30/i.test(message);
+  const offline = /failed to fetch|network/i.test(message);
+  const text = expired
+    ? 'A sessão expirou. Sai do painel e volta a entrar para ver os números.'
+    : offline
+      ? 'Sem ligação à internet ou ao servidor. Confirma a rede e carrega em «Tentar de novo».'
+      : 'Não foi possível carregar alguns números da audiência. Carrega em «Tentar de novo»; se continuar, avisa o Leo.';
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-destructive/10 text-destructive px-4 py-3 rounded-lg text-sm">
+      <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+      <div className="min-w-0 flex-1">
+        <p className="font-medium">{text}</p>
+        <p className="text-xs opacity-75 break-words mt-0.5">Detalhe técnico: {message}</p>
+      </div>
+      <Button variant="outline" size="sm" onClick={onRetry} className="border-destructive/40 text-destructive">
+        Tentar de novo
+      </Button>
+    </div>
+  );
+}
+
 function MethodologyNote({ data }: { data: AudienceData }) {
   const o = data.overview;
   return (
@@ -595,9 +654,10 @@ function MethodologyNote({ data }: { data: AudienceData }) {
           não se distinguem do Safari. O site e os diretórios web de rádios aparecem juntos como browser.
         </p>
         <p>
-          <strong>Ouvintes simultâneos</strong> (média, pico, mapa de horas) vêm de fotografias a cada 5 minutos
-          {o?.snapshot_coverage != null ? ` — ${formatPercent(o.snapshot_coverage)} das fotografias esperadas foram recolhidas` : ''}.
-          Todas as horas estão em hora de Lisboa.
+          <strong>Pessoas a ouvir ao mesmo tempo</strong> (média, máximo, mapa de horas) vêm de fotografias a cada 5 minutos
+          {o?.snapshot_coverage != null ? ` — ${formatPercent(o.snapshot_coverage)} das fotografias esperadas foram recolhidas` : ''},
+          sem robôs: desde 21/11/2026 desconta-se cada ligação automática (por exemplo, um servidor que fica ligado
+          ao stream 24 horas por dia). Todas as horas estão em hora de Lisboa.
         </p>
       </CardContent>
     </Card>
@@ -611,12 +671,13 @@ function csvField(value: string | number | null | undefined): string {
   return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-function generateAudienceCSV(data: AudienceData, periodLabel: string) {
+function generateAudienceCSV(data: AudienceData, periodLabel: string, summary: string[]) {
   const lines: string[] = [];
   const row = (...cols: Array<string | number | null | undefined>) => lines.push(cols.map(csvField).join(','));
   const o = data.overview;
 
   row('Relatório de audiência', periodLabel);
+  summary.forEach((t) => row(t));
   if (o) {
     row('Período', formatDateTime(o.period_start), formatDateTime(o.period_end));
     lines.push('');
@@ -624,8 +685,8 @@ function generateAudienceCSV(data: AudienceData, periodLabel: string) {
     row('Ouvintes (>= 1 min)', o.listeners, 'período anterior', o.prev_listeners);
     row('Sessões', o.sessions, 'período anterior', o.prev_sessions);
     row('Horas ouvidas', o.listening_hours, 'período anterior', o.prev_listening_hours);
-    row('Média de ouvintes simultâneos', o.avg_concurrent, 'período anterior', o.prev_avg_concurrent);
-    row('Pico simultâneo', o.peak_concurrent, 'em', formatDateTime(o.peak_at));
+    row('Média de pessoas a ouvir ao mesmo tempo', o.avg_concurrent, 'período anterior', o.prev_avg_concurrent);
+    row('Máximo ao mesmo tempo', o.peak_concurrent, 'em', formatDateTime(o.peak_at));
     row('Sessão mediana (min)', o.median_session_minutes);
     row('Sessão média (min)', o.avg_session_minutes);
     row('% do tempo com ouvintes', o.pct_time_with_listeners);
@@ -672,7 +733,7 @@ function generateAudienceCSV(data: AudienceData, periodLabel: string) {
   URL.revokeObjectURL(url);
 }
 
-function generateAudiencePDF(data: AudienceData, periodLabel: string) {
+function generateAudiencePDF(data: AudienceData, periodLabel: string, summary: string[], retention: RetentionReading) {
   const o = data.overview;
   const html = `
     <!DOCTYPE html>
@@ -691,21 +752,35 @@ function generateAudiencePDF(data: AudienceData, periodLabel: string) {
       th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #e5ddd0; }
       th { background: #f9f6f0; font-weight: 600; color: #555; }
       .note { font-size: 11px; color: #777; margin-top: 30px; }
+      .summary { background: #f9f6f0; border-left: 4px solid #C4302B; padding: 12px 18px; margin: 20px 0; }
+      .summary li { margin: 4px 0; line-height: 1.45; }
       .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #999; border-top: 1px solid #e5ddd0; padding-top: 15px; }
     </style>
     </head><body>
     <h1>Relatório de Audiência — ${escapeHtml(periodLabel)}</h1>
     <p style="color: #666;">${o ? `${formatDateTime(o.period_start)} a ${formatDateTime(o.period_end)} · ` : ''}gerado em ${new Date().toLocaleString('pt-PT', { timeZone: 'Europe/Lisbon' })}</p>
 
+    ${summary.length > 0 ? `<ul class="summary">${summary.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
+
     ${o ? `
     <div class="stats-grid">
       <div class="stat-card"><div class="value">${nf(o.listeners)}</div><div class="label">Ouvintes (≥ 1 min)</div></div>
       <div class="stat-card"><div class="value">${nf(o.listening_hours, 1)} h</div><div class="label">Horas ouvidas</div></div>
-      <div class="stat-card"><div class="value">${o.avg_concurrent == null ? '—' : nf(o.avg_concurrent, 2)}</div><div class="label">Média de ouvintes simultâneos</div></div>
-      <div class="stat-card"><div class="value">${o.peak_concurrent ?? '—'}</div><div class="label">Pico simultâneo</div></div>
-      <div class="stat-card"><div class="value">${formatMinutes(o.median_session_minutes)}</div><div class="label">Sessão mediana</div></div>
+      <div class="stat-card"><div class="value">${o.avg_concurrent == null ? '—' : nf(o.avg_concurrent, 2)}</div><div class="label">Média de pessoas a ouvir ao mesmo tempo</div></div>
+      <div class="stat-card"><div class="value">${o.peak_concurrent ?? '—'}</div><div class="label">Máximo ao mesmo tempo</div></div>
+      <div class="stat-card"><div class="value">${formatMinutes(o.median_session_minutes)}</div><div class="label">Escuta típica (mediana)</div></div>
       <div class="stat-card"><div class="value">${formatPercent(o.top3_share)}</div><div class="label">Horas dos 3 maiores ouvintes</div></div>
     </div>
+    ` : ''}
+
+    ${retention.total > 0 ? `
+    <h2>Quanto tempo ficam a ouvir</h2>
+    <table>
+      <tr><th>Duração da escuta</th><th>Escutas</th></tr>
+      ${retention.buckets.map((b) => `<tr><td>${escapeHtml(b.label)}</td><td>${nf(b.count)}</td></tr>`).join('')}
+      <tr><th>Total</th><th>${nf(retention.total)}</th></tr>
+    </table>
+    ${retention.sentences.map((t) => `<p>${escapeHtml(t)}</p>`).join('')}
     ` : ''}
 
     ${data.bySource.length > 0 ? `
@@ -727,7 +802,7 @@ function generateAudiencePDF(data: AudienceData, periodLabel: string) {
     ${data.programs.length > 0 ? `
     <h2>Audiência por programa</h2>
     <table>
-      <tr><th>Programa</th><th>Horário</th><th>Emissões</th><th>Média</th><th>Pico</th><th>Ouvintes</th><th>Horas/emissão</th></tr>
+      <tr><th>Programa</th><th>Horário</th><th>Emissões</th><th>Média</th><th>Máximo</th><th>Ouvintes</th><th>Horas/emissão</th></tr>
       ${data.programs.map((p) => `<tr><td>${escapeHtml(p.program)}</td><td>${escapeHtml(p.schedule_label)}</td><td>${nf(p.occurrences)}</td><td>${p.avg_listeners == null ? '—' : nf(p.avg_listeners, 2)}</td><td>${nf(p.peak_listeners)}</td><td>${nf(p.listeners)}</td><td>${nf(p.hours_per_occurrence, 2)}</td></tr>`).join('')}
     </table>
     ` : ''}
@@ -740,7 +815,7 @@ function generateAudiencePDF(data: AudienceData, periodLabel: string) {
     </table>
     ` : ''}
 
-    <p class="note">Ouvinte = IP + aplicação com pelo menos 1 minuto. Ligações, sessões e horas: histórico completo do AzuraCast. Simultâneos: fotografias a cada 5 minutos. Hora de Lisboa.</p>
+    <p class="note">Ouvinte = IP + aplicação com pelo menos 1 minuto. Ligações, sessões e horas: histórico completo do AzuraCast. Pessoas ao mesmo tempo: fotografias a cada 5 minutos, sem robôs. Hora de Lisboa.</p>
     <div class="footer">Olha que Duas • Relatório de Audiência • ${new Date().getFullYear()}</div>
     </body></html>
   `;
@@ -757,9 +832,27 @@ function generateAudiencePDF(data: AudienceData, periodLabel: string) {
 
 export function Audience() {
   const [period, setPeriod] = useState<PeriodRange>(30);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { data, loading, error, refresh } = useAudienceStats(period);
+  const { insights, insightsLoading } = useAudienceInsights(period, refreshKey);
   const o = data.overview;
   const periodLabel = periodLabels[period];
+  const ready = !loading && !insightsLoading;
+  const prevComplete = insights?.prev_complete ?? true;
+
+  const summary = useMemo(
+    () => (ready && o ? summarySentences(period, o, insights, data.heatmap, data.programs) : []),
+    [ready, o, period, insights, data.heatmap, data.programs],
+  );
+  const retention = useMemo(
+    () => (o ? retentionReading(period, o, insights) : { total: 0, buckets: [], sentences: [] }),
+    [o, period, insights],
+  );
+
+  const reload = () => {
+    refresh();
+    setRefreshKey((n) => n + 1);
+  };
 
   return (
     <div className="space-y-6">
@@ -790,31 +883,49 @@ export function Audience() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="border-beige-medium" disabled={loading || !o}>
+              <Button variant="outline" size="sm" className="border-beige-medium" disabled={!ready || !o}>
                 <Download className="w-4 h-4 mr-2" />
                 Exportar
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => generateAudiencePDF(data, periodLabel)}>
+              <DropdownMenuItem onClick={() => generateAudiencePDF(data, periodLabel, summary, retention)}>
                 <FileText className="w-4 h-4 mr-2" />
                 Exportar PDF
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => generateAudienceCSV(data, periodLabel)}>
+              <DropdownMenuItem
+                onClick={() =>
+                  import('../components/audience/audienceExcel').then(({ downloadAudienceExcel }) =>
+                    downloadAudienceExcel({
+                      data,
+                      periodLabel,
+                      summary,
+                      retention,
+                      sourceLabel: (x) => SOURCE_LABELS[x as ListenerSource] ?? x,
+                      deviceLabel: (x) => DEVICE_LABELS[x as ListenerDevice] ?? x,
+                      countryLabel: getCountryName,
+                    }),
+                  )
+                }
+              >
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Exportar Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => generateAudienceCSV(data, periodLabel, summary)}>
                 <Download className="w-4 h-4 mr-2" />
                 Exportar CSV
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button variant="outline" size="sm" onClick={refresh} disabled={loading} className="border-beige-medium">
+          <Button variant="outline" size="sm" onClick={reload} disabled={loading} className="border-beige-medium">
             <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} />
             Atualizar
           </Button>
         </div>
       </div>
 
-      {error && <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg">{error}</div>}
+      {error && <ErrorBanner message={error} onRetry={reload} />}
 
       <CollectionHealthBanner health={data.health} />
 
@@ -831,32 +942,41 @@ export function Audience() {
         </div>
       ) : (
         <>
+          {!o && !error && <EmptyState message="Ainda não há números de audiência para mostrar." />}
+
+          <SummaryCard sentences={summary} />
+
           {o && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <KpiCard title="Ouvintes" value={nf(o.listeners)} icon={Users} hint="IP + aplicação com pelo menos 1 minuto no período">
-                <Delta current={o.listeners} previous={o.prev_listeners} periodLabel={periodLabel} />
+                <Delta current={o.listeners} previous={o.prev_listeners} periodLabel={periodLabel} prevComplete={prevComplete} />
               </KpiCard>
               <KpiCard title="Horas ouvidas" value={`${nf(o.listening_hours, 1)} h`} icon={Headphones}>
-                <Delta current={o.listening_hours} previous={o.prev_listening_hours} periodLabel={periodLabel} />
+                <Delta current={o.listening_hours} previous={o.prev_listening_hours} periodLabel={periodLabel} prevComplete={prevComplete} />
               </KpiCard>
               <KpiCard
-                title="Média de ouvintes simultâneos"
+                title="Pessoas a ouvir ao mesmo tempo (média)"
                 value={o.avg_concurrent == null ? '—' : nf(o.avg_concurrent, 2)}
                 icon={Activity}
-                hint="Quantas pessoas estão a ouvir, em média, num momento qualquer"
+                hint="Quantas pessoas estão a ouvir, em média, num momento qualquer (sem robôs)"
               >
                 {o.avg_concurrent != null && (
-                  <Delta current={o.avg_concurrent} previous={o.prev_avg_concurrent} periodLabel={periodLabel} />
+                  <Delta current={o.avg_concurrent} previous={o.prev_avg_concurrent} periodLabel={periodLabel} prevComplete={prevComplete} />
                 )}
               </KpiCard>
-              <KpiCard title="Pico simultâneo" value={o.peak_concurrent == null ? '—' : nf(o.peak_concurrent)} icon={TrendingUp}>
+              <KpiCard title="Máximo ao mesmo tempo" value={o.peak_concurrent == null ? '—' : nf(o.peak_concurrent)} icon={TrendingUp}>
                 {o.peak_at && o.peak_concurrent != null && o.peak_concurrent > 0 && (
                   <p className="text-xs text-muted-foreground mt-1">{formatDateTime(o.peak_at)}</p>
                 )}
               </KpiCard>
-              <KpiCard title="Sessão típica (mediana)" value={formatMinutes(o.median_session_minutes)} icon={Timer}>
+              <KpiCard
+                title="Escuta típica (mediana)"
+                value={formatMinutes(o.median_session_minutes)}
+                icon={Timer}
+                hint="Metade das escutas de pelo menos 1 minuto dura mais do que isto"
+              >
                 {o.avg_session_minutes != null && (
-                  <p className="text-xs text-muted-foreground mt-1">média {formatMinutes(o.avg_session_minutes)} · {plural(o.sessions, 'sessão', 'sessões')}</p>
+                  <p className="text-xs text-muted-foreground mt-1">média {formatMinutes(o.avg_session_minutes)} · {plural(o.sessions, 'escuta', 'escutas')}</p>
                 )}
               </KpiCard>
               <KpiCard
@@ -883,6 +1003,8 @@ export function Audience() {
           </div>
 
           <HeatmapChart data={data.heatmap} />
+
+          <RetentionCard reading={retention} />
 
           <ProgramsCard data={data.programs} />
 

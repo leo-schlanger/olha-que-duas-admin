@@ -30,6 +30,7 @@ Variaveis necessarias:
    - `supabase/analytics-v2-sources.sql` - app identificada pelo user-agent `OlhaQueDuas/…`, divisao telemovel/computador,
      detalhe por aplicacao e saude da recolha (aplicar ANTES do deploy do `radio-snapshot-cron`)
    - `supabase/schedule-dates.sql` - eventos com data (tabela `schedule_dates`, emissoes unicas) e audiencia por programa com essas emissoes
+   - `supabase/audiencia-sem-robos.sql` - fotografias de 5 em 5 min sem robos (`radio_human_snapshots`), retencao e resumo (`radio_audience_insights`)
    - Em Auth, desative os registos publicos (`disable_signup`), crie o utilizador admin e insira o email:
      ```sql
      INSERT INTO admin_users (email) VALUES ('admin@exemplo.com');
@@ -152,8 +153,22 @@ ouvintes simultaneos a cada 5 minutos. Tudo em hora de Lisboa.
 - **Horas ouvidas, sessao tipica, media e pico de simultaneos** - com comparacao ao periodo anterior
 - **Origem** - App Android, browser, myTuner, iOS, outras apps (pelo user-agent)
 - **Mapa de horas, paises e ouvintes mais fieis** (IP mascarado; IPs apagados apos 90 dias)
-- **Audiencia por programa** - grelha diaria e eventos semanais cruzados com as ligacoes
-- **Exportacao** - PDF e CSV
+- **Em resumo** - frases simples no topo (ouvintes e horas vs periodo anterior, momento com mais gente, hora e dia mais fortes, programa); mesmas frases no PDF e no Excel
+- **Quanto tempo ficam a ouvir** - escutas por duracao (< 5 min, 5-15, 15-60, > 1 h), ouvintes em 2+ dias e que ja tinham ouvido no periodo anterior
+- **Audiencia por programa** - grelha diaria, eventos semanais e emissoes com data cruzados com as ligacoes
+- **Exportacao** - PDF, Excel (uma folha por bloco) e CSV
+- Testes das frases: `node --test tests/audience-insights.test.ts`
+
+#### Achados da audiencia (21/11/2026)
+- Desde 01/11/2026 uma ligacao `curl/8.5.0` (IP 46.225.17.x, Nuremberga, Hetzner) esta ligada ao stream 24 h por dia.
+  As metricas de ligacoes ja excluiam robos, mas as fotografias de 5 min (`listeners_current` do AzuraCast) contavam-na:
+  a media de simultaneos aparecia 1,1 em vez de 0,12, o "tempo com alguem a ouvir" 100 % e o mapa de horas todo preenchido.
+  `audiencia-sem-robos.sql` desconta os robos ligados em cada fotografia (hash distinto, folga de 30 s); reconciliacao em prod:
+  99,8 % das 17 276 fotografias de 60 dias batem com a contagem de ligacoes nao-robo. Quem e o curl ainda esta por saber.
+- O historico de ligacoes comeca a 15/06/2026: a comparacao dos 90 dias fica escondida (`prev_complete = false`).
+- As RPCs de audiencia nao correm com `db query --read-only` (EXECUTE so para authenticated/service_role): para conferir
+  numeros usa `db query --linked --yes` com SELECT puro, ou o truque `DO ... RAISE EXCEPTION` para testar SQL novo sem gravar.
+- Ouvinte = hash IP + user-agent: atualizar a app ou mudar de rede conta como ouvinte novo, por isso "ja tinham ouvido" fica por baixo.
 
 ## Tecnologias
 
