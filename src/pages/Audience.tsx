@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Users,
   Clock,
@@ -63,6 +63,8 @@ import {
   strongestSlots,
   summarySentences,
   onWeekday,
+  pctChange,
+  kpiRows,
   type RetentionReading,
 } from '../components/audience/insights';
 
@@ -170,11 +172,12 @@ function Delta({
     return <p className="text-xs text-green-600 mt-1">sem dados antes · {label}</p>;
   }
 
-  const change = (current - previous) / previous;
+  // Same rounding as the summary sentences (pctChange on unrounded values)
+  const change = pctChange(current, previous) ?? 0;
   const up = change >= 0;
   return (
     <p className={cn('text-xs mt-1', up ? 'text-green-600' : 'text-red-500')}>
-      {up ? '▲' : '▼'} {formatPercent(Math.abs(change))} {label}
+      {up ? '▲' : '▼'} {Math.abs(change)}% {label}
     </p>
   );
 }
@@ -210,6 +213,25 @@ function KpiCard({
   );
 }
 
+// Failed block: says so (never "empty"); 401/expired session gets its own text.
+function BlockError({ message }: { message: string }) {
+  const expired = /jwt|token|401|PGRST30|permission denied/i.test(message);
+  return (
+    <div className="text-sm text-destructive text-center py-8 px-2">
+      <p>
+        {expired
+          ? 'Sem acesso a estes números: a sessão pode ter expirado. Sai do painel e volta a entrar.'
+          : 'Não foi possível carregar este bloco. Carrega em «Atualizar»; se continuar, avisa o Leo.'}
+      </p>
+      <p className="text-xs opacity-75 mt-1 break-words">Detalhe técnico: {message}</p>
+    </div>
+  );
+}
+
+function BlockEmpty({ error, message }: { error?: string; message: string }) {
+  return error ? <BlockError message={error} /> : <EmptyState message={message} />;
+}
+
 function EmptyState({ message }: { message: string }) {
   return <p className="text-sm text-muted-foreground text-center py-8">{message}</p>;
 }
@@ -239,8 +261,8 @@ function SectionCard({
   );
 }
 
-function SeriesChart({ data, hourly }: { data: AudienceSeriesPoint[]; hourly: boolean }) {
-  const hasData = data.some((p) => p.listeners > 0 || p.listening_hours > 0);
+function SeriesChart({ data, hourly, error }: { data: AudienceSeriesPoint[]; hourly: boolean; error?: string }) {
+  const hasData = !error && data.some((p) => p.listeners > 0 || p.listening_hours > 0);
 
   return (
     <SectionCard
@@ -249,7 +271,7 @@ function SeriesChart({ data, hourly }: { data: AudienceSeriesPoint[]; hourly: bo
       aside="Hora de Lisboa"
     >
       {!hasData ? (
-        <EmptyState message="Sem ouvintes neste período" />
+        <BlockEmpty error={error} message="Sem ouvintes neste período" />
       ) : (
         <ResponsiveContainer width="100%" height={260}>
           <ComposedChart data={data} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
@@ -276,11 +298,11 @@ function SeriesChart({ data, hourly }: { data: AudienceSeriesPoint[]; hourly: bo
   );
 }
 
-function SourcesCard({ data }: { data: AudienceBySource[] }) {
+function SourcesCard({ data, error }: { data: AudienceBySource[]; error?: string }) {
   return (
     <SectionCard title="De onde ouvem" icon={Smartphone} aside="por horas ouvidas">
-      {data.length === 0 ? (
-        <EmptyState message="Sem ligações neste período" />
+      {error || data.length === 0 ? (
+        <BlockEmpty error={error} message="Sem ligações neste período" />
       ) : (
         <div className="space-y-4">
           {data.map((row) => (
@@ -310,11 +332,22 @@ function SourcesCard({ data }: { data: AudienceBySource[] }) {
   );
 }
 
-function HeatmapChart({ data }: { data: HeatmapCell[] }) {
-  if (data.length === 0) {
+function HeatmapChart({ data, error }: { data: HeatmapCell[]; error?: string }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const bestHour = strongestSlots(data)?.hour ?? null;
+
+  // On narrow screens the table scrolls: open it around the strongest hour, not at 00h.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || bestHour == null || el.scrollWidth <= el.clientWidth) return;
+    const cell = el.querySelector<HTMLElement>(`[data-hour="${bestHour}"]`);
+    if (cell) el.scrollLeft = Math.max(0, cell.offsetLeft - el.clientWidth / 2 + cell.offsetWidth / 2);
+  }, [bestHour, data]);
+
+  if (error || data.length === 0) {
     return (
       <SectionCard title="Quando ouvem" icon={Clock}>
-        <EmptyState message="Sem fotografias de ouvintes neste período" />
+        <BlockEmpty error={error} message="Sem fotografias de ouvintes neste período" />
       </SectionCard>
     );
   }
@@ -346,13 +379,13 @@ function HeatmapChart({ data }: { data: HeatmapCell[] }) {
           </>
         )}
       </p>
-      <div className="overflow-x-auto">
+      <div ref={scrollRef} className="overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead>
             <tr>
-              <th className="text-left py-1 px-1 text-xs text-muted-foreground w-10" />
+              <th className="sticky left-0 z-10 bg-cream text-left py-1 px-1 text-xs text-muted-foreground w-10" />
               {hours.map((h) => (
-                <th key={h} className="text-center py-1 px-0.5 text-[10px] text-muted-foreground">
+                <th key={h} data-hour={h} className="text-center py-1 px-0.5 text-[10px] text-muted-foreground">
                   {h.toString().padStart(2, '0')}
                 </th>
               ))}
@@ -361,7 +394,7 @@ function HeatmapChart({ data }: { data: HeatmapCell[] }) {
           <tbody>
             {[1, 2, 3, 4, 5, 6, 0].map((dow) => (
               <tr key={dow}>
-                <td className="py-0.5 px-1 text-xs font-medium text-charcoal">{DAY_NAMES[dow]}</td>
+                <td className="sticky left-0 z-10 bg-cream py-0.5 px-1 text-xs font-medium text-charcoal">{DAY_NAMES[dow]}</td>
                 {hours.map((hour) => {
                   const val = cells.get(`${dow}-${hour}`) ?? 0;
                   return (
@@ -384,19 +417,40 @@ function HeatmapChart({ data }: { data: HeatmapCell[] }) {
   );
 }
 
-function ProgramsCard({ data }: { data: ProgramPerformance[] }) {
+function ProgramsCard({ data, error }: { data: ProgramPerformance[]; error?: string }) {
   return (
     <SectionCard title="Audiência por programa" icon={Radio} aside="Grelha atual cruzada com as ligações">
-      {data.length === 0 ? (
-        <EmptyState message="Sem blocos na grelha para este período" />
+      {error || data.length === 0 ? (
+        <BlockEmpty error={error} message="Sem blocos na grelha para este período" />
       ) : (
-        <div className="overflow-x-auto">
+        <div>
           <p className="text-xs text-muted-foreground mb-2">
             «Média» = quantas pessoas estavam a ouvir, em média, durante o programa; conta também ligações de segundos que
             as fotografias de 5 em 5 minutos não apanham, por isso pode ficar um pouco acima do «Máximo». Com tão poucos
             ouvintes, uma pessoa a mais muda a ordem. Programas que se sobrepõem (um evento dentro de um bloco) contam as
             mesmas horas.
           </p>
+          {/* Phone: one line per program instead of a table that scrolls sideways */}
+          <ul className="sm:hidden divide-y divide-beige-medium/60">
+            {data.map((p) => (
+              <li key={`m-${p.kind}-${p.program}-${p.schedule_label}`} className="py-2.5 min-w-0">
+                <p className="text-sm font-medium text-charcoal break-words">
+                  {p.program}
+                  {p.kind === 'evento' && (
+                    <span className="ml-2 text-[10px] uppercase tracking-wide text-vermelho bg-vermelho/10 px-1.5 py-0.5 rounded">evento</span>
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground break-words">
+                  {p.schedule_label} · {plural(p.occurrences, 'emissão', 'emissões')}
+                </p>
+                <p className="text-xs text-charcoal tabular-nums mt-0.5">
+                  Média {p.avg_listeners == null ? '—' : nf(p.avg_listeners, 1)} · Máximo {nf(p.peak_listeners)} ·{' '}
+                  {plural(p.listeners, 'ouvinte', 'ouvintes')} · {nf(p.hours_per_occurrence, 2)} h/emissão
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="text-xs text-muted-foreground border-b border-beige-medium">
@@ -427,18 +481,19 @@ function ProgramsCard({ data }: { data: ProgramPerformance[] }) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </SectionCard>
   );
 }
 
-function CountriesCard({ data }: { data: AudienceByCountry[] }) {
+function CountriesCard({ data, error }: { data: AudienceByCountry[]; error?: string }) {
   const max = Math.max(...data.map((d) => d.listeners), 1);
   return (
     <SectionCard title="Países" icon={Globe}>
-      {data.length === 0 ? (
-        <EmptyState message="Sem dados de localização" />
+      {error || data.length === 0 ? (
+        <BlockEmpty error={error} message="Sem dados de localização" />
       ) : (
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {data.map((item) => (
@@ -460,13 +515,31 @@ function CountriesCard({ data }: { data: AudienceByCountry[] }) {
   );
 }
 
-function TopListenersCard({ data }: { data: TopListener[] }) {
+function TopListenersCard({ data, error }: { data: TopListener[]; error?: string }) {
   return (
     <SectionCard title="Ouvintes mais fiéis" icon={UserCheck} aside="IP mascarado · quem gera as horas ouvidas">
-      {data.length === 0 ? (
-        <EmptyState message="Sem ouvintes neste período" />
+      {error || data.length === 0 ? (
+        <BlockEmpty error={error} message="Sem ouvintes neste período" />
       ) : (
-        <div className="overflow-x-auto">
+        <>
+        <ul className="sm:hidden divide-y divide-beige-medium/60">
+          {data.map((l, i) => (
+            <li key={`m-${l.listener_hash}`} className="py-2.5 min-w-0">
+              <p className="text-sm text-charcoal">
+                <span className="text-muted-foreground mr-1.5">{i + 1}.</span>
+                {SOURCE_LABELS[l.source] ?? l.source}
+              </p>
+              <p className="text-xs text-muted-foreground break-words">
+                <code>{l.ip_masked ?? 'anonimizado'}</code>
+                {(l.city || l.country) && <> · {[l.city, l.country].filter(Boolean).join(', ')}</>}
+              </p>
+              <p className="text-xs text-charcoal tabular-nums mt-0.5">
+                {nf(l.listening_hours, 1)} h ({formatPercent(l.hours_share)}) · {plural(l.active_days, 'dia', 'dias')} · última vez {formatDateTime(l.last_seen)}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-sm min-w-[560px]">
             <thead>
               <tr className="text-xs text-muted-foreground border-b border-beige-medium">
@@ -497,6 +570,7 @@ function TopListenersCard({ data }: { data: TopListener[] }) {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </SectionCard>
   );
@@ -542,11 +616,11 @@ function CollectionHealthBanner({ health }: { health: CollectionHealth | null })
   return null;
 }
 
-function DevicesCard({ data }: { data: AudienceByDevice[] }) {
+function DevicesCard({ data, error }: { data: AudienceByDevice[]; error?: string }) {
   return (
     <SectionCard title="Telemóvel ou computador" icon={MonitorSmartphone} aside="por horas ouvidas">
-      {data.length === 0 ? (
-        <EmptyState message="Sem ligações neste período" />
+      {error || data.length === 0 ? (
+        <BlockEmpty error={error} message="Sem ligações neste período" />
       ) : (
         <div className="space-y-3">
           {data.map((row) => (
@@ -571,13 +645,27 @@ function DevicesCard({ data }: { data: AudienceByDevice[] }) {
   );
 }
 
-function ClientsCard({ data }: { data: AudienceByClient[] }) {
+function ClientsCard({ data, error }: { data: AudienceByClient[]; error?: string }) {
   return (
     <SectionCard title="Detalhe por aplicação" icon={ListTree} aside="user-agent enviado ao stream · confirma a origem">
-      {data.length === 0 ? (
-        <EmptyState message="Sem ligações neste período" />
+      {error || data.length === 0 ? (
+        <BlockEmpty error={error} message="Sem ligações neste período" />
       ) : (
-        <div className="overflow-x-auto">
+        <>
+        <ul className="sm:hidden divide-y divide-beige-medium/60">
+          {data.map((c) => (
+            <li key={`m-${c.user_agent}`} className="py-2.5 min-w-0">
+              <code className="text-xs break-all text-charcoal">{c.user_agent}</code>
+              <p className="text-xs text-muted-foreground">
+                {SOURCE_LABELS[c.source] ?? c.source} · {DEVICE_LABELS[c.device] ?? c.device}
+              </p>
+              <p className="text-xs text-charcoal tabular-nums mt-0.5">
+                {plural(c.listeners, 'ouvinte', 'ouvintes')} · {plural(c.sessions, 'sessão', 'sessões')} · {nf(c.short_connections)} com menos de 1 min · {nf(c.listening_hours, 1)} h
+              </p>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-sm min-w-[720px]">
             <thead>
               <tr className="text-xs text-muted-foreground border-b border-beige-medium">
@@ -607,6 +695,7 @@ function ClientsCard({ data }: { data: AudienceByClient[] }) {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </SectionCard>
   );
@@ -614,7 +703,7 @@ function ClientsCard({ data }: { data: AudienceByClient[] }) {
 
 // Plain-language error with the technical detail kept small for the Leo.
 function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => void }) {
-  const expired = /jwt|token|401|PGRST30/i.test(message);
+  const expired = /jwt|token|401|PGRST30|permission denied/i.test(message);
   const offline = /failed to fetch|network/i.test(message);
   const text = expired
     ? 'A sessão expirou. Sai do painel e volta a entrar para ver os números.'
@@ -673,7 +762,7 @@ function csvField(value: string | number | null | undefined): string {
   return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-function generateAudienceCSV(data: AudienceData, periodLabel: string, summary: string[]) {
+function generateAudienceCSV(data: AudienceData, periodLabel: string, summary: string[], prevComplete: boolean) {
   const lines: string[] = [];
   const row = (...cols: Array<string | number | null | undefined>) => lines.push(cols.map(csvField).join(','));
   const o = data.overview;
@@ -684,14 +773,11 @@ function generateAudienceCSV(data: AudienceData, periodLabel: string, summary: s
     row('Período', formatDateTime(o.period_start), formatDateTime(o.period_end));
     lines.push('');
     row('=== RESUMO ===');
-    row('Ouvintes (>= 1 min)', o.listeners, 'período anterior', o.prev_listeners);
-    row('Sessões', o.sessions, 'período anterior', o.prev_sessions);
-    row('Horas ouvidas', o.listening_hours, 'período anterior', o.prev_listening_hours);
-    row('Média de pessoas a ouvir ao mesmo tempo', o.avg_concurrent, 'período anterior', o.prev_avg_concurrent);
-    row('Máximo ao mesmo tempo', o.peak_concurrent, 'em', formatDateTime(o.peak_at));
-    row('Sessão mediana (min)', o.median_session_minutes);
-    row('Sessão média (min)', o.avg_session_minutes);
-    row('% do tempo com ouvintes', o.pct_time_with_listeners);
+    // Same rows as the Excel; previous period only when its history is complete
+    row('Indicador', 'Este período', ...(prevComplete ? ['Período anterior'] : []));
+    kpiRows(o, prevComplete).forEach((k) => row(k.label, k.current, ...(prevComplete ? [k.previous] : [])));
+    row('Máximo ao mesmo tempo, em', formatDateTime(o.peak_at));
+    row('Escuta média (min)', o.avg_session_minutes);
     row('% das horas dos 3 maiores ouvintes', o.top3_share);
     row('Ligações com menos de 1 min', o.short_connections);
     lines.push('');
@@ -835,7 +921,7 @@ function generateAudiencePDF(data: AudienceData, periodLabel: string, summary: s
 export function Audience() {
   const [period, setPeriod] = useState<PeriodRange>(30);
   const [refreshKey, setRefreshKey] = useState(0);
-  const { data, loading, error, refresh } = useAudienceStats(period);
+  const { data, loading, error, errors, refresh } = useAudienceStats(period);
   const { insights, insightsLoading, insightsError } = useAudienceInsights(period, refreshKey);
   const o = data.overview;
   const periodLabel = periodLabels[period];
@@ -904,6 +990,7 @@ export function Audience() {
                       periodLabel,
                       summary,
                       retention,
+                      prevComplete,
                       sourceLabel: (x) => SOURCE_LABELS[x as ListenerSource] ?? x,
                       deviceLabel: (x) => DEVICE_LABELS[x as ListenerDevice] ?? x,
                       countryLabel: getCountryName,
@@ -914,7 +1001,7 @@ export function Audience() {
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Exportar Excel
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => generateAudienceCSV(data, periodLabel, summary)}>
+              <DropdownMenuItem onClick={() => generateAudienceCSV(data, periodLabel, summary, prevComplete)}>
                 <Download className="w-4 h-4 mr-2" />
                 Exportar CSV
               </DropdownMenuItem>
@@ -946,6 +1033,7 @@ export function Audience() {
       ) : (
         <>
           {!o && !error && <EmptyState message="Ainda não há números de audiência para mostrar." />}
+          {!o && errors.overview && <BlockError message={errors.overview} />}
 
           <SummaryCard sentences={summary} />
 
@@ -995,25 +1083,29 @@ export function Audience() {
             </div>
           )}
 
-          <SeriesChart data={data.series} hourly={period === 1} />
+          <SeriesChart data={data.series} hourly={period === 1} error={errors.series} />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <SourcesCard data={data.bySource} />
+            <SourcesCard data={data.bySource} error={errors.bySource} />
             <div className="space-y-4">
-              <DevicesCard data={data.byDevice} />
-              <CountriesCard data={data.byCountry} />
+              <DevicesCard data={data.byDevice} error={errors.byDevice} />
+              <CountriesCard data={data.byCountry} error={errors.byCountry} />
             </div>
           </div>
 
-          <HeatmapChart data={data.heatmap} />
+          <HeatmapChart data={data.heatmap} error={errors.heatmap} />
 
-          <RetentionCard reading={retention} failed={!insightsLoading && !insights && !!o} detail={insightsError} />
+          <RetentionCard
+            reading={retention}
+            failed={(!insightsLoading && !insights && !!o) || !!errors.overview}
+            detail={errors.overview ?? insightsError}
+          />
 
-          <ProgramsCard data={data.programs} />
+          <ProgramsCard data={data.programs} error={errors.programs} />
 
-          <TopListenersCard data={data.topListeners} />
+          <TopListenersCard data={data.topListeners} error={errors.topListeners} />
 
-          <ClientsCard data={data.byClient} />
+          <ClientsCard data={data.byClient} error={errors.byClient} />
 
           <MethodologyNote data={data} />
         </>

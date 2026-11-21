@@ -92,6 +92,13 @@ export function lisbonMoment(iso: string): string {
   return `${get('weekday')}, ${get('day')}/${get('month')}, às ${get('hour')}:${get('minute')}`;
 }
 
+/** Whole % change on the unrounded values; null when there is no base. Shared by sentences and cards. */
+export function pctChange(current: number, previous: number | null): number | null {
+  if (previous == null || previous === 0) return null;
+  if (current === previous) return 0;
+  return Math.round(((current - previous) / previous) * 100);
+}
+
 /**
  * Comparison with the previous period, absolute first (bases are small).
  * Returns null when the previous period has no complete history.
@@ -102,13 +109,16 @@ export function compareText(
   days: number,
   prevComplete: boolean,
   format: (n: number) => string = (n) => nf(n),
+  raw?: [number, number],
 ): string | null {
+  // current/previous are in display units (shown diff = difference of shown values);
+  // the % always comes from pctChange on the raw values, like the cards.
   if (!prevComplete) return null;
   const prevLabel = previousPhrase(days);
   if (current === previous) return days <= 1 ? 'igual a ontem à mesma hora' : `igual aos ${days} dias anteriores`;
   if (previous === 0) return `contra ${format(0)} ${prevLabel}`;
   const diff = current - previous;
-  const pct = Math.round((Math.abs(diff) / previous) * 100);
+  const pct = Math.abs(pctChange(raw ? raw[0] : current, raw ? raw[1] : previous) ?? 0);
   const word = diff > 0 ? 'mais' : 'menos';
   return `${word} ${format(Math.abs(diff))} do que ${prevLabel} (${format(previous)}; ${diff > 0 ? '+' : '−'}${pct}%)`;
 }
@@ -203,12 +213,33 @@ export function topProgram(programs: InsightsProgram[]): InsightsProgram | null 
   return ranked[0] ?? null;
 }
 
-/** Program reaching the most distinct listeners (ties: better average). */
-export function widestProgram(programs: InsightsProgram[]): InsightsProgram | null {
-  const ranked = programs
-    .filter((p) => p.listeners > 0)
-    .sort((a, b) => b.listeners - a.listeners || (b.avg_listeners ?? 0) - (a.avg_listeners ?? 0));
-  return ranked[0] ?? null;
+/** Programs reaching the most distinct listeners; every tie, one entry per name. */
+export function widestPrograms(programs: InsightsProgram[]): { names: string[]; listeners: number } {
+  const max = Math.max(0, ...programs.map((p) => p.listeners));
+  if (max === 0) return { names: [], listeners: 0 };
+  const names = [...new Set(programs.filter((p) => p.listeners === max).map((p) => p.program))];
+  return { names, listeners: max };
+}
+
+export interface KpiInput extends InsightsOverview {
+  sessions: number;
+  prev_sessions: number;
+  prev_avg_concurrent: number | null;
+  pct_time_with_listeners: number | null;
+}
+
+/** KPI table for the CSV/Excel exports; no previous values when the history is incomplete. */
+export function kpiRows(o: KpiInput, prevComplete: boolean) {
+  const prev = <T,>(v: T) => (prevComplete ? v : null);
+  return [
+    { label: 'Ouvintes (pelo menos 1 min)', current: o.listeners, previous: prev(o.prev_listeners) },
+    { label: 'Horas ouvidas', current: o.listening_hours, previous: prev(o.prev_listening_hours) },
+    { label: 'Escutas (pelo menos 1 min)', current: o.sessions, previous: prev(o.prev_sessions) },
+    { label: 'Média de pessoas a ouvir ao mesmo tempo', current: o.avg_concurrent, previous: prev(o.prev_avg_concurrent) },
+    { label: 'Máximo de pessoas ao mesmo tempo', current: o.peak_concurrent, previous: null },
+    { label: 'Escuta típica (mediana, min)', current: o.median_session_minutes, previous: null },
+    { label: 'Tempo com alguém a ouvir', current: o.pct_time_with_listeners, previous: null },
+  ];
 }
 
 /** Average people as words: "1 pessoa", "0,9 pessoas", "menos de 0,1 pessoas". */
@@ -248,6 +279,7 @@ export function summarySentences(
     days,
     prevComplete,
     (min) => hoursText(min / 60),
+    [o.listening_hours, o.prev_listening_hours],
   );
   out.push(`Ao todo, ouviram ${hoursText(o.listening_hours)}${cmpHours ? `, ${cmpHours}` : ''}.`);
 
@@ -270,9 +302,14 @@ export function summarySentences(
   const top = topProgram(programs);
   if (top) {
     let text = `O programa com mais gente a ouvir, em média, foi «${top.program}» (${top.schedule_label}): ${peopleAvg(top.avg_listeners ?? 0)} durante a emissão`;
-    const widest = widestProgram(programs);
-    if (widest && widest !== top && widest.listeners > top.listeners) {
-      text += `; o que chegou a mais pessoas diferentes foi «${widest.program}» (${countWord(widest.listeners, 'ouvinte', 'ouvintes')})`;
+    const widest = widestPrograms(programs);
+    if (widest.names.length === 1 && widest.listeners > top.listeners) {
+      text += `; o que chegou a mais pessoas diferentes foi «${widest.names[0]}» (${countWord(widest.listeners, 'ouvinte', 'ouvintes')})`;
+    } else if (widest.names.length > 1 && widest.listeners > top.listeners) {
+      const shown = widest.names.slice(0, 3).map((n) => `«${n}»`);
+      const rest = widest.names.length - shown.length;
+      const list = rest > 0 ? `${shown.join(', ')} e mais ${countWord(rest, 'programa', 'programas')}` : `${shown.slice(0, -1).join(', ')} e ${shown[shown.length - 1]}`;
+      text += `; os que chegaram a mais pessoas diferentes foram ${list} (${countWord(widest.listeners, 'ouvinte', 'ouvintes')} cada)`;
     }
     out.push(`${text}.`);
   }

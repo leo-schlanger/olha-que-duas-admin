@@ -155,7 +155,12 @@ function normalizeRow<T>(row: Record<string, unknown>): T {
   return out as T;
 }
 
-async function loadAudience(daysBack: number): Promise<{ data: AudienceData; error: string | null }> {
+export type AudienceBlock = Exclude<keyof AudienceData, never>;
+export type AudienceErrors = Partial<Record<AudienceBlock, string>>;
+
+async function loadAudience(
+  daysBack: number,
+): Promise<{ data: AudienceData; error: string | null; errors: AudienceErrors }> {
   const [overviewRes, seriesRes, sourceRes, deviceRes, clientRes, countryRes, heatmapRes, programsRes, topRes, healthRes] = await Promise.all([
     supabase.rpc('radio_audience_overview', { days_back: daysBack }),
     supabase.rpc('radio_audience_series', { days_back: daysBack }),
@@ -180,12 +185,22 @@ async function loadAudience(daysBack: number): Promise<{ data: AudienceData; err
     .find((r) => r.error)?.error;
   if (firstError) console.error('Audience stats error:', firstError);
 
+  // Each block keeps its own error, so a failed block never looks "empty"
+  const errors: AudienceErrors = {};
+  const blocks: Array<[AudienceBlock, { error: { message: string } | null }]> = [
+    ['overview', overviewRes], ['series', seriesRes], ['bySource', sourceRes], ['byDevice', deviceRes],
+    ['byClient', clientRes], ['byCountry', countryRes], ['heatmap', heatmapRes], ['programs', programsRes],
+    ['topListeners', topRes], ['health', healthRes],
+  ];
+  for (const [key, res] of blocks) if (res.error) errors[key] = res.error.message;
+
   const rows = (res: { data: unknown }) => (Array.isArray(res.data) ? (res.data as Record<string, unknown>[]) : []);
   const overviewRow = rows(overviewRes)[0];
   const healthRow = rows(healthRes)[0];
 
   return {
     error: firstError ? `Erro ao carregar audiência: ${firstError.message}` : null,
+    errors,
     data: {
       overview: overviewRow ? normalizeRow<AudienceOverview>(overviewRow) : null,
       series: rows(seriesRes).map((r) => normalizeRow<AudienceSeriesPoint>(r)),
@@ -203,7 +218,7 @@ async function loadAudience(daysBack: number): Promise<{ data: AudienceData; err
 
 export function useAudienceStats(daysBack: number) {
   const [refreshCount, setRefreshCount] = useState(0);
-  const [result, setResult] = useState<{ key: string; data: AudienceData; error: string | null } | null>(null);
+  const [result, setResult] = useState<{ key: string; data: AudienceData; error: string | null; errors: AudienceErrors } | null>(null);
   const requestKey = `${daysBack}:${refreshCount}`;
 
   useEffect(() => {
@@ -223,6 +238,7 @@ export function useAudienceStats(daysBack: number) {
     data: result?.data ?? emptyData,
     loading: result?.key !== requestKey,
     error: result?.key === requestKey ? result.error : null,
+    errors: result?.key === requestKey ? result.errors : {},
     refresh,
   };
 }

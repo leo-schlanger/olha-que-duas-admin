@@ -228,3 +228,54 @@ test('retention family: every split of sessions and returning listeners reads cl
     }
   }
 });
+
+// --- qa 21/11 (round 2) ---
+import { pctChange, kpiRows, widestPrograms } from '../src/components/audience/insights.ts';
+
+test('one % for sentence and cards, on unrounded values, every period', () => {
+  // qa case: "Hoje" hours 0.38 vs 0.52 → sentence said −26 % (minutes), card −27 %
+  const pairs: Array<[number, number]> = [[0.38, 0.52], [19.41, 16.55], [80.07, 114.8], [12, 14], [0.01, 0.02], [3.333, 1.111]];
+  for (const days of [1, 7, 30, 90]) {
+    for (const [cur, prev] of pairs) {
+      const o = { ...ov7, listeners: 5, prev_listeners: 5, listening_hours: cur, prev_listening_hours: prev };
+      const s = summarySentences(days, o, ins7, [], []).find((t) => t.startsWith('Ao todo'))!;
+      const p = pctChange(cur, prev)!;
+      const m = s.match(/([+−])(\d+)%\)/);
+      if (Math.round(cur * 60) === Math.round(prev * 60)) continue;
+      assert.ok(m, s);
+      assert.equal(Number(m![2]), Math.abs(p), s);
+      assert.equal(m![1] === '+', p > 0, s);
+    }
+  }
+  assert.equal(pctChange(0.38, 0.52), -27);
+  assert.equal(pctChange(5, 0), null);
+  assert.equal(pctChange(0, 0), null);
+});
+
+test('kpiRows: no previous-period values when the history is incomplete', () => {
+  const o = { ...ov7, sessions: 19, prev_sessions: 17, prev_avg_concurrent: 0.11, pct_time_with_listeners: 0.12, avg_session_minutes: 60.9 };
+  const full = kpiRows(o, true);
+  assert.ok(full.some((r) => r.previous != null));
+  const none = kpiRows(o, false);
+  assert.ok(none.length === full.length);
+  assert.ok(none.every((r) => r.previous == null), JSON.stringify(none));
+});
+
+test('widestPrograms names every tie, once per name', () => {
+  const b = { kind: 'evento', schedule_label: 'x', occurrences: 1, avg_listeners: 0.1 };
+  const w = widestPrograms([
+    { ...b, program: 'A', listeners: 5 },
+    { ...b, program: 'B', listeners: 5 },
+    { ...b, program: 'B', listeners: 5 },
+    { ...b, program: 'C', listeners: 2 },
+  ]);
+  assert.deepEqual(w.names, ['A', 'B']);
+  assert.equal(w.listeners, 5);
+  const top = { ...b, program: 'T', avg_listeners: 1, listeners: 1 };
+  const s = summarySentences(7, ov7, ins7, [], [top, { ...b, program: 'A', listeners: 5 }, { ...b, program: 'B', listeners: 5 }])
+    .find((t) => t.startsWith('O programa'))!;
+  assert.match(s, /os que chegaram a mais pessoas diferentes foram «A» e «B» \(5 ouvintes cada\)\.$/);
+  const many = summarySentences(7, ov7, ins7, [], [top, ...['A', 'B', 'C', 'D', 'E'].map((p) => ({ ...b, program: p, listeners: 5 }))])
+    .find((t) => t.startsWith('O programa'))!;
+  assert.match(many, /«A», «B», «C» e mais 2 programas \(5 ouvintes cada\)/);
+});

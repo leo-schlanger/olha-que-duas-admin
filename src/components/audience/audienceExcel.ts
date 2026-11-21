@@ -2,7 +2,7 @@
 // sentences as the page and the PDF.
 import type { Workbook, Worksheet } from 'exceljs';
 import type { AudienceData } from '../../hooks/useAudienceStats';
-import { WEEKDAYS, type RetentionReading } from './insights';
+import { WEEKDAYS, kpiRows, type RetentionReading } from './insights';
 
 const BRAND = 'FFC0392B';
 const SOFT = 'FFF3ECE2';
@@ -12,6 +12,7 @@ export interface AudienceExcelInput {
   periodLabel: string;
   summary: string[];
   retention: RetentionReading;
+  prevComplete: boolean;
   sourceLabel: (s: string) => string;
   deviceLabel: (d: string) => string;
   countryLabel: (c: string) => string;
@@ -52,18 +53,16 @@ export async function downloadAudienceExcel(input: AudienceExcelInput) {
   });
   if (o) {
     res.addRow([]);
-    const h = res.addRow(['Indicador', 'Este período', 'Período anterior']);
+    const h = res.addRow(['Indicador', 'Este período', ...(input.prevComplete ? ['Período anterior'] : [])]);
     h.font = { bold: true };
     h.eachCell((c) => {
       c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SOFT } };
     });
-    res.addRow(['Ouvintes (pelo menos 1 min)', o.listeners, o.prev_listeners]);
-    res.addRow(['Horas ouvidas', o.listening_hours, o.prev_listening_hours]);
-    res.addRow(['Escutas (pelo menos 1 min)', o.sessions, o.prev_sessions]);
-    res.addRow(['Média de pessoas a ouvir ao mesmo tempo', o.avg_concurrent, o.prev_avg_concurrent]);
-    res.addRow(['Máximo de pessoas ao mesmo tempo', o.peak_concurrent, null]);
-    res.addRow(['Escuta típica (mediana, min)', o.median_session_minutes, null]);
-    res.addRow(['Tempo com alguém a ouvir', o.pct_time_with_listeners, null]).getCell(2).numFmt = '0%';
+    // No previous-period values at all when its history is incomplete (90 days)
+    for (const k of kpiRows(o, input.prevComplete)) {
+      const r = res.addRow([k.label, k.current, ...(input.prevComplete ? [k.previous] : [])]);
+      if (k.label === 'Tempo com alguém a ouvir') r.getCell(2).numFmt = '0%';
+    }
   }
 
   table(

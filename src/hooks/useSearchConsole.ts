@@ -37,7 +37,23 @@ async function fetchReport(days: GscDays): Promise<GscState> {
     const body = (await response.json()) as Partial<GscReport> & { configured?: boolean; error?: string };
     if (body.configured === false) return { status: 'not-connected' };
     if (!response.ok || body.error) return { status: 'error', message: body.error || `Erro ${response.status}` };
-    return { status: 'ready', report: body as GscReport };
+    // Defensive read: a body without dates or arrays (e.g. `{}`) is an error, never a crash
+    if (typeof body.startDate !== 'string' || typeof body.endDate !== 'string' || !Array.isArray(body.queries)) {
+      return { status: 'error', message: 'Resposta inesperada do servidor' };
+    }
+    const list = (v: unknown) => (Array.isArray(v) ? (v as GscRow[]) : []);
+    const row = (v: unknown) => (v && typeof v === 'object' && !Array.isArray(v) ? (v as GscRow) : null);
+    return {
+      status: 'ready',
+      report: {
+        ...(body as GscReport),
+        totals: row(body.totals),
+        prevTotals: row(body.prevTotals),
+        queries: list(body.queries),
+        pages: list(body.pages),
+        pageQueries: list(body.pageQueries),
+      },
+    };
   } catch (err) {
     return { status: 'error', message: err instanceof Error ? err.message : 'Sem ligação' };
   }
