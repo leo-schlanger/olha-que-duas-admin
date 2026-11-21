@@ -2,7 +2,7 @@ import { Layers } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import type { PiecesData } from '../../hooks/usePiecesAnalytics';
 import { Bar, ChangeBadge, EmptyState, ErrorState, Hint, SkeletonRows } from './shared';
-import { fmt } from './format';
+import { countLabel } from '../../lib/pecasAnalytics';
 
 export function ProgramsReads({
   programs,
@@ -40,11 +40,11 @@ export function ProgramsReads({
                   <span className="min-w-0 text-charcoal font-medium break-words">
                     {p.programTitle}
                     <span className="text-xs text-muted-foreground font-normal">
-                      {' '}· {p.pieces} {p.pieces === 1 ? 'peça' : 'peças'}
+                      {' '}· {countLabel(p.pieces, 'peça', 'peças')}
                     </span>
                   </span>
                   <span className="flex items-baseline gap-2 whitespace-nowrap">
-                    <span className="tabular-nums text-charcoal">{fmt(p.pageviews)}</span>
+                    <span className="tabular-nums text-charcoal">{countLabel(p.pageviews, 'leitura', 'leituras')}</span>
                     <ChangeBadge current={p.pageviews} previous={p.prevPageviews} />
                   </span>
                 </div>

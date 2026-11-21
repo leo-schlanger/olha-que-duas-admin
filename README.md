@@ -153,6 +153,9 @@ npm run dev
 - «Pessoas» de uma peça = soma das pessoas de cada endereço (quem abriu o antigo e o novo conta 2×; raro). Por programa só se mostram leituras (somáveis).
 - `api/umami-proxy.ts` é público (sem sessão): só lê o share token, que já é público. O `api/gsc.ts` não é: exige admin.
 - Testes: `npm test` (`node --test`, Node 24 corre .ts direto); `tests/fixtures/umami-paths-30d.json` é uma amostra real de 30 dias.
+- (qa 21/11) O Umami regista às vezes `<caminho>,www.olhaqueduas.com` e slugs truncados (`…/filha-d`, `…/fernanda-serrano-desmente-novo-a`): `piecePathOf` corta na vírgula e `slugResolver` junta o slug truncado à única peça cujo slug começa por ele (ambíguo fica à parte). Vale também para o Search Console.
+- (qa 21/11) Um pedido de 90 dias pode levar ~70 s: os hooks do separador (`useAnalytics`, `usePiecesAnalytics` período e semanas, `useSearchConsole`) só aceitam a resposta do pedido mais recente; as exportações só ficam ativas com os números do período no ecrã.
+- Percentagens de origem por maior resto (somam sempre 100) no ecrã, por peça, no PDF e no Excel; «Google» = só pesquisa (google.<tld> e a app Google); Gmail, Docs, News → «Outros sites».
 
 ### Radio (AzuraCast)
 - **Status em tempo real** - Online/Offline, Ao Vivo/AutoDJ

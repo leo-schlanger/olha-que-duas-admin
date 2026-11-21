@@ -1,10 +1,9 @@
 import { CalendarRange } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { weekLabel } from '../../lib/pecasAnalytics';
+import { countLabel, weekLabel } from '../../lib/pecasAnalytics';
 import type { WeekStat } from '../../hooks/usePiecesAnalytics';
 import { ChangeBadge, EmptyState, ErrorState, Hint, SkeletonRows } from './shared';
-import { fmt } from './format';
 
 interface Point {
   label: string;
@@ -18,7 +17,7 @@ function WeekTooltip({ active, payload }: { active?: boolean; payload?: Array<{ 
   return (
     <div className="bg-charcoal text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-[240px]">
       <p className="font-medium">{p.label}</p>
-      <p>{fmt(p.pageviews)} leituras</p>
+      <p>{countLabel(p.pageviews, 'leitura', 'leituras')}</p>
       {p.top && <p className="opacity-80 mt-1">Mais lida: {p.top}</p>}
     </div>
   );

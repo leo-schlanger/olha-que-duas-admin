@@ -6,6 +6,7 @@ import type { PieceStat, SourceStat } from '../../lib/pecasAnalytics';
 import type { PieceWithChange } from '../../hooks/usePiecesAnalytics';
 import { ChangeBadge, EmptyState, ErrorState, Hint, SkeletonRows } from './shared';
 import { fmt } from './format';
+import { countLabel } from '../../lib/pecasAnalytics';
 import { SourcesList } from './SourcesCard';
 
 const PAGE = 10;
@@ -53,10 +54,11 @@ function PieceRow({
         </span>
         <span className="col-start-2 sm:col-start-auto flex flex-wrap items-baseline gap-x-3 sm:block sm:text-right">
           <span className="block text-sm font-semibold text-charcoal tabular-nums whitespace-nowrap">
-            {fmt(piece.pageviews)} <span className="font-normal text-muted-foreground">leituras</span>
+            {fmt(piece.pageviews)}{' '}
+            <span className="font-normal text-muted-foreground">{piece.pageviews === 1 ? 'leitura' : 'leituras'}</span>
           </span>
           <span className="flex items-center sm:justify-end gap-2">
-            <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">{fmt(piece.visitors)} pessoas</span>
+            <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">{countLabel(piece.visitors, 'pessoa', 'pessoas')}</span>
             <ChangeBadge current={piece.pageviews} previous={piece.prevPageviews} />
             <ChevronDown className={cn('w-4 h-4 text-muted-foreground transition-transform', open && 'rotate-180')} aria-hidden="true" />
           </span>

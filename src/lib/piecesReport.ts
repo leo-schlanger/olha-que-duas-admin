@@ -1,7 +1,7 @@
 // Pieces report (PDF via print + Excel) built from the same data shown in the Analytics tab.
 import type { Workbook } from 'exceljs';
 import type { PiecesData, WeekStat } from '../hooks/usePiecesAnalytics';
-import { formatChange, weekLabel } from './pecasAnalytics';
+import { countLabel, formatChange, weekLabel } from './pecasAnalytics';
 
 export interface PiecesReportInput {
   periodLabel: string;
@@ -45,7 +45,7 @@ export function generatePiecesPDF({ periodLabel, data, weeks }: PiecesReportInpu
 </style></head><body>
 <h1>Leituras das peças</h1>
 <p class="meta">Período: ${esc(periodLabel)} · Gerado em ${stamp()} · Fonte: Umami</p>
-<p>${n(data.totalReads)} leituras de peças (${formatChange(data.totalReads, data.prevTotalReads)} face ao período anterior).</p>
+<p>${countLabel(data.totalReads, 'leitura', 'leituras')} de peças (${formatChange(data.totalReads, data.prevTotalReads)} face ao período anterior).</p>
 <h2>Peças mais lidas</h2>
 <table><thead><tr><th>#</th><th>Peça</th><th>Programa</th><th class="num">Leituras</th><th class="num">Pessoas</th><th class="num">Variação</th></tr></thead>
 <tbody>${data.pieces.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.title)}</td><td>${esc(p.programTitle)}</td><td class="num">${n(p.pageviews)}</td><td class="num">${n(p.visitors)}</td><td class="num">${formatChange(p.pageviews, p.prevPageviews)}</td></tr>`).join('')}</tbody></table>
@@ -54,7 +54,7 @@ export function generatePiecesPDF({ periodLabel, data, weeks }: PiecesReportInpu
 <tbody>${data.programs.map((p) => `<tr><td>${esc(p.programTitle)}</td><td class="num">${p.pieces}</td><td class="num">${n(p.pageviews)}</td><td class="num">${formatChange(p.pageviews, p.prevPageviews)}</td></tr>`).join('')}</tbody></table>
 <h2>De onde vêm as visitas (site inteiro)</h2>
 <table><thead><tr><th>Origem</th><th class="num">Visitas</th><th class="num">%</th></tr></thead>
-<tbody>${rows(data.sources.map((s) => [esc(SOURCE_LABEL[s.group] ?? s.group), n(s.visits), `${Math.round(s.share)}%`]))}</tbody></table>
+<tbody>${rows(data.sources.map((s) => [esc(SOURCE_LABEL[s.group] ?? s.group), n(s.visits), `${s.share}%`]))}</tbody></table>
 <h2>Semana a semana (7 dias seguidos)</h2>
 <table><thead><tr><th>Semana</th><th class="num">Leituras</th><th>Peça mais lida</th></tr></thead>
 <tbody>${rows(weeks.map((w) => [weekLabel(w), n(w.pageviews), esc(w.top?.title ?? '—')]))}</tbody></table>
@@ -100,7 +100,7 @@ export async function generatePiecesExcel({ periodLabel, data, weeks }: PiecesRe
   sheet(
     'Origem',
     ['Origem', 'Visitas', '%'],
-    data.sources.map((s) => [SOURCE_LABEL[s.group] ?? s.group, s.visits, Math.round(s.share)]),
+    data.sources.map((s) => [SOURCE_LABEL[s.group] ?? s.group, s.visits, s.share]),
     [44, 10, 8],
   );
   sheet(

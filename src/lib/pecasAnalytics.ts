@@ -38,7 +38,8 @@ export function piecePathOf(raw: string): PiecePath | null {
       return null;
     }
   }
-  path = path.split(/[?#]/)[0];
+  // Umami sometimes logs "<path>,www.olhaqueduas.com": cut before the extension rule.
+  path = path.split(/[?#,]/)[0];
   try {
     path = decodeURIComponent(path);
   } catch {
@@ -113,16 +114,37 @@ export function toPathRows(payload: unknown): PathRow[] {
     .filter((r): r is PathRow & { visits: number } => r !== null);
 }
 
+/**
+ * Maps a slug to the known piece it belongs to: itself when known, else the only
+ * known slug that starts with it (Umami logs truncated paths). Ambiguous → unchanged.
+ */
+export function slugResolver(knownSlugs: Iterable<string>): (slug: string) => string {
+  const known = [...new Set([...knownSlugs].map((k) => k.toLowerCase()))];
+  const set = new Set(known);
+  const cache = new Map<string, string>();
+  return (slug) => {
+    if (set.has(slug)) return slug;
+    const hit = cache.get(slug);
+    if (hit) return hit;
+    const owners = known.filter((k) => k.startsWith(slug));
+    const out = owners.length === 1 ? owners[0] : slug;
+    cache.set(slug, out);
+    return out;
+  };
+}
+
 /** Joins every address of the same piece and names it from the database. Sorted by reads. */
 export function mergePieces(rows: PathRow[], posts: PostRef[], programs: ProgramRef[]): PieceStat[] {
   const postBySlug = new Map(posts.map((p) => [p.slug.toLowerCase(), p]));
   const programById = new Map(programs.map((p) => [p.id, p]));
   const programBySlug = new Map(programs.map((p) => [p.slug.toLowerCase(), p]));
   const pieces = new Map<string, PieceStat>();
+  const resolve = slugResolver(postBySlug.keys());
 
   for (const row of rows) {
-    const ref = piecePathOf(row.name);
-    if (!ref) continue;
+    const found = piecePathOf(row.name);
+    if (!found) continue;
+    const ref = { ...found, slug: resolve(found.slug) };
     let piece = pieces.get(ref.slug);
     if (!piece) {
       const post = postBySlug.get(ref.slug);
@@ -195,7 +217,8 @@ export const SOURCE_ORDER: SourceGroup[] = ['Google', 'Instagram', 'Facebook', '
 export function sourceGroup(referrer: string): SourceGroup {
   const host = referrer.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0];
   if (!host || host === '(direct)' || host === 'direct') return 'Direto';
-  if (/(^|\.)google\.[a-z.]+$/.test(host) || host.includes('googlequicksearchbox') || host === 'com.google.android.gm') {
+  // Search only: google.<tld> (with or without www) and the Google app; Gmail, Docs, News… are Outros.
+  if (/^(www\.)?google\.[a-z]{2,3}(\.[a-z]{2})?$/.test(host) || host === 'com.google.android.googlequicksearchbox') {
     return 'Google';
   }
   if (host.includes('instagram')) return 'Instagram';
@@ -226,6 +249,7 @@ export function toVisitRows(payload: unknown): MetricRow[] {
 export interface SourceStat {
   group: SourceGroup;
   visits: number;
+  /** Whole percent; the shares of one list always add up to 100 (largest remainder). */
   share: number;
   /** Domains folded into the group (for the tooltip / "Outros"). */
   hosts: string[];
@@ -251,11 +275,9 @@ export function groupSources(referrers: MetricRow[], channels: MetricRow[]): Sou
   const direct = channels.find((c) => c.name === 'direct');
   if (direct) add('Direto', direct.visits);
 
-  const sum = [...totals.values()].reduce((s, v) => s + v.visits, 0);
-  return SOURCE_ORDER.filter((g) => (totals.get(g)?.visits ?? 0) > 0).map((g) => {
-    const t = totals.get(g)!;
-    return { group: g, visits: t.visits, share: sum > 0 ? (t.visits / sum) * 100 : 0, hosts: t.hosts };
-  });
+  const groups = SOURCE_ORDER.filter((g) => (totals.get(g)?.visits ?? 0) > 0);
+  const shares = roundShares(groups.map((g) => totals.get(g)!.visits));
+  return groups.map((g, i) => ({ group: g, visits: totals.get(g)!.visits, share: shares[i], hosts: totals.get(g)!.hosts }));
 }
 
 /** Adds several origin lists (one per address of the same piece). */
@@ -313,11 +335,13 @@ export interface GscPieceStat {
 }
 
 /** Joins Search Console page rows of the same piece (old and new addresses). */
-export function mergeGscPages(rows: GscRow[]): GscPieceStat[] {
+export function mergeGscPages(rows: GscRow[], knownSlugs: Iterable<string> = []): GscPieceStat[] {
+  const resolve = slugResolver(knownSlugs);
   const map = new Map<string, { clicks: number; impressions: number; posWeight: number; pages: string[] }>();
   for (const row of rows) {
     const ref = piecePathOf(row.keys[0] ?? '');
     if (!ref) continue;
+    ref.slug = resolve(ref.slug);
     const cur = map.get(ref.slug) ?? { clicks: 0, impressions: 0, posWeight: 0, pages: [] };
     cur.clicks += row.clicks;
     cur.impressions += row.impressions;
@@ -338,12 +362,14 @@ export function mergeGscPages(rows: GscRow[]): GscPieceStat[] {
 }
 
 /** Top searches per piece, from rows with dimensions [page, query]. */
-export function queriesByPiece(rows: GscRow[], limit = 5): Map<string, GscRow[]> {
+export function queriesByPiece(rows: GscRow[], limit = 5, knownSlugs: Iterable<string> = []): Map<string, GscRow[]> {
+  const resolve = slugResolver(knownSlugs);
   const bySlug = new Map<string, Map<string, GscRow>>();
   for (const row of rows) {
     const ref = piecePathOf(row.keys[0] ?? '');
     const query = row.keys[1];
     if (!ref || !query) continue;
+    ref.slug = resolve(ref.slug);
     const queries = bySlug.get(ref.slug) ?? new Map<string, GscRow>();
     const cur = queries.get(query);
     if (cur) {
@@ -365,4 +391,94 @@ export function queriesByPiece(rows: GscRow[], limit = 5): Map<string, GscRow[]>
     );
   }
   return out;
+}
+
+// ---------- Wording, rounding, requests ----------
+
+/** Whole percentages that add up to exactly 100 (largest remainder). All zero → all 0. */
+export function roundShares(values: number[]): number[] {
+  const total = values.reduce((a, b) => a + b, 0);
+  if (total <= 0) return values.map(() => 0);
+  const exact = values.map((v) => (v / total) * 100);
+  const out = exact.map(Math.floor);
+  let left = 100 - out.reduce((a, b) => a + b, 0);
+  const order = exact.map((e, i) => [e - Math.floor(e), i] as const).sort((a, b) => b[0] - a[0] || a[1] - b[1]);
+  for (const [, i] of order) {
+    if (left <= 0) break;
+    out[i] += 1;
+    left -= 1;
+  }
+  return out;
+}
+
+/** «1 leitura», «2 leituras» (number rounded first, pt-PT digits). */
+export function countLabel(value: number, one: string, many: string): string {
+  const n = Math.round(value);
+  return `${n.toLocaleString('pt-PT')} ${n === 1 ? one : many}`;
+}
+
+export type RangeKey = '24h' | '7d' | '30d' | '90d';
+
+const RANGE_PHRASE: Record<RangeKey, string> = {
+  '24h': 'Nas últimas 24 horas',
+  '7d': 'Nos últimos 7 dias',
+  '30d': 'Nos últimos 30 dias',
+  '90d': 'Nos últimos 90 dias',
+};
+
+const PREV_PHRASE: Record<RangeKey, string> = {
+  '24h': 'nas 24 horas anteriores',
+  '7d': 'nos 7 dias anteriores',
+  '30d': 'nos 30 dias anteriores',
+  '90d': 'nos 90 dias anteriores',
+};
+
+const SOURCE_PHRASE: Record<SourceGroup, string> = {
+  Google: 'pelo Google',
+  Instagram: 'pelo Instagram',
+  Facebook: 'pelo Facebook',
+  WhatsApp: 'pelo WhatsApp',
+  Direto: 'de forma direta (link escrito, guardado ou partilhado)',
+  Outros: 'por outros sites',
+};
+
+/** Plain-language summary; every sentence speaks of the chosen period only. */
+export function summaryLines(input: {
+  timeRange: RangeKey;
+  totalReads: number;
+  prevTotalReads: number;
+  top: PieceStat | null;
+  topProgram: ProgramStat | null;
+  mainSource: SourceStat | null;
+}): string[] {
+  const { timeRange, totalReads, prevTotalReads, top, topProgram, mainSource } = input;
+  const lines: string[] = [];
+  const reads = `${countLabel(totalReads, 'leitura', 'leituras')} de peças`;
+  const change = formatChange(totalReads, prevTotalReads);
+  let first = `${RANGE_PHRASE[timeRange]}: ${reads}`;
+  if (percentChange(totalReads, prevTotalReads) === null) {
+    // nothing before to compare with
+  } else if (change === 'igual') {
+    first += `, o mesmo que ${PREV_PHRASE[timeRange]}`;
+  } else {
+    first += `, ${change} que ${PREV_PHRASE[timeRange]}`;
+  }
+  lines.push(`${first}.`);
+  if (top) lines.push(`A peça mais lida foi «${top.title}» (${countLabel(top.pageviews, 'leitura', 'leituras')}).`);
+  if (topProgram) {
+    lines.push(`O programa mais lido foi ${topProgram.programTitle} (${countLabel(topProgram.pageviews, 'leitura', 'leituras')}).`);
+  }
+  if (mainSource) {
+    lines.push(`A maior fatia das visitas ao site chegou ${SOURCE_PHRASE[mainSource.group]} (${mainSource.share}%).`);
+  }
+  return lines;
+}
+
+/** Stale-response guard: only the newest request may write state. */
+export function createRequestGate() {
+  let current = 0;
+  return {
+    next: () => (current += 1),
+    isCurrent: (token: number) => token === current,
+  };
 }

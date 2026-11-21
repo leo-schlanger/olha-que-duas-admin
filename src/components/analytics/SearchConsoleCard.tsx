@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { cn } from '../../lib/utils';
-import { mergeGscPages, piecePathOf, prettySlug, queriesByPiece, type GscRow } from '../../lib/pecasAnalytics';
+import { countLabel, mergeGscPages, piecePathOf, prettySlug, queriesByPiece, type GscRow } from '../../lib/pecasAnalytics';
 import { useSearchConsole, type GscDays } from '../../hooks/useSearchConsole';
 import { ChangeBadge, EmptyState, ErrorState, Hint, SkeletonRows } from './shared';
 import { fmt } from './format';
@@ -61,7 +61,7 @@ function PieceQueries({ queries }: { queries: GscRow[] }) {
         <li key={q.keys[0]} className="flex justify-between gap-3 text-xs">
           <span className="min-w-0 break-words text-charcoal">«{q.keys[0]}»</span>
           <span className="text-muted-foreground tabular-nums whitespace-nowrap">
-            {fmt(q.clicks)} cliques · {fmt(q.impressions)} vezes
+            {countLabel(q.clicks, 'clique', 'cliques')} · {countLabel(q.impressions, 'vez', 'vezes')}
           </span>
         </li>
       ))}
@@ -69,14 +69,20 @@ function PieceQueries({ queries }: { queries: GscRow[] }) {
   );
 }
 
-export function SearchConsoleCard({ titleOf }: { titleOf: (slug: string) => string | undefined }) {
+export function SearchConsoleCard({
+  titleOf,
+  knownSlugs,
+}: {
+  titleOf: (slug: string) => string | undefined;
+  knownSlugs: string[];
+}) {
   const [days, setDays] = useState<GscDays>(28);
   const [open, setOpen] = useState<string | null>(null);
   const { state, refresh } = useSearchConsole(days);
 
   const report = state.status === 'ready' ? state.report : null;
-  const pieces = useMemo(() => (report ? mergeGscPages(report.pages) : []), [report]);
-  const pieceQueries = useMemo(() => (report ? queriesByPiece(report.pageQueries) : new Map()), [report]);
+  const pieces = useMemo(() => (report ? mergeGscPages(report.pages, knownSlugs) : []), [report, knownSlugs]);
+  const pieceQueries = useMemo(() => (report ? queriesByPiece(report.pageQueries, 5, knownSlugs) : new Map()), [report, knownSlugs]);
   const otherPages = useMemo(
     () => (report ? report.pages.filter((p) => !piecePathOf(p.keys[0] ?? '')).slice(0, 5) : []),
     [report],
@@ -155,7 +161,7 @@ export function SearchConsoleCard({ titleOf }: { titleOf: (slug: string) => stri
                       <li key={q.keys[0]} className="flex flex-col sm:flex-row sm:justify-between gap-x-3 gap-y-0.5 py-1.5 text-sm">
                         <span className="min-w-0 break-words text-charcoal">«{q.keys[0]}»</span>
                         <span className="text-xs text-muted-foreground tabular-nums sm:whitespace-nowrap sm:text-right">
-                          {fmt(q.clicks)} cliques · {fmt(q.impressions)} vezes · posição {pos(q.position)}
+                          {countLabel(q.clicks, 'clique', 'cliques')} · {countLabel(q.impressions, 'vez', 'vezes')} · posição {pos(q.position)}
                         </span>
                       </li>
                     ))}
@@ -179,7 +185,7 @@ export function SearchConsoleCard({ titleOf }: { titleOf: (slug: string) => stri
                         >
                           <span className="min-w-0 break-words text-charcoal">{titleOf(p.slug) ?? prettySlug(p.slug)}</span>
                           <span className="flex items-center gap-1 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
-                            {fmt(p.clicks)} cliques · {pct(p.ctr)} · pos. {pos(p.position)}
+                            {countLabel(p.clicks, 'clique', 'cliques')} · {pct(p.ctr)} · pos. {pos(p.position)}
                             <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', open === p.slug && 'rotate-180')} aria-hidden="true" />
                           </span>
                         </button>

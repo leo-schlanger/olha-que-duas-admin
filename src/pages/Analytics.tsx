@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   BarChart3,
   Users,
@@ -407,10 +407,14 @@ export function Analytics() {
   const { data, loading, error, refresh, shareUrl, configured } = useAnalytics(timeRange);
   const pieces = usePiecesAnalytics(timeRange);
   const titleBySlug = new Map(pieces.posts.map((p) => [p.slug.toLowerCase(), p.title]));
+  const knownSlugs = useMemo(() => pieces.posts.map((p) => p.slug), [pieces.posts]);
   const refreshAll = () => {
     refresh();
     pieces.refresh();
   };
+  // Exports only with the numbers of the period on screen (never a late answer of another one).
+  const piecesReady = !pieces.loading && pieces.data.range === timeRange && pieces.data.pieces.length > 0;
+  const siteReady = !loading && Boolean(data.stats);
   const piecesReport = { periodLabel: timeRangeLabels[timeRange], data: pieces.data, weeks: pieces.weeks };
 
   return (
@@ -449,7 +453,7 @@ export function Analytics() {
                 variant="outline"
                 size="sm"
                 className="border-beige-medium"
-                disabled={(loading || !data.stats) && pieces.data.pieces.length === 0}
+                disabled={!siteReady && !piecesReady}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Exportar
@@ -457,21 +461,21 @@ export function Analytics() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                disabled={pieces.data.pieces.length === 0}
+                disabled={!piecesReady}
                 onClick={() => generatePiecesPDF(piecesReport)}
               >
                 <FileText className="w-4 h-4 mr-2" />
                 Peças: PDF
               </DropdownMenuItem>
               <DropdownMenuItem
-                disabled={pieces.data.pieces.length === 0}
+                disabled={!piecesReady}
                 onClick={() => generatePiecesExcel(piecesReport)}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Peças: Excel
               </DropdownMenuItem>
               <DropdownMenuItem
-                disabled={!data.stats}
+                disabled={!siteReady}
                 onClick={() => generateAnalyticsPDF({
                   ...data,
                   timeRange: timeRangeLabels[timeRange],
@@ -481,7 +485,7 @@ export function Analytics() {
                 Site: PDF
               </DropdownMenuItem>
               <DropdownMenuItem
-                disabled={!data.stats}
+                disabled={!siteReady}
                 onClick={() => generateAnalyticsCSV({
                   ...data,
                   timeRange: timeRangeLabels[timeRange],
@@ -547,14 +551,7 @@ export function Analytics() {
         </Card>
       ) : (
         <>
-          <PiecesSummary
-            weeks={pieces.weeks}
-            weeksLoading={pieces.weeksLoading}
-            data={pieces.data}
-            periodLabel={timeRangeLabels[timeRange]}
-            sameAsWeek={timeRange === '7d'}
-            loading={pieces.loading}
-          />
+          <PiecesSummary data={pieces.data} timeRange={timeRange} loading={pieces.loading} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2 min-w-0">
@@ -590,7 +587,7 @@ export function Analytics() {
             onRetry={pieces.refresh}
           />
 
-          <SearchConsoleCard titleOf={(slug) => titleBySlug.get(slug)} />
+          <SearchConsoleCard titleOf={(slug) => titleBySlug.get(slug)} knownSlugs={knownSlugs} />
 
           <h3 className="font-display text-lg font-semibold text-charcoal pt-2">O site inteiro</h3>
 

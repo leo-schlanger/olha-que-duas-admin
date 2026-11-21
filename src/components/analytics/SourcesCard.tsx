@@ -2,7 +2,7 @@ import { Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import type { SourceGroup, SourceStat } from '../../lib/pecasAnalytics';
 import { Bar, EmptyState, ErrorState, Hint, SkeletonRows } from './shared';
-import { fmt } from './format';
+import { countLabel } from '../../lib/pecasAnalytics';
 
 const LABELS: Record<SourceGroup, string> = {
   Google: 'Google (pesquisa)',
@@ -23,7 +23,7 @@ export function SourcesList({ sources, empty }: { sources: SourceStat[]; empty: 
           <div className="flex items-baseline justify-between gap-3 text-sm">
             <span className="min-w-0 text-charcoal font-medium break-words">{LABELS[s.group]}</span>
             <span className="text-muted-foreground tabular-nums whitespace-nowrap">
-              {fmt(s.visits)} · {Math.round(s.share)}%
+              {countLabel(s.visits, 'visita', 'visitas')} · {s.share}%
             </span>
           </div>
           <Bar value={s.visits} max={max} />
@@ -53,7 +53,7 @@ export function SourcesCard({
           De onde vêm as visitas
         </CardTitle>
         <Hint>
-          Visitas ao site inteiro no período{total > 0 ? ` (${fmt(total)} no total)` : ''}. Quem abre um link enviado
+          Visitas ao site inteiro no período{total > 0 ? ` (${countLabel(total, 'visita', 'visitas')} no total)` : ''}. Quem abre um link enviado
           pelo WhatsApp quase sempre aparece em «Direto», porque a app não diz de onde vem.
         </Hint>
       </CardHeader>

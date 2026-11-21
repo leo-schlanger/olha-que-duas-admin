@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -236,8 +236,11 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const shareConfig = parseShareConfig();
+  // Only the newest request may write (a slow 90 d answer must not replace 24 h).
+  const requestId = useRef(0);
 
   const fetchAnalytics = useCallback(async () => {
+    const id = ++requestId.current;
     const share = parseShareConfig();
     if (!share) {
       setData(emptyData);
@@ -270,6 +273,7 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
         fetchUmami('metrics', `${baseParams}&type=referrer&limit=10`, share),
       ]);
 
+      if (id !== requestId.current) return;
       const series = (pageviewsData && typeof pageviewsData === 'object')
         ? pageviewsData as { pageviews?: PageviewData[]; sessions?: PageviewData[] }
         : {};
@@ -286,9 +290,10 @@ export function useAnalytics(timeRange: TimeRange = '7d') {
         referrers: normalizeMetrics(referrers),
       });
     } catch (err) {
+      if (id !== requestId.current) return;
       setError(err instanceof Error ? err.message : 'Erro ao carregar analytics');
     } finally {
-      setLoading(false);
+      if (id === requestId.current) setLoading(false);
     }
   }, [timeRange]);
 

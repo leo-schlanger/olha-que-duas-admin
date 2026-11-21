@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { fetchUmami, parseShareConfig, type ShareConfig, type TimeRange } from './useAnalytics';
 import {
+  createRequestGate,
   DAY_MS,
   groupByProgram,
   groupSources,
@@ -42,9 +43,11 @@ export interface PiecesData {
   sources: SourceStat[];
   totalReads: number;
   prevTotalReads: number;
+  /** Period these numbers belong to (null = nothing loaded). Exports check it. */
+  range: TimeRange | null;
 }
 
-const emptyPieces: PiecesData = { pieces: [], programs: [], sources: [], totalReads: 0, prevTotalReads: 0 };
+const emptyPieces: PiecesData = { pieces: [], programs: [], sources: [], totalReads: 0, prevTotalReads: 0, range: null };
 
 function friendlyError(err: unknown): string {
   const msg = err instanceof Error ? err.message : '';
@@ -83,7 +86,11 @@ export function usePiecesAnalytics(timeRange: TimeRange) {
   const [weeksError, setWeeksError] = useState<string | null>(null);
   const [posts, setPosts] = useState<PostRef[]>([]);
   const catalogRef = useRef<Promise<{ posts: PostRef[]; programs: ProgramRef[] }> | null>(null);
+  // Window of the data on screen (set only when that data is applied).
   const periodRef = useRef<{ startAt: number; endAt: number } | null>(null);
+  // Slow answers for an old period (90 d took 69 s) must not overwrite a newer one.
+  const periodGate = useRef(createRequestGate()).current;
+  const weeksGate = useRef(createRequestGate()).current;
 
   const catalog = useCallback(() => {
     if (!catalogRef.current) {
@@ -96,12 +103,12 @@ export function usePiecesAnalytics(timeRange: TimeRange) {
   const loadPeriod = useCallback(async () => {
     const share = parseShareConfig();
     if (!share) return;
+    const token = periodGate.next();
     setLoading(true);
     setError(null);
     const endAt = Date.now();
     const startAt = endAt - RANGE_MS[timeRange];
     const prevStart = startAt - RANGE_MS[timeRange];
-    periodRef.current = { startAt, endAt };
     try {
       const [cat, cur, prev, refs, channels] = await Promise.all([
         catalog(),
@@ -110,6 +117,7 @@ export function usePiecesAnalytics(timeRange: TimeRange) {
         fetchUmami('metrics/expanded', `${range(startAt, endAt)}&type=referrer&limit=200`, share),
         fetchUmami('metrics/expanded', `${range(startAt, endAt)}&type=channel&limit=50`, share),
       ]);
+      if (!periodGate.isCurrent(token)) return;
       const pieces = mergePieces(cur, cat.posts, cat.programs);
       const prevPieces = mergePieces(prev, cat.posts, cat.programs);
       const prevBySlug = new Map(prevPieces.map((p) => [p.slug, p.pageviews]));
@@ -120,18 +128,23 @@ export function usePiecesAnalytics(timeRange: TimeRange) {
         sources: groupSources(toVisitRows(refs), toVisitRows(channels)),
         totalReads: pieces.reduce((s, p) => s + p.pageviews, 0),
         prevTotalReads: prevPieces.reduce((s, p) => s + p.pageviews, 0),
+        range: timeRange,
       });
+      periodRef.current = { startAt, endAt };
     } catch (err) {
+      if (!periodGate.isCurrent(token)) return;
       setData(emptyPieces);
+      periodRef.current = null;
       setError(friendlyError(err));
     } finally {
-      setLoading(false);
+      if (periodGate.isCurrent(token)) setLoading(false);
     }
-  }, [timeRange, catalog]);
+  }, [timeRange, catalog, periodGate]);
 
   const loadWeeks = useCallback(async () => {
     const share = parseShareConfig();
     if (!share) return;
+    const token = weeksGate.next();
     setWeeksLoading(true);
     setWeeksError(null);
     try {
@@ -140,17 +153,19 @@ export function usePiecesAnalytics(timeRange: TimeRange) {
         catalog(),
         ...windows.map((w) => pathRows(share, w.startAt, w.endAt)),
       ]);
+      if (!weeksGate.isCurrent(token)) return;
       setWeeks(windows.map((w, i) => {
         const pieces = mergePieces(rows[i], cat.posts, cat.programs);
         return { ...w, pageviews: pieces.reduce((s, p) => s + p.pageviews, 0), top: pieces[0] ?? null };
       }));
     } catch (err) {
+      if (!weeksGate.isCurrent(token)) return;
       setWeeks([]);
       setWeeksError(friendlyError(err));
     } finally {
-      setWeeksLoading(false);
+      if (weeksGate.isCurrent(token)) setWeeksLoading(false);
     }
-  }, [catalog]);
+  }, [catalog, weeksGate]);
 
   /** Origins of one piece: one filtered call per address, then summed. */
   const loadPieceSources = useCallback(async (piece: PieceStat): Promise<SourceStat[]> => {
