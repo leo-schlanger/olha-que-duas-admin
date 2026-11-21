@@ -1,4 +1,4 @@
-const ALLOWED_ENDPOINTS = new Set(['stats', 'pageviews', 'metrics']);
+const ALLOWED_ENDPOINTS = new Set(['stats', 'pageviews', 'metrics', 'metrics/expanded']);
 const SHARE_TOKEN_TTL_MS = 50 * 60 * 1000;
 const UA =
   'Mozilla/5.0 (compatible; OlhaQueDuasAdmin/1.0; +https://olhaqueduas.com)';

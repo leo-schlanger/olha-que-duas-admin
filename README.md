@@ -121,7 +121,12 @@ npm run dev
 - **Historico de campanhas** - Estatisticas de abertura, cliques, etc.
 - **Lista de subscritores** - Visualizacao dos subscritores ativos
 
-### Analytics (Umami)
+### Analytics (Umami + Google Search Console)
+- **Resumo em frases** - leituras de peças dos últimos 7 dias vs. os 7 anteriores, peça mais lida, programa mais lido, origem principal
+- **Peças mais lidas** - leituras e pessoas por peça, com o título real (`vinagre_posts`) e o programa (`exclusive_programs`), ↑/↓ vs. período anterior; toque na peça → origem dos leitores dessa peça
+- **Leituras por programa**, **origem das visitas** (Google, Instagram, Facebook, WhatsApp, Direto, Outros) e **semana a semana** (8 janelas de 7 dias)
+- **Pesquisas no Google** (`api/gsc.ts`) - cliques, impressões, CTR, posição média, pesquisas e peças no Google; sem credenciais mostra «Ainda não ligado»
+- **Exportação das peças** - PDF e Excel a partir dos mesmos dados do ecrã
 - **Metricas do site** - Pageviews, visitantes, sessoes, tempo medio
 - **Comparacao temporal** - vs periodo anterior (24h, 7d, 30d, 90d)
 - **Metricas por tipo**:
@@ -133,6 +138,21 @@ npm run dev
   - Fontes de trafego (referrers)
 - **Grafico de pageviews** - Visualizacao por dia
 - **Exportacao de relatorios** - PDF e CSV
+
+#### Search Console: variáveis na Vercel (projeto `olha-que-duas-admin`)
+- `GSC_SERVICE_ACCOUNT_JSON` = o ficheiro JSON da chave da conta de serviço, inteiro (ou, em alternativa, `GSC_CLIENT_EMAIL` + `GSC_PRIVATE_KEY`)
+- `GSC_SITE_URL` = `sc-domain:olhaqueduas.com` (propriedade de domínio) ou `https://www.olhaqueduas.com/` (prefixo de URL), igual ao nome da propriedade no Search Console
+- A conta de serviço entra na propriedade como utilizador com acesso restrito; scope `webmasters.readonly`. Depois de pôr as variáveis, publicar de novo (redeploy).
+- O endpoint exige sessão de administrador (mesma regra do `_shared/auth.ts`: `auth/v1/user` + `rpc/is_admin`) e lê `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` do ambiente do servidor.
+
+#### Achados (21/11/2026)
+- Umami `metrics?type=path` devolve **pessoas** (visitantes) em `y`, não visualizações: para leituras usa-se `metrics/expanded` (pageviews, visitors, visits por linha). O `stats` com filtro `path=` confirma (263 leituras / 243 pessoas na peça do Mourinho, 30 dias).
+- Desde 20/11/2026 `/exclusivo/<prog>/<slug>` faz 301 para `/programas/<prog>/<slug>`; há ainda `/exclusivo/<slug>` (8 notícias antigas) e `olha-que-duas-e-eu` → Notícias. `src/lib/pecasAnalytics.ts` (`piecePathOf`) espelha o `legacyRedirect` do site e junta todos os endereços na mesma peça; o programa vem do `program_id` da peça, não do endereço. Lista `LEGACY_NEWS_SLUGS` copiada do `middleware.ts` do site: se mudar lá, mudar cá.
+- O Umami não aceita `unit=week` (400): as semanas são 8 pedidos de 7 dias seguidos que acabam agora (comparáveis entre si).
+- A lista de referrers não traz as visitas diretas; o «Direto» vem de `type=channel` (`direct`). O WhatsApp quase nunca manda referrer (30 dias sem nenhum host WhatsApp): conta como «Direto».
+- «Pessoas» de uma peça = soma das pessoas de cada endereço (quem abriu o antigo e o novo conta 2×; raro). Por programa só se mostram leituras (somáveis).
+- `api/umami-proxy.ts` é público (sem sessão): só lê o share token, que já é público. O `api/gsc.ts` não é: exige admin.
+- Testes: `npm test` (`node --test`, Node 24 corre .ts direto); `tests/fixtures/umami-paths-30d.json` é uma amostra real de 30 dias.
 
 ### Radio (AzuraCast)
 - **Status em tempo real** - Online/Offline, Ao Vivo/AutoDJ
@@ -160,7 +180,7 @@ ouvintes simultaneos a cada 5 minutos. Tudo em hora de Lisboa.
 - Testes das frases: `node --test tests/audience-insights.test.ts`
 
 #### Achados da audiencia (21/11/2026)
-- Desde 01/11/2026 uma ligacao `curl/8.5.0` (IP 46.225.17.x, Nuremberga, Hetzner) esta ligada ao stream 24 h por dia.
+- Desde 01/11/2026 uma ligacao `curl/8.5.0` (IP 46.225.17.x, Nuremberga) esta ligada ao stream 24 h por dia.
   As metricas de ligacoes ja excluiam robos, mas as fotografias de 5 min (`listeners_current` do AzuraCast) contavam-na:
   a media de simultaneos aparecia 1,1 em vez de 0,12, o "tempo com alguem a ouvir" 100 % e o mapa de horas todo preenchido.
   `audiencia-sem-robos.sql` desconta os robos ligados em cada fotografia (hash distinto, folga de 30 s); reconciliacao em prod:

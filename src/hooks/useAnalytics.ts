@@ -207,7 +207,7 @@ async function fetchViaSupabaseProxy(endpoint: string, params: string, share: Sh
   return readJson(response);
 }
 
-async function fetchUmami(endpoint: string, params: string, share: ShareConfig): Promise<unknown> {
+export async function fetchUmami(endpoint: string, params: string, share: ShareConfig): Promise<unknown> {
   try {
     return await fetchViaSameOrigin(endpoint, params, share);
   } catch (originError) {

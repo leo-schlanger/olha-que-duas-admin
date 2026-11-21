@@ -41,6 +41,14 @@ import { useAnalytics, type MetricData } from '../hooks/useAnalytics';
 import { cn } from '../lib/utils';
 import { getCountryName } from '../lib/countries';
 import { generateAnalyticsCSV, generateAnalyticsPDF } from '../lib/reportGenerator';
+import { generatePiecesExcel, generatePiecesPDF } from '../lib/piecesReport';
+import { usePiecesAnalytics } from '../hooks/usePiecesAnalytics';
+import { PiecesSummary } from '../components/analytics/PiecesSummary';
+import { TopPieces } from '../components/analytics/TopPieces';
+import { ProgramsReads } from '../components/analytics/ProgramsReads';
+import { SourcesCard } from '../components/analytics/SourcesCard';
+import { WeeklyTrend } from '../components/analytics/WeeklyTrend';
+import { SearchConsoleCard } from '../components/analytics/SearchConsoleCard';
 
 type TimeRange = '24h' | '7d' | '30d' | '90d';
 
@@ -49,6 +57,13 @@ const timeRangeLabels: Record<TimeRange, string> = {
   '7d': 'Últimos 7 dias',
   '30d': 'Últimos 30 dias',
   '90d': 'Últimos 90 dias',
+};
+
+const timeRangeShort: Record<TimeRange, string> = {
+  '24h': '24 h',
+  '7d': '7 dias',
+  '30d': '30 dias',
+  '90d': '90 dias',
 };
 
 const deviceIcons: Record<string, typeof Monitor> = {
@@ -96,7 +111,7 @@ function StatCard({
   };
 
   return (
-    <Card className="bg-cream border-beige-medium">
+    <Card className="bg-cream border-beige-medium min-w-0">
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div>
@@ -164,7 +179,7 @@ function MetricsList({
   const maxValue = data.length > 0 ? Math.max(...data.map((d) => d.y)) : 0;
 
   return (
-    <Card className="bg-cream border-beige-medium">
+    <Card className="bg-cream border-beige-medium min-w-0">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
           <Icon className="w-4 h-4 text-vermelho" />
@@ -241,7 +256,7 @@ function PageviewsChart({
   });
 
   return (
-    <Card className="bg-cream border-beige-medium">
+    <Card className="bg-cream border-beige-medium min-w-0">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
@@ -328,7 +343,7 @@ function DevicesCard({ data }: { data: MetricData[] }) {
   }));
 
   return (
-    <Card className="bg-cream border-beige-medium">
+    <Card className="bg-cream border-beige-medium min-w-0">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold text-charcoal">
           <Monitor className="w-4 h-4 text-vermelho" />
@@ -390,6 +405,13 @@ function DevicesCard({ data }: { data: MetricData[] }) {
 export function Analytics() {
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
   const { data, loading, error, refresh, shareUrl, configured } = useAnalytics(timeRange);
+  const pieces = usePiecesAnalytics(timeRange);
+  const titleBySlug = new Map(pieces.posts.map((p) => [p.slug.toLowerCase(), p.title]));
+  const refreshAll = () => {
+    refresh();
+    pieces.refresh();
+  };
+  const piecesReport = { periodLabel: timeRangeLabels[timeRange], data: pieces.data, weeks: pieces.weeks };
 
   return (
     <div className="space-y-6">
@@ -397,7 +419,7 @@ export function Analytics() {
         <div>
           <h2 className="text-xl font-display font-bold text-charcoal">Analytics</h2>
           <p className="text-sm text-muted-foreground">
-            Métricas e estatísticas do site olhaqueduas.com
+            Quantas pessoas leem o site olhaqueduas.com, que peças leem e de onde vêm
           </p>
         </div>
 
@@ -407,6 +429,8 @@ export function Analytics() {
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
+                aria-pressed={timeRange === range}
+                title={timeRangeLabels[range]}
                 className={cn(
                   'px-3 py-1.5 text-sm font-medium rounded-md transition-all',
                   timeRange === range
@@ -414,7 +438,7 @@ export function Analytics() {
                     : 'text-muted-foreground hover:text-charcoal'
                 )}
               >
-                {range}
+                {timeRangeShort[range]}
               </button>
             ))}
           </div>
@@ -425,7 +449,7 @@ export function Analytics() {
                 variant="outline"
                 size="sm"
                 className="border-beige-medium"
-                disabled={loading || !data.stats}
+                disabled={(loading || !data.stats) && pieces.data.pieces.length === 0}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Exportar
@@ -433,22 +457,38 @@ export function Analytics() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
+                disabled={pieces.data.pieces.length === 0}
+                onClick={() => generatePiecesPDF(piecesReport)}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Peças: PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={pieces.data.pieces.length === 0}
+                onClick={() => generatePiecesExcel(piecesReport)}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Peças: Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!data.stats}
                 onClick={() => generateAnalyticsPDF({
                   ...data,
                   timeRange: timeRangeLabels[timeRange],
                 })}
               >
                 <FileText className="w-4 h-4 mr-2" />
-                Exportar PDF
+                Site: PDF
               </DropdownMenuItem>
               <DropdownMenuItem
+                disabled={!data.stats}
                 onClick={() => generateAnalyticsCSV({
                   ...data,
                   timeRange: timeRangeLabels[timeRange],
                 })}
               >
                 <Download className="w-4 h-4 mr-2" />
-                Exportar CSV
+                Site: CSV
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -470,8 +510,8 @@ export function Analytics() {
           <Button
             variant="outline"
             size="sm"
-            onClick={refresh}
-            disabled={loading}
+            onClick={refreshAll}
+            disabled={loading || pieces.loading}
             className="border-beige-medium"
           >
             <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} />
@@ -481,7 +521,7 @@ export function Analytics() {
       </div>
 
       {!configured ? (
-        <Card className="bg-cream border-beige-medium">
+        <Card className="bg-cream border-beige-medium min-w-0">
           <CardContent className="flex flex-col items-center text-center gap-4 py-12 px-6">
             <div className="w-14 h-14 rounded-full bg-vermelho/10 flex items-center justify-center">
               <BarChart3 className="w-7 h-7 text-vermelho" />
@@ -507,9 +547,57 @@ export function Analytics() {
         </Card>
       ) : (
         <>
+          <PiecesSummary
+            weeks={pieces.weeks}
+            weeksLoading={pieces.weeksLoading}
+            data={pieces.data}
+            periodLabel={timeRangeLabels[timeRange]}
+            sameAsWeek={timeRange === '7d'}
+            loading={pieces.loading}
+          />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 min-w-0">
+              <TopPieces
+                key={timeRange}
+                pieces={pieces.data.pieces}
+                loading={pieces.loading}
+                error={pieces.error}
+                onRetry={pieces.refresh}
+                loadSources={pieces.loadPieceSources}
+              />
+            </div>
+            <div className="space-y-4 min-w-0">
+              <ProgramsReads
+                programs={pieces.data.programs}
+                loading={pieces.loading}
+                error={pieces.error}
+                onRetry={pieces.refresh}
+              />
+              <SourcesCard
+                sources={pieces.data.sources}
+                loading={pieces.loading}
+                error={pieces.error}
+                onRetry={pieces.refresh}
+              />
+            </div>
+          </div>
+
+          <WeeklyTrend
+            weeks={pieces.weeks}
+            loading={pieces.weeksLoading}
+            error={pieces.weeksError}
+            onRetry={pieces.refresh}
+          />
+
+          <SearchConsoleCard titleOf={(slug) => titleBySlug.get(slug)} />
+
+          <h3 className="font-display text-lg font-semibold text-charcoal pt-2">O site inteiro</h3>
+
           {error && (
             <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg">
-              {error}
+              Não foi possível ler os números do site agora. Carregue em «Atualizar» daqui a pouco.
+              <span className="block text-xs opacity-70 mt-1">{error}</span>
             </div>
           )}
 
@@ -564,7 +652,7 @@ export function Analytics() {
               )}
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-2 min-w-0">
                   <PageviewsChart
                     pageviews={data.pageviews}
                     sessions={data.sessions}
@@ -576,7 +664,7 @@ export function Analytics() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <MetricsList
-                  title="Páginas Mais Visitadas"
+                  title="Páginas mais visitadas (pessoas)"
                   icon={Eye}
                   data={data.pages}
                   formatLabel={(item) => {
