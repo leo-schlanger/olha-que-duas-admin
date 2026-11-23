@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 OUT = Path(__file__).parent / "img"
 DRIVE = Path("/mnt/c/Users/leosc/Desktop/video/projetos/pimenta-zaza/fonte/drive")
-ZAZA = Path("/mnt/d/Projetos/olha-que-duas-admin/supabase/rascunhos/francisco-monteiro-desiste-big-brother-all-stars-fotos/1.jpg")
+ZAZA = Path("/mnt/e/Projetos/olha-que-duas-admin/supabase/rascunhos/francisco-monteiro-desiste-big-brother-all-stars-fotos/1.jpg")
 ALEX = Path("/mnt/c/Users/leosc/Desktop/video/ferramentas/marca/alexandra-serra-real.png")
 COVER = (190, 172, 160)
 

@@ -5,7 +5,7 @@ import { homedir } from "node:os";
 import { resolve, join } from "node:path";
 import { pathToFileURL } from "node:url";
 const require = createRequire(import.meta.url);
-const { chromium } = require(process.env.PLAYWRIGHT_CORE || resolve("/mnt/d/Projetos/olha-que-duas/node_modules/playwright-core"));
+const { chromium } = require(process.env.PLAYWRIGHT_CORE || resolve("/mnt/e/Projetos/olha-que-duas/node_modules/playwright-core"));
 const exe = process.env.CHROMIUM_PATH || join(homedir(), ".cache/ms-playwright/chromium-1243/chrome-linux64/chrome");
 const a = process.argv.slice(2);
 const b = await chromium.launch({ executablePath: exe });

@@ -2,7 +2,7 @@
 import numpy as np, cv2
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 E = "/home/leosc/.cache/ceu-capas/esrgan/"
-F = "/mnt/d/Projetos/olha-que-duas-admin/scripts/capas/fonts/"
+F = "/mnt/e/Projetos/olha-que-duas-admin/scripts/capas/fonts/"
 im = Image.open(E + "RealESRGAN_x4plus-4x.png").convert("RGB")
 a = np.asarray(im).copy()
 x0, y0, x1, y1 = 172, 424, 344, 464
@@ -48,5 +48,5 @@ r = 232
 c = im.crop((256 - r, 256 - r, 256 + r, 256 + r)).convert("RGBA")
 m = Image.new("L", (r * 8, r * 8), 0); ImageDraw.Draw(m).ellipse((0, 0, r * 8 - 1, r * 8 - 1), 255)
 c.putalpha(m.resize((2 * r, 2 * r), Image.LANCZOS))
-c.save("/mnt/d/Projetos/olha-que-duas-admin/scripts/capas/assets/ceu/medalhao-esrgan.png")
+c.save("/mnt/e/Projetos/olha-que-duas-admin/scripts/capas/assets/ceu/medalhao-esrgan.png")
 print("ok", c.size)

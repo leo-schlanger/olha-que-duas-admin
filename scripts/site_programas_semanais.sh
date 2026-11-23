@@ -2,7 +2,7 @@
 # Site grid: weekly event + icon for a radio programme. Usage: site_programas_semanais.sh vidioteca|lendas
 set -euo pipefail
 export PATH=~/.nvm/versions/node/v24.18.1/bin:$PATH
-cd /mnt/d/Projetos/olha-que-duas-admin
+cd "$(dirname "$0")/.."
 case "${1:?vidioteca|lendas}" in
   vidioteca) ICON=/mnt/c/Users/leosc/Desktop/video/projetos/vidioteca/arte/icone-vidioteca-128.png; OBJ=vidioteca.png; SQL=supabase/vidioteca-olha-que-duas.sql;;
   lendas) ICON=/mnt/c/Users/leosc/Desktop/video/projetos/lendas-portugal-2026/l6/arte/icone-lendas-128.png; OBJ=lendas-de-portugal.png; SQL=supabase/lendas-de-portugal-semanal.sql;;

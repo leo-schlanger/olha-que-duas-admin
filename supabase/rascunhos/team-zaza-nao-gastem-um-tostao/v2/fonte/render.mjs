@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
-const { chromium } = createRequire(import.meta.url)("/mnt/d/Projetos/olha-que-duas/node_modules/playwright-core");
+const { chromium } = createRequire(import.meta.url)("/mnt/e/Projetos/olha-que-duas/node_modules/playwright-core");
 const jobs = [
   ["capa", 1, "capa-com-foto", 1600, 1000], ["capa", 0, "capa-sem-foto", 1600, 1000],
   ["og", 1, "og-com-foto", 1200, 630], ["og", 0, "og-sem-foto", 1200, 630],
