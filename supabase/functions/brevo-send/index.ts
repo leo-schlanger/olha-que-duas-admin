@@ -133,7 +133,7 @@ function generateEmailTemplate(blocks: (ContentBlock | LegacyBlock)[]): string {
           <!-- Header with Logo - LARGER -->
           <tr>
             <td style="background-color: #2D2D2D; padding: 48px 32px; text-align: center;">
-              <img src="https://www.olhaqueduas.com/assets/logo-olha-que-duas-BfEMMZfu.png" alt="Olha que Duas" style="height: 140px; width: auto;">
+              <img src="https://www.olhaqueduas.com/logo-olha-que-duas.png" alt="Olha que Duas" style="height: 140px; width: auto;">
             </td>
           </tr>
 
